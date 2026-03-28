@@ -1,6 +1,12 @@
 import mongoose from 'mongoose';
 
-const EMPLOYEE_STATIONS = ['manager', 'cashier', 'kitchen', 'shipper', 'staff'];
+const EMPLOYEE_STATIONS = [
+    'manager',
+    'cashier',
+    'kitchen',
+    'delivery',
+    'staff',
+];
 const SALARY_TYPES = ['hourly', 'monthly'];
 
 const isValidPastDate = (value) => {

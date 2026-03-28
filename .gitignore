@@ -98,3 +98,5 @@ pnpm-lock.yaml
 *.local
 *.log.old
 .history/
+postman/
+seeds/

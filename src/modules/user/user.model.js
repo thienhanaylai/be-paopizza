@@ -1,13 +1,6 @@
 import mongoose from 'mongoose';
-
-const USER_ROLES = [
-    'admin',
-    'manager',
-    'cashier',
-    'kitchen',
-    'shipper',
-    'staff',
-];
+import bcrypt from 'bcrypt';
+const USER_ROLES = ['admin', 'manager', 'staff'];
 const USER_TYPES = ['Employee', 'Customer'];
 
 const userSchema = new mongoose.Schema(
@@ -53,9 +46,35 @@ const userSchema = new mongoose.Schema(
             type: Boolean,
             default: true,
         },
+        cart: {
+            type: [
+                {
+                    product_id: {
+                        type: mongoose.Schema.Types.ObjectId,
+                        ref: 'Product',
+                    },
+                    size: { type: String, trim: true },
+                    quantity: { type: Number, min: 1 },
+                },
+            ],
+            default: [],
+        },
     },
     { timestamps: true },
 );
+userSchema.pre('save', async function (next) {
+    if (!this.isModified('password')) {
+        return next();
+    }
+
+    try {
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
 
 export const User = mongoose.model('User', userSchema);
 

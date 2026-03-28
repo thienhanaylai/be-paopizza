@@ -1,6 +1,8 @@
 import express from 'express';
-import userRoutes from './user.routes.js';
-
+import authRoutes from '../modules/auth/auth.route.js';
+import userRoutes from '../modules/user/user.route.js';
+import customerRoutes from '../modules/customer/customer.route.js';
+import cartRoutes from '../modules/cart/cart.route.js';
 const router = express.Router();
 
 router.get('/health', (_req, res) =>
@@ -10,6 +12,8 @@ router.get('/health', (_req, res) =>
     }),
 );
 
+router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
-
+router.use('/customers', customerRoutes);
+router.use('/cart', cartRoutes);
 export default router;

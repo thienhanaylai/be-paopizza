@@ -42,11 +42,6 @@ const payrollSchema = new mongoose.Schema(
             ref: 'Employee',
             required: true,
         },
-        store_id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Store',
-            required: true,
-        },
         period: {
             type: periodSchema,
             required: true,

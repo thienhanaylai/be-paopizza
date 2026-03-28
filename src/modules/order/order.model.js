@@ -79,6 +79,11 @@ const orderSchema = new mongoose.Schema(
             ref: 'Customer',
             default: null,
         },
+        employee_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Employee',
+            default: null,
+        },
         items: {
             type: [itemSchema],
             required: true,
