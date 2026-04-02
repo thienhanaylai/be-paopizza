@@ -1,11 +1,10 @@
 import { Customer } from './customer.model.js';
-import { User } from '../user/user.model.js'; // Đường dẫn trỏ tới bảng User
+import { User } from '../user/user.model.js';
 
 export const registerCustomer = async (data) => {
-    // 1. Tách dữ liệu ra thành 2 phần riêng biệt
     const { username, password, name, phone, address, email } = data;
 
-    // Kiểm tra nhanh username trước để tránh mất công tạo Customer
+    // Kiểm tra username
     const existingUser = await User.findOne({ username });
     if (existingUser) {
         throw new Error('Tên đăng nhập đã tồn tại trong hệ thống');
@@ -14,7 +13,7 @@ export const registerCustomer = async (data) => {
     let newCustomer = null;
 
     try {
-        // 2. TẠO CUSTOMER TRƯỚC
+        // tạo thông tin customer trước khi tạo tài khoản user
         newCustomer = await Customer.create({
             name,
             phone,
@@ -22,16 +21,14 @@ export const registerCustomer = async (data) => {
             email,
         });
 
-        // 3. TẠO USER TỪ ID CỦA CUSTOMER
         const newUser = await User.create({
             username,
-            password, // Sẽ tự động hash nhờ pre-save hook bạn đã viết
+            password, // tự động hash password
             user_type: 'Customer',
-            role: null, // Khách hàng không có role
-            ref_id: newCustomer._id, // Gắn _id của Customer vào đây
+            role: null,
+            ref_id: newCustomer._id, // Gắn _id của Customer
         });
 
-        // 4. Định dạng dữ liệu trả về (ẩn mật khẩu)
         const userResponse = newUser.toObject();
         delete userResponse.password;
 

@@ -20,12 +20,14 @@ const customerSchema = new mongoose.Schema(
         phone: {
             type: String,
             trim: true,
+            unique: true,
             default: '',
         },
         email: {
             type: String,
             trim: true,
             lowercase: true,
+            unique: true,
             default: '',
         },
     },

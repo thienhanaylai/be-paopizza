@@ -7,8 +7,8 @@ const requireAuth = passport.authenticate('jwt', { session: false });
 const requireAdmin = authorize(['admin']);
 const router = express.Router();
 
-router.post('/', userController.create);
-router.get('/', userController.getAll);
+router.post('/create', requireAuth, requireAdmin, userController.create);
+router.get('/', requireAuth, requireAdmin, userController.getAll);
 router.get('/:id', userController.getById);
 router.patch(
     '/:id/status',

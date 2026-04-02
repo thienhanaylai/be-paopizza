@@ -6,13 +6,18 @@ import * as authController from './auth.controller.js';
 const router = express.Router();
 
 router.post(
-    '/login',
+    '/EmployeeLogin',
     passport.authenticate('local', { session: false }),
-    authController.login,
+    authController.EmployeeLogin,
+);
+
+router.post(
+    '/CustomerLogin',
+    passport.authenticate('local', { session: false }),
+    authController.CustomerLogin,
 );
 
 router.post('/refresh', authController.refreshToken);
-
 router.post('/logout', authController.logout);
 
 export default router;

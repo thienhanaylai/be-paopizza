@@ -9,6 +9,7 @@ import passport from 'passport';
 import 'dotenv/config';
 import { localStrategy } from './modules/auth/strategies/local.strategy.js';
 import { jwtStrategy } from './modules/auth/strategies/jwt.strategy.js';
+import errorHandler from './middlewares/errorHandler.js';
 const app = express();
 
 app.use(passport.initialize());
@@ -33,5 +34,5 @@ app.use(cookieParser());
 
 // Routes
 app.use('/api/v1', router);
-
+app.use(errorHandler);
 export default app;

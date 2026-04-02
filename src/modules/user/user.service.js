@@ -3,6 +3,7 @@ import '../employee/employee.model.js';
 import '../customer/customer.model.js';
 
 export const createUser = async (userData) => {
+    // admin dùng tạo tài khảon
     const existingUser = await User.findOne({ username: userData.username });
     if (existingUser) {
         throw new Error('Tên đăng nhập đã tồn tại trong hệ thống');

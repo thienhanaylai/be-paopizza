@@ -1,6 +1,6 @@
 import * as customerService from './customer.service.js';
 
-export const register = async (req, res) => {
+export const register = async (req, res, next) => {
     try {
         const { username, password, name, phone, address, email } = req.body;
 
@@ -27,6 +27,6 @@ export const register = async (req, res) => {
             data: result,
         });
     } catch (error) {
-        return res.status(400).json({ message: error.message });
+        next(error);
     }
 };

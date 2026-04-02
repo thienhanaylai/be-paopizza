@@ -14,8 +14,7 @@ export const authorize = (allowedRoles = []) => {
 
         if (allowedRoles.length && !allowedRoles.includes(user.role)) {
             return res.status(403).json({
-                message:
-                    'Bạn không có quyền (Forbidden) để thực hiện hành động này',
+                message: 'Bạn không có quyền để thực hiện hành động này',
             });
         }
 

@@ -1,22 +1,27 @@
-import logger from '../utils/logger.js';
-import { Constants } from '../config/constants.js';
-import environment from '../config/environment.js';
+const errorHandler = (err, req, res, _next) => {
+    if (err.code === 11000) {
+        const field = Object.keys(err.keyValue || {})[0] || 'field';
+        return res.status(400).json({
+            success: false,
+            message: `Giá trị ${field} đã tồn tại!`,
+        });
+    }
 
-export const errorHandler = (err, req, res, _next) => {
-    const statusCode = err.statusCode || Constants.HTTP_STATUS.INTERNAL_ERROR;
-    const message = err.message || 'Internal Server Error';
+    if (err.name === 'ValidationError') {
+        const messages = Object.values(err.errors).map((e) => e.message);
+        return res.status(400).json({ success: false, message: messages[0] });
+    }
 
-    logger.error({
-        message,
-        statusCode,
-        url: req.originalUrl,
-        method: req.method,
-        stack: err.stack,
-    });
+    if (err.name === 'CastError') {
+        return res.status(400).json({
+            success: false,
+            message: `Dữ liệu không hợp lệ: ${err.path} phải là ${err.kind}`,
+        });
+    }
 
-    res.status(statusCode).json({
+    res.status(500).json({
         success: false,
-        message,
-        ...(environment.isDevelopment && { stack: err.stack }),
+        message: 'Lỗi server. Vui lòng thử lại!',
     });
 };
+export default errorHandler;

@@ -1,82 +1,25 @@
-import { cartService } from './cart.service.js';
+import * as cartService from './cart.service.js';
 
-export const cartController = {
-    // 1. Lấy giỏ hàng
-    getCart: async (req, res, next) => {
-        try {
-            const userId = req.user.id; // Giả sử đã có middleware auth
-            const cart = await cartService.getCartByUserId(userId);
+export const getCart = async (req, res) => {
+    try {
+        const { userId } = req.params;
 
-            // Định dạng trực tiếp chuẩn trả về
-            return res.status(200).json({
-                data: cart,
-                pagination: null, // Giỏ hàng không cần phân trang nên để null hoặc bỏ qua
-            });
-        } catch (error) {
-            next(error);
-        }
-    },
+        const result = await cartService.getCart({ userId });
+        return res.status(200).json({ result });
+    } catch (error) {
+        return res.status(400).json({ message: error.message });
+    }
+};
 
-    // 2. Thêm món vào giỏ
-    addToCart: async (req, res, next) => {
-        try {
-            const userId = req.user.id;
-            const productData = req.body;
+export const addToCart = async (req, res) => {
+    const { userId, product_id, size, quantity = 1, note = '' } = req.body;
 
-            const updatedCart = await cartService.addToCart(
-                userId,
-                productData,
-            );
-
-            return res.status(201).json({
-                data: updatedCart,
-                pagination: null,
-            });
-        } catch (error) {
-            next(error);
-        }
-    },
-
-    // 3. Cập nhật số lượng
-    updateQuantity: async (req, res, next) => {
-        try {
-            const userId = req.user.id;
-            const { product_id, size, quantity } = req.body;
-
-            const updatedCart = await cartService.updateItemQuantity(
-                userId,
-                product_id,
-                size,
-                quantity,
-            );
-
-            return res.status(200).json({
-                data: updatedCart,
-                pagination: null,
-            });
-        } catch (error) {
-            next(error);
-        }
-    },
-
-    // 4. Xóa món khỏi giỏ
-    removeItem: async (req, res, next) => {
-        try {
-            const userId = req.user.id;
-            const { productId, size } = req.params;
-
-            const updatedCart = await cartService.removeItemFromCart(
-                userId,
-                productId,
-                size,
-            );
-
-            return res.status(200).json({
-                data: updatedCart,
-                pagination: null,
-            });
-        } catch (error) {
-            next(error);
-        }
-    },
+    const result = await cartService.addToCart({
+        userId,
+        product_id,
+        size,
+        quantity,
+        note,
+    });
+    return res.status(200).json({ result });
 };

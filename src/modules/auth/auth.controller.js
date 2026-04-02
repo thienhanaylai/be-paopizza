@@ -1,6 +1,40 @@
 import * as authService from './auth.service.js';
 
-export const login = (req, res) => {
+export const EmployeeLogin = (req, res) => {
+    //luồng đăng nhập cho employee
+    try {
+        const user = req.user;
+
+        const { accessToken, refreshToken } =
+            authService.generateAuthTokens(user);
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            // secure: process.env.NODE_ENV === 'production',
+            // sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
+        });
+        if (user.user_type === 'Customer')
+            return res.status(403).json({
+                message: 'Vui lòng đăng nhập bằng tài khoản nhân viên !',
+            });
+        return res.status(200).json({
+            message: 'Đăng nhập thành công',
+            accessToken,
+            user: {
+                id: user._id,
+                email: user.email,
+                role: user.role,
+            },
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: 'Lỗi server khi đăng nhập' });
+    }
+};
+
+export const CustomerLogin = (req, res) => {
+    //luồng đăng nhập cho khách hàng
     try {
         const user = req.user;
 
@@ -14,6 +48,10 @@ export const login = (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
         });
 
+        if (user.user_type === 'Employee')
+            return res.status(403).json({
+                message: 'Vui lòng đăng nhập bằng tài khoản khách hàng !',
+            });
         return res.status(200).json({
             message: 'Đăng nhập thành công',
             accessToken,
@@ -24,6 +62,7 @@ export const login = (req, res) => {
             },
         });
     } catch (error) {
+        console.log(error);
         return res.status(500).json({ message: 'Lỗi server khi đăng nhập' });
     }
 };

@@ -5,7 +5,7 @@ const EMPLOYEE_STATIONS = [
     'cashier',
     'kitchen',
     'delivery',
-    'staff',
+    'barista',
 ];
 const SALARY_TYPES = ['hourly', 'monthly'];
 
@@ -47,7 +47,6 @@ const employeeSchema = new mongoose.Schema(
         store_id: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Store',
-            required: true,
         },
         name: {
             type: String,

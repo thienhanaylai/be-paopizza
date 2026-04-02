@@ -1,6 +1,7 @@
 import * as userService from './user.service.js';
 
 export const create = async (req, res) => {
+    //dành cho admin
     try {
         const userData = req.body;
 
