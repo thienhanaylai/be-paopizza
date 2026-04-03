@@ -1,0 +1,843 @@
+{
+  "info": {
+    "_postman_id": "d4e5ca2d-2f14-47fe-a5cf-6f4e19af8642",
+    "name": "PaoPizza API",
+    "description": "Backend API for PaoPizza.\n\nBase path: `/api/v1`\n\n**Active modules**: auth (including changePassword), users, customers (register + update), employees, cart\n\n**Stub modules (model only, no routes yet)**: product, order, category, ingredient, store, supplier, shift, inventory, promotion, payroll, schedule\n\n**Auth**: Passport.js Local + JWT (Bearer token) + Change Password\n\n**Seed credentials** (password: `12345678`):\n- `admin_q1` (admin/Employee)\n- `manager_q1` (manager/Employee)\n- `cashier_hk`, `kitchen_tan`, `staff_lan`, `delivery_nam` (staff/Employee)\n- `customer_a`, `customer_b`, `customer_c`, `customer_d` (Customer)\n\n**Rate limit**: 100 requests per 15 minutes\n\n**Note**: Change Password requires valid JWT Bearer token in Authorization header. Do not send user_id in body.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health",
+            "description": "Basic service health endpoint.\n\n**Response 200**:\n```json\n{\n  \"status\": \"OK\",\n  \"timestamp\": \"2024-01-01T00:00:00.000Z\"\n}\n```"
+          },
+          "response": [
+            {
+              "name": "200 - OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/health"
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"OK\",\n  \"timestamp\": \"2024-01-01T00:00:00.000Z\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "description": "Authentication endpoints using Passport.js.\n\n- **Local strategy**: username/password login\n- **JWT strategy**: Bearer token from `Authorization` header\n- **Refresh token**: stored in httpOnly cookie (`refreshToken`)\n- **Access token**: expires in 1 day\n- **Refresh token**: expires in 7 days",
+      "item": [
+        {
+          "name": "Employee Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let data = {};",
+                  "try { data = pm.response.json(); } catch (e) {}",
+                  "if (data.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', data.accessToken);",
+                  "    console.log('accessToken saved');",
+                  "}",
+                  "if (data.user && data.user.id) {",
+                  "    pm.collectionVariables.set('userId', data.user.id);",
+                  "    console.log('userId saved:', data.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin_q1\",\n  \"password\": \"12345678\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/auth/EmployeeLogin",
+            "description": "Login for Employee accounts via Passport local strategy.\n\nWill reject if `user_type` is `Customer`.\n\n**Body**:\n| Field | Type | Required |\n|-------|------|----------|\n| username | string | Yes |\n| password | string | Yes |\n\n**Response 200**:\n```json\n{\n  \"message\": \"Đăng nhập thành công\",\n  \"accessToken\": \"JWT string\",\n  \"user\": { \"id\": \"...\", \"email\": \"...\", \"role\": \"admin\" }\n}\n```\n+ Sets `refreshToken` httpOnly cookie (7 days)\n\n**Response 403**: `{ \"message\": \"Vui lòng đăng nhập bằng tài khoản nhân viên !\" }`\n**Response 401**: Passport authentication failed"
+          },
+          "response": [
+            {
+              "name": "200 - Login Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"admin_q1\",\n  \"password\": \"12345678\"\n}"
+                },
+                "url": "{{baseUrl}}/auth/EmployeeLogin"
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Đăng nhập thành công\",\n  \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"user\": {\n    \"id\": \"67a8b123456789abcdef0001\",\n    \"email\": \"admin@paopizza.com\",\n    \"role\": \"admin\"\n  }\n}"
+            },
+            {
+              "name": "403 - Wrong User Type",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"customer_a\",\n  \"password\": \"12345678\"\n}"
+                },
+                "url": "{{baseUrl}}/auth/EmployeeLogin"
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Vui lòng đăng nhập bằng tài khoản nhân viên !\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Customer Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let data = {};",
+                  "try { data = pm.response.json(); } catch (e) {}",
+                  "if (data.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', data.accessToken);",
+                  "    console.log('accessToken saved');",
+                  "}",
+                  "if (data.user && data.user.id) {",
+                  "    pm.collectionVariables.set('userId', data.user.id);",
+                  "    pm.collectionVariables.set('userIdForCart', data.user.id);",
+                  "    console.log('userId saved:', data.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"customer_a\",\n  \"password\": \"12345678\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/auth/CustomerLogin",
+            "description": "Login for Customer accounts via Passport local strategy.\n\nWill reject if `user_type` is `Employee`.\n\n**Body**:\n| Field | Type | Required |\n|-------|------|----------|\n| username | string | Yes |\n| password | string | Yes |\n\n**Response 200**:\n```json\n{\n  \"message\": \"Đăng nhập thành công\",\n  \"accessToken\": \"JWT string\",\n  \"user\": { \"id\": \"...\", \"email\": \"...\", \"role\": null }\n}\n```\n+ Sets `refreshToken` httpOnly cookie (7 days)\n\n**Response 403**: `{ \"message\": \"Vui lòng đăng nhập bằng tài khoản khách hàng !\" }`\n**Response 401**: Passport authentication failed"
+          },
+          "response": [
+            {
+              "name": "200 - Login Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"customer_a\",\n  \"password\": \"12345678\"\n}"
+                },
+                "url": "{{baseUrl}}/auth/CustomerLogin"
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Đăng nhập thành công\",\n  \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"user\": {\n    \"id\": \"67a8b123456789abcdef0007\",\n    \"email\": \"customer_a@example.com\",\n    \"role\": null\n  }\n}"
+            },
+            {
+              "name": "403 - Wrong User Type",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"admin_q1\",\n  \"password\": \"12345678\"\n}"
+                },
+                "url": "{{baseUrl}}/auth/CustomerLogin"
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Vui lòng đăng nhập bằng tài khoản khách hàng !\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Refresh Access Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let data = {};",
+                  "try { data = pm.response.json(); } catch (e) {}",
+                  "if (data.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', data.accessToken);",
+                  "    console.log('accessToken refreshed');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/auth/refresh",
+            "description": "Refresh the access token using the `refreshToken` httpOnly cookie.\n\nPostman cookie jar should keep the cookie after login.\n\n**Response 200**:\n```json\n{\n  \"accessToken\": \"new JWT string\"\n}\n```\n+ Sets new `refreshToken` httpOnly cookie\n\n**Response 401**: `{ \"message\": \"Không tìm thấy Refresh Token\" }`\n**Response 403**: `{ \"message\": \"<error message>\" }` (clears cookie)"
+          },
+          "response": [
+            {
+              "name": "200 - Token Refreshed",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n}"
+            },
+            {
+              "name": "401 - No Refresh Token",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Không tìm thấy Refresh Token\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/auth/logout",
+            "description": "Clears the `refreshToken` httpOnly cookie.\n\n**Response 200**:\n```json\n{\n  \"message\": \"Đăng xuất thành công\"\n}\n```"
+          },
+          "response": [
+            {
+              "name": "200 - Logout Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Đăng xuất thành công\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Change Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPass\": \"12345678\",\n  \"newPass\": \"newpassword123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/auth/change-password",
+            "description": "Change authenticated user's password.\nRequires valid JWT token.\n\n**Headers**:\n- Authorization: Bearer {{accessToken}}\n\n**Body**:\n- oldPass: current password\n- newPass: new password (min 6 chars)\n\n**Note**: Uses req.user.id from JWT, do not send user_id."
+          },
+          "response": [
+            {
+              "name": "200 - Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Thay đổi mật khẩu thành công\",\n  \"data\": {\n    \"message\": \"Đổi mật khẩu thành công\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "description": "User account management.\n\n- Create, update, and query user accounts\n- `Create`, `Get All`, and `Update Status` require **admin** role (JWT + admin)\n- `Get By Id` and `Update` are currently **public** (no auth middleware)",
+      "item": [
+        {
+          "name": "Create User (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newstaff01\",\n  \"password\": \"123456\",\n  \"user_type\": \"Employee\",\n  \"role\": \"staff\",\n  \"ref_id\": \"{{employeeRefId}}\",\n  \"status\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/users/create",
+            "description": "Create a new user account. **Requires JWT + admin role.**\n\n**Body**:\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| username | string | Yes | unique, min 3 chars |\n| password | string | Yes | min 6 chars |\n| user_type | string | Yes | `Employee` or `Customer` |\n| role | string | Yes for Employee | `admin`, `manager`, `staff` (null for Customer) |\n| ref_id | ObjectId | Yes | Reference to Employee or Customer document |\n| status | boolean | No | default: true |\n\n**Response 201**:\n```json\n{\n  \"message\": \"Tạo tài khoản thành công\",\n  \"data\": { ...user without password }\n}\n```\n\n**Response 400**: `{ \"message\": \"<validation error>\" }`"
+          },
+          "response": [
+            {
+              "name": "201 - Created",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Tạo tài khoản thành công\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0020\",\n    \"username\": \"newstaff01\",\n    \"user_type\": \"Employee\",\n    \"role\": \"staff\",\n    \"ref_id\": \"67a8b123456789abcdef0010\",\n    \"status\": true,\n    \"createdAt\": \"2024-01-01T00:00:00.000Z\",\n    \"updatedAt\": \"2024-01-01T00:00:00.000Z\"\n  }\n}"
+            },
+            {
+              "name": "400 - Duplicate Username",
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Username đã tồn tại\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get All Users (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/users",
+            "description": "Get all user accounts with `ref_id` populated. **Requires JWT + admin role.**\n\n**Response 200**:\n```json\n{\n  \"data\": [\n    {\n      \"_id\": \"...\",\n      \"username\": \"admin_q1\",\n      \"user_type\": \"Employee\",\n      \"role\": \"admin\",\n      \"ref_id\": { ...populated employee/customer },\n      \"status\": true\n    }\n  ]\n}\n```\n\n**Response 500**: `{ \"message\": \"Lỗi server khi lấy danh sách tài khoản\" }`"
+          },
+          "response": [
+            {
+              "name": "200 - User List",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": [\n    {\n      \"_id\": \"67a8b123456789abcdef0001\",\n      \"username\": \"admin_q1\",\n      \"user_type\": \"Employee\",\n      \"role\": \"admin\",\n      \"ref_id\": {\n        \"_id\": \"67a8b123456789abcdef0010\",\n        \"name\": \"Admin Q1\",\n        \"email\": \"admin@paopizza.com\",\n        \"station\": \"manager\"\n      },\n      \"status\": true,\n      \"createdAt\": \"2024-01-01T00:00:00.000Z\",\n      \"updatedAt\": \"2024-01-01T00:00:00.000Z\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get User By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/users/{{userId}}",
+            "description": "Get a single user by ID with `ref_id` populated. **Currently public (no auth middleware).**\n\n**Params**: `id` - MongoDB ObjectId\n\n**Response 200**:\n```json\n{\n  \"data\": { ...user without password, ref_id populated }\n}\n```\n\n**Response 404**: `{ \"message\": \"Không tìm thấy tài khoản\" }`"
+          },
+          "response": [
+            {
+              "name": "200 - Found",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0001\",\n    \"username\": \"admin_q1\",\n    \"user_type\": \"Employee\",\n    \"role\": \"admin\",\n    \"ref_id\": {\n      \"_id\": \"67a8b123456789abcdef0010\",\n      \"name\": \"Admin Q1\"\n    },\n    \"status\": true\n  }\n}"
+            },
+            {
+              "name": "404 - Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Không tìm thấy tài khoản\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update User Status (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/users/{{userId}}/status",
+            "description": "Toggle user active/inactive status. **Requires JWT + admin role.**\n\n**Params**: `id` - MongoDB ObjectId\n\n**Body**:\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| status | boolean | Yes | `true` or `false` only |\n\n**Response 200**:\n```json\n{\n  \"message\": \"Cập nhật trạng thái thành công\",\n  \"data\": { ...updated user }\n}\n```\n\n**Response 400**: `{ \"message\": \"Trạng thái không hợp lệ\" }`"
+          },
+          "response": [
+            {
+              "name": "200 - Status Updated",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Cập nhật trạng thái thành công\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0001\",\n    \"username\": \"admin_q1\",\n    \"status\": false\n  }\n}"
+            },
+            {
+              "name": "400 - Invalid Status",
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Trạng thái không hợp lệ\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update User By Id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin_q1_updated\",\n  \"role\": \"manager\",\n  \"status\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/users/{{userId}}",
+            "description": "Update user fields (except password). **Currently public (no auth middleware).**\n\n**Params**: `id` - MongoDB ObjectId\n\n**Body** (any user fields except `password`):\n| Field | Type | Notes |\n|-------|------|-------|\n| username | string | unique check applied |\n| role | string | `admin`, `manager`, `staff` |\n| status | boolean | |\n| user_type | string | `Employee`, `Customer` |\n\n**Note**: `password` field is stripped from the request body.\n\n**Response 200**:\n```json\n{\n  \"message\": \"Cập nhật thông tin tài khoản thành công\",\n  \"data\": { ...updated user without password }\n}\n```\n\n**Response 400**: `{ \"message\": \"<error message>\" }`"
+          },
+          "response": [
+            {
+              "name": "200 - Updated",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Cập nhật thông tin tài khoản thành công\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0001\",\n    \"username\": \"admin_q1_updated\",\n    \"role\": \"manager\",\n    \"status\": true\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Customers",
+      "description": "Customer registration.\n\nCreates both a `Customer` profile and a `User` account with `user_type: Customer`.",
+      "item": [
+        {
+          "name": "Register Customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"customer_new\",\n  \"password\": \"12345678\",\n  \"name\": \"Nguyen Van A\",\n  \"phone\": \"0900000001\",\n  \"address\": \"123 Le Loi, Q1, HCM\",\n  \"email\": \"newcustomer@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/customers/register",
+            "description": "Register a new customer account. **Public endpoint.**\n\nCreates a `Customer` document first, then a `User` account linked to it. Rolls back Customer if User creation fails.\n\n**Body**:\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| username | string | Yes | unique |\n| password | string | Yes | min 6 chars |\n| name | string | Yes | display name |\n| phone | string | No | unique if provided |\n| address | string | No | |\n| email | string | No | unique, lowercase |\n\n**Response 201**:\n```json\n{\n  \"message\": \"Đăng ký tài khoản khách hàng thành công\",\n  \"data\": {\n    \"account\": { ...user without password },\n    \"profile\": { ...customer object }\n  }\n}\n```\n\n**Response 400**: `{ \"message\": \"Vui lòng điền đầy đủ Tên đăng nhập, Mật khẩu và Tên hiển thị\" }`"
+          },
+          "response": [
+            {
+              "name": "201 - Registered",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Đăng ký tài khoản khách hàng thành công\",\n  \"data\": {\n    \"account\": {\n      \"_id\": \"67a8b123456789abcdef0030\",\n      \"username\": \"customer_new\",\n      \"user_type\": \"Customer\",\n      \"role\": null,\n      \"ref_id\": \"67a8b123456789abcdef0031\",\n      \"status\": true\n    },\n    \"profile\": {\n      \"_id\": \"67a8b123456789abcdef0031\",\n      \"name\": \"Nguyen Van A\",\n      \"phone\": \"0900000001\",\n      \"address\": \"123 Le Loi, Q1, HCM\",\n      \"email\": \"newcustomer@example.com\",\n      \"point\": 0\n    }\n  }\n}"
+            },
+            {
+              "name": "400 - Missing Fields",
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Vui lòng điền đầy đủ Tên đăng nhập, Mật khẩu và Tên hiển thị\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Employees",
+      "description": "Employee management.\n\nCreates both an `Employee` profile and a `User` account with `user_type: Employee`.\n\nUses **Zod** validation with `.strict()` mode (no extra fields allowed).",
+      "item": [
+        {
+          "name": "Create Employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newstaff02\",\n  \"password\": \"12345678\",\n  \"store_id\": \"{{storeId}}\",\n  \"name\": \"Tran Van B\",\n  \"birthday\": \"1995-05-15\",\n  \"email\": \"newstaff02@paopizza.com\",\n  \"phone\": \"0900123456\",\n  \"station\": \"cashier\",\n  \"salary_type\": \"hourly\",\n  \"role\": \"staff\",\n  \"address\": \"456 Nguyen Hue, Q1, HCM\",\n  \"salary\": 30000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/employees/create",
+            "description": "Create a new employee with user account. Route has no auth middleware currently but logically requires admin.\n\nUses Zod `.strict()` validation - **no extra fields allowed**.\n\n**Body** (Zod validated):\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| username | string | Yes | min 3, max 30 |\n| password | string | Yes | min 6 |\n| store_id | string | Yes | MongoDB ObjectId as string |\n| name | string | Yes | min 2, max 100 |\n| birthday | date string | Yes | must be in the past |\n| email | string | Yes | valid email |\n| phone | string | Yes | regex `/^[0-9]{10,11}$/` |\n| station | enum | Yes | `manager`, `cashier`, `kitchen`, `delivery`, `barista` |\n| salary_type | enum | No | `hourly`, `monthly` (default: `hourly`) |\n| role | enum | No | `admin`, `manager`, `staff` (default: `staff`) |\n| address | string | No | |\n| salary | number | No | min 0 |\n\n**Response 201**:\n```json\n{\n  \"message\": \"Tạo nhân viên thành công\",\n  \"data\": {\n    \"account\": { ...user without password },\n    \"profile\": { ...employee object }\n  }\n}\n```\n\n**Response 400 (Zod)**:\n```json\n{\n  \"message\": \"Validation error\",\n  \"errors\": [\n    { \"field\": \"phone\", \"message\": \"Số điện thoại phải có 10-11 chữ số\" }\n  ]\n}\n```"
+          },
+          "response": [
+            {
+              "name": "201 - Created",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Tạo nhân viên thành công\",\n  \"data\": {\n    \"account\": {\n      \"_id\": \"67a8b123456789abcdef0040\",\n      \"username\": \"newstaff02\",\n      \"user_type\": \"Employee\",\n      \"role\": \"staff\",\n      \"ref_id\": \"67a8b123456789abcdef0041\",\n      \"status\": true\n    },\n    \"profile\": {\n      \"_id\": \"67a8b123456789abcdef0041\",\n      \"store_id\": \"67a8b123456789abcdef1234\",\n      \"name\": \"Tran Van B\",\n      \"birthday\": \"1995-05-15T00:00:00.000Z\",\n      \"email\": \"newstaff02@paopizza.com\",\n      \"phone\": \"0900123456\",\n      \"station\": \"cashier\",\n      \"salary_type\": \"hourly\",\n      \"salary\": 30000,\n      \"address\": \"456 Nguyen Hue, Q1, HCM\",\n      \"bank_account\": {\n        \"bank_name\": \"\",\n        \"account_number\": \"\",\n        \"account_name\": \"\"\n      },\n      \"status\": true\n    }\n  }\n}"
+            },
+            {
+              "name": "400 - Validation Error",
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Validation error\",\n  \"errors\": [\n    { \"field\": \"phone\", \"message\": \"Số điện thoại phải có 10-11 chữ số\" },\n    { \"field\": \"birthday\", \"message\": \"Ngày sinh phải nhỏ hơn ngày hiện tại\" }\n  ]\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cart",
+      "description": "Shopping cart management.\n\nNo auth middleware applied currently. Cart is identified by `user_id`.",
+      "item": [
+        {
+          "name": "Get Cart By User Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/cart/{{userIdForCart}}",
+            "description": "Get cart for a specific user. Creates empty cart if none exists (not persisted). **Currently public (no auth middleware).**\n\n**Params**: `userId` - MongoDB ObjectId of User\n\n**Response 200**:\n```json\n{\n  \"result\": {\n    \"_id\": \"...\",\n    \"user_id\": \"...\",\n    \"items\": [\n      {\n        \"product_id\": \"...\",\n        \"price\": 50000,\n        \"size\": \"M\",\n        \"quantity\": 2,\n        \"note\": \"Less ice\"\n      }\n    ]\n  }\n}\n```\n\n**Response 400**: `{ \"message\": \"<error message>\" }`"
+          },
+          "response": [
+            {
+              "name": "200 - Cart Found",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"result\": {\n    \"_id\": \"67a8b123456789abcdef0050\",\n    \"user_id\": \"67a8b123456789abcdef0007\",\n    \"items\": [\n      {\n        \"product_id\": \"67a8b123456789abcdef0060\",\n        \"price\": 55000,\n        \"size\": \"M\",\n        \"quantity\": 2,\n        \"note\": \"Less ice\",\n        \"_id\": \"67a8b123456789abcdef0051\"\n      }\n    ],\n    \"createdAt\": \"2024-01-01T00:00:00.000Z\",\n    \"updatedAt\": \"2024-01-01T00:00:00.000Z\"\n  }\n}"
+            },
+            {
+              "name": "200 - Empty Cart",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"result\": {\n    \"user_id\": \"67a8b123456789abcdef0007\",\n    \"items\": []\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Add To Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userIdForCart}}\",\n  \"product_id\": \"{{productId}}\",\n  \"size\": \"M\",\n  \"quantity\": 1,\n  \"note\": \"Ít đá\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/cart",
+            "description": "Add an item to the cart. If item with same `product_id` + `size` exists, quantity is incremented. **Currently public (no auth middleware).**\n\n**Body**:\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| userId | string | Yes | User ObjectId |\n| product_id | string | Yes | Product ObjectId |\n| size | string | Yes | Must match a product variant size (case-insensitive) |\n| quantity | number | No | default: 1, min: 1 |\n| note | string | No | default: '' |\n\n**Response 200** (cart with populated items):\n```json\n{\n  \"result\": {\n    \"_id\": \"...\",\n    \"user_id\": \"...\",\n    \"items\": [\n      {\n        \"product_id\": {\n          \"_id\": \"...\",\n          \"name\": \"Pizza Margherita\",\n          \"images\": [...],\n          \"price\": 50000\n        },\n        \"price\": 55000,\n        \"size\": \"M\",\n        \"quantity\": 1,\n        \"note\": \"Ít đá\"\n      }\n    ]\n  }\n}\n```\n\n**Errors**: Throws if `product_id`/`size` missing, quantity < 1, or size doesn't exist for product."
+          },
+          "response": [
+            {
+              "name": "200 - Item Added",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"result\": {\n    \"_id\": \"67a8b123456789abcdef0050\",\n    \"user_id\": \"67a8b123456789abcdef0007\",\n    \"items\": [\n      {\n        \"product_id\": {\n          \"_id\": \"67a8b123456789abcdef0060\",\n          \"name\": \"Pizza Margherita\",\n          \"images\": [\"https://example.com/pizza.jpg\"],\n          \"price\": 55000\n        },\n        \"price\": 55000,\n        \"size\": \"M\",\n        \"quantity\": 1,\n        \"note\": \"Ít đá\",\n        \"_id\": \"67a8b123456789abcdef0051\"\n      }\n    ],\n    \"createdAt\": \"2024-01-01T00:00:00.000Z\",\n    \"updatedAt\": \"2024-01-01T00:00:00.000Z\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000/api/v1",
+      "type": "string",
+      "description": "Base URL for all API requests"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string",
+      "description": "JWT access token (auto-set by login test scripts)"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string",
+      "description": "Current user ID (auto-set by login test scripts)"
+    },
+    {
+      "key": "userIdForCart",
+      "value": "",
+      "type": "string",
+      "description": "User ID for cart operations (auto-set by Customer Login)"
+    },
+    {
+      "key": "employeeRefId",
+      "value": "",
+      "type": "string",
+      "description": "Employee document ID for user creation"
+    },
+    {
+      "key": "productId",
+      "value": "",
+      "type": "string",
+      "description": "Product ID for cart operations"
+    },
+    {
+      "key": "storeId",
+      "value": "",
+      "type": "string",
+      "description": "Store ID for employee creation"
+    }
+  ]
+}

@@ -1,9 +1,22 @@
 const errorHandler = (err, req, res, _next) => {
     if (err.code === 11000) {
-        const field = Object.keys(err.keyValue || {})[0] || 'field';
+        const duplicateFields = Object.keys(err.keyValue || {});
+        let message = 'Giá trị này đã tồn tại trong hệ thống';
+
+        if (duplicateFields.includes('email')) {
+            message = 'Email này đã được sử dụng';
+        } else if (duplicateFields.includes('phone')) {
+            message = 'Số điện thoại này đã được sử dụng';
+        } else if (duplicateFields.includes('username')) {
+            message = 'Tên đăng nhập này đã tồn tại';
+        } else if (duplicateFields.length > 0) {
+            message = `Giá trị ${duplicateFields.join(', ')} đã tồn tại`;
+        }
+
         return res.status(400).json({
             success: false,
-            message: `Giá trị ${field} đã tồn tại!`,
+            message,
+            fields: duplicateFields,
         });
     }
 

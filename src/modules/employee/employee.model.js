@@ -10,15 +10,20 @@ const EMPLOYEE_STATIONS = [
 const SALARY_TYPES = ['hourly', 'monthly'];
 
 const isValidPastDate = (value) => {
-    if (!(value instanceof Date)) {
+    let date;
+    if (value instanceof Date) {
+        date = value;
+    } else if (typeof value === 'string') {
+        date = new Date(value);
+    } else {
         return false;
     }
 
-    if (Number.isNaN(value.getTime())) {
+    if (Number.isNaN(date.getTime())) {
         return false;
     }
 
-    return value < new Date();
+    return date < new Date();
 };
 
 const bankAccountSchema = new mongoose.Schema(
@@ -67,11 +72,13 @@ const employeeSchema = new mongoose.Schema(
             trim: true,
             lowercase: true,
             required: true,
+            unique: true,
         },
         phone: {
             type: String,
             trim: true,
             required: true,
+            unique: true,
         },
         address: {
             type: String,
