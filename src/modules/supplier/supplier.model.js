@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 
+export const CATEGORY_LIST = ['main_ingredient', 'drink', 'seafood', 'vegetable'];
+
 const supplierIngredientSchema = new mongoose.Schema(
     {
         ingredient_id: {
@@ -39,10 +41,21 @@ const supplierSchema = new mongoose.Schema(
             trim: true,
             default: '',
         },
+        isActive: { type: Boolean, default: true },
+        supplier_category: {
+            type: String,
+            enum: CATEGORY_LIST,
+            required: true,
+        },
         ingredients: {
             type: [supplierIngredientSchema],
             default: [],
         },
+        isDeleted: {
+            type: Boolean,
+            default: false,
+        },
+
     },
     { timestamps: true },
 );

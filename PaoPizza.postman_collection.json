@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "d4e5ca2d-2f14-47fe-a5cf-6f4e19af8642",
     "name": "PaoPizza API",
-    "description": "Backend API for PaoPizza.\n\nBase path: `/api/v1`\n\n**Active modules**: auth (including changePassword), users, customers (register + update), employees, cart\n\n**Stub modules (model only, no routes yet)**: product, order, category, ingredient, store, supplier, shift, inventory, promotion, payroll, schedule\n\n**Auth**: Passport.js Local + JWT (Bearer token) + Change Password\n\n**Seed credentials** (password: `12345678`):\n- `admin_q1` (admin/Employee)\n- `manager_q1` (manager/Employee)\n- `cashier_hk`, `kitchen_tan`, `staff_lan`, `delivery_nam` (staff/Employee)\n- `customer_a`, `customer_b`, `customer_c`, `customer_d` (Customer)\n\n**Rate limit**: 100 requests per 15 minutes\n\n**Note**: Change Password requires valid JWT Bearer token in Authorization header. Do not send user_id in body.",
+    "description": "Backend API for PaoPizza.\n\nBase path: `/api/v1`\n\n**Active modules**: auth (including changePassword), users, customers, employees, cart, supplier (CRUD + enums), category, product, store (soft delete added to main models)\n\n**Stub modules (model only, no routes yet)**: product, order, category, ingredient, store, supplier, shift, inventory, promotion, payroll, schedule\n\n**Auth**: Passport.js Local + JWT (Bearer token) + Change Password\n\n**Seed credentials** (password: `12345678`):\n- `admin_q1` (admin/Employee)\n- `manager_q1` (manager/Employee)\n- `cashier_hk`, `kitchen_tan`, `staff_lan`, `delivery_nam` (staff/Employee)\n- `customer_a`, `customer_b`, `customer_c`, `customer_d` (Customer)\n\n**Rate limit**: 100 requests per 15 minutes\n\n**Note**: Change Password requires valid JWT Bearer token in Authorization header. Do not send user_id in body.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -790,6 +790,117 @@
                 }
               ],
               "body": "{\n  \"result\": {\n    \"_id\": \"67a8b123456789abcdef0050\",\n    \"user_id\": \"67a8b123456789abcdef0007\",\n    \"items\": [\n      {\n        \"product_id\": {\n          \"_id\": \"67a8b123456789abcdef0060\",\n          \"name\": \"Pizza Margherita\",\n          \"images\": [\"https://example.com/pizza.jpg\"],\n          \"price\": 55000\n        },\n        \"price\": 55000,\n        \"size\": \"M\",\n        \"quantity\": 1,\n        \"note\": \"Ít đá\",\n        \"_id\": \"67a8b123456789abcdef0051\"\n      }\n    ],\n    \"createdAt\": \"2024-01-01T00:00:00.000Z\",\n    \"updatedAt\": \"2024-01-01T00:00:00.000Z\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Supplier",
+      "description": "Supplier management.\n\nCRUD for suppliers + category enums.\nRequires JWT + admin role for create/update.",
+      "item": [
+        {
+          "name": "Get Supplier Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/supplier/categories",
+            "description": "Get list of supplier categories/enums.\n\n**Response 200**:\n```json\n{\n  \"supplier_category\": [\"main_ingredient\", \"drink\", \"seafood\", \"vegetable\"]\n}\n```"
+          },
+          "response": [
+            {
+              "name": "200 - OK",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"supplier_category\": [\n    \"main_ingredient\",\n    \"drink\",\n    \"seafood\",\n    \"vegetable\"\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Supplier (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nhà cung cấp ABC\",\n  \"email\": \"abc@supplier.com\",\n  \"phone\": \"0987654321\",\n  \"supplier_category\": \"main_ingredient\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/supplier/create",
+            "description": "Tạo nhà cung cấp mới. **Yêu cầu JWT + admin.**\n\nBody fields: name, email, phone, supplier_category"
+          },
+          "response": [
+            {
+              "name": "200 - Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Thêm nhà cung cấp mới thành công!\",\n  \"data\": { ... }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Supplier (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"supplier_id\": \"{{supplierId}}\",\n  \"name\": \"Nhà cung cấp ABC Updated\",\n  \"phone\": \"0987654322\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/supplier/update",
+            "description": "Cập nhật thông tin nhà cung cấp (supplier_id trong body). **Yêu cầu admin.**"
+          },
+          "response": [
+            {
+              "name": "200 - Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Cập nhật nhà cung cấp thành công!\",\n  \"data\": { ... }\n}"
             }
           ]
         }
