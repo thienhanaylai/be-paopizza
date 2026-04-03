@@ -30,3 +30,27 @@ export const register = async (req, res, next) => {
         next(error);
     }
 };
+
+export const update = async (req, res, next) => {
+    try {
+        const { user_id, name, phone, address, email } = req.body;
+        if (!user_id) {
+            throw new Error('user_id missing!');
+        }
+
+        const result = await customerService.updateCustomer({
+            user_id,
+            name,
+            phone,
+            address,
+            email,
+        });
+
+        return res.status(201).json({
+            message: 'Cập nhật thông tin thành công',
+            data: result,
+        });
+    } catch (error) {
+        next(error);
+    }
+};

@@ -98,3 +98,23 @@ export const logout = (req, res) => {
     res.clearCookie('refreshToken');
     return res.status(200).json({ message: 'Đăng xuất thành công' });
 };
+
+export const changePassword = async (req, res, next) => {
+    const { oldPass, newPass } = req.body;
+    try {
+        const user_id = req.user?.id;
+
+        const result = await authService.changePassword(
+            user_id,
+            oldPass,
+            newPass,
+        );
+        return res.status(200).json({
+            message: 'Thay đổi mật khẩu thành công',
+            data: result,
+        });
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+};

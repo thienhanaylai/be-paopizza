@@ -3,6 +3,7 @@ import express from 'express';
 import passport from 'passport';
 import * as authController from './auth.controller.js';
 
+const requireAuth = passport.authenticate('jwt', { session: false });
 const router = express.Router();
 
 router.post(
@@ -19,5 +20,5 @@ router.post(
 
 router.post('/refresh', authController.refreshToken);
 router.post('/logout', authController.logout);
-
+router.post('/changePassword', requireAuth, authController.changePassword);
 export default router;

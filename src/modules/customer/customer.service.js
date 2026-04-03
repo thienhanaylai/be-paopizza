@@ -45,3 +45,25 @@ export const registerCustomer = async (data) => {
         throw error;
     }
 };
+
+export const updateCustomer = async (data) => {
+    try {
+        const { user_id, name, phone, address, email } = data;
+        const user = await User.findById(user_id);
+        const customerInfo = await Customer.findByIdAndUpdate(
+            user?.ref_id,
+            {
+                name,
+                phone,
+                address,
+                email,
+            },
+            { new: true },
+        );
+        return {
+            profile: customerInfo,
+        };
+    } catch (error) {
+        return error;
+    }
+};
