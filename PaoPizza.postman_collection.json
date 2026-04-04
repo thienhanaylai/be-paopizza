@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "d4e5ca2d-2f14-47fe-a5cf-6f4e19af8642",
     "name": "PaoPizza API",
-    "description": "Backend API for PaoPizza.\n\nBase path: `/api/v1`\n\n**Active modules**: auth (including changePassword), users, customers, employees, cart, supplier (CRUD + enums), category, product, store (soft delete added to main models)\n\n**Stub modules (model only, no routes yet)**: product, order, category, ingredient, store, supplier, shift, inventory, promotion, payroll, schedule\n\n**Auth**: Passport.js Local + JWT (Bearer token) + Change Password\n\n**Seed credentials** (password: `12345678`):\n- `admin_q1` (admin/Employee)\n- `manager_q1` (manager/Employee)\n- `cashier_hk`, `kitchen_tan`, `staff_lan`, `delivery_nam` (staff/Employee)\n- `customer_a`, `customer_b`, `customer_c`, `customer_d` (Customer)\n\n**Rate limit**: 100 requests per 15 minutes\n\n**Note**: Change Password requires valid JWT Bearer token in Authorization header. Do not send user_id in body.",
+    "description": "Backend API for PaoPizza.\n\nBase path: `/api/v1`\n\n**Active modules**: auth (including changePassword), users, customers, employees, cart, supplier (CRUD + categories), category, product, store (soft delete)\n\n**Stub modules (model only, no routes yet)**: order, ingredient, inventory, promotion, payroll, schedule, shift\n\n**Auth**: Passport.js Local + JWT (Bearer token) + Change Password\n\n**Seed credentials** (password: `12345678`):\n- `admin_q1` (admin/Employee)\n- `manager_q1` (manager/Employee)\n- `cashier_hk`, `kitchen_tan`, `staff_lan`, `delivery_nam` (staff/Employee)\n- `customer_a`, `customer_b`, `customer_c`, `customer_d` (Customer)\n\n**Rate limit**: 100 requests per 15 minutes\n\n**Note**: Change Password requires valid JWT Bearer token in Authorization header. Do not send user_id in body.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -797,7 +797,7 @@
     },
     {
       "name": "Supplier",
-      "description": "Supplier management.\n\nCRUD for suppliers + category enums.\nRequires JWT + admin role for create/update.",
+      "description": "Supplier management.\n\nFull CRUD + category enums.\nRequires JWT + admin for most ops (categories only needs auth).",
       "item": [
         {
           "name": "Get Supplier Categories",
@@ -824,6 +824,22 @@
         },
         {
           "name": "Create Supplier (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let jsonData = {};",
+                  "try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.data && jsonData.data._id) {",
+                  "    pm.collectionVariables.set('supplierId', jsonData.data._id);",
+                  "    console.log('supplierId saved:', jsonData.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -838,7 +854,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Nhà cung cấp ABC\",\n  \"email\": \"abc@supplier.com\",\n  \"phone\": \"0987654321\",\n  \"supplier_category\": \"main_ingredient\"\n}",
+              "raw": "{\n  \"name\": \"Nhà cung cấp ABC\",\n  \"email\": \"abc@supplier.com\",\n  \"phone\": \"0987654321\",\n  \"supplier_category\": \"main_ingredient\",\n  \"ingredients\": [\n    {\n      \"ingredient_id\": \"67a8b123456789abcdef0123\",\n      \"name\": \"Bột mì\",\n      \"unit\": \"kg\"\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -846,7 +862,7 @@
               }
             },
             "url": "{{baseUrl}}/supplier/create",
-            "description": "Tạo nhà cung cấp mới. **Yêu cầu JWT + admin.**\n\nBody fields: name, email, phone, supplier_category"
+            "description": "Tạo nhà cung cấp mới. **Yêu cầu JWT + admin.**\n\nBody fields: name, email, phone, supplier_category, ingredients (array of {ingredient_id, name, unit})\n\nTest script auto-sets supplierId variable from response.data._id"
           },
           "response": [
             {
@@ -879,7 +895,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"supplier_id\": \"{{supplierId}}\",\n  \"name\": \"Nhà cung cấp ABC Updated\",\n  \"phone\": \"0987654322\"\n}",
+              "raw": "{\n  \"supplier_id\": \"{{supplierId}}\",\n  \"name\": \"Nhà cung cấp ABC Updated\",\n  \"phone\": \"0987654322\",\n  \"ingredients\": [\n    {\n      \"ingredient_id\": \"67a8b123456789abcdef0123\",\n      \"name\": \"Bột mì updated\",\n      \"unit\": \"kg\"\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -887,7 +903,7 @@
               }
             },
             "url": "{{baseUrl}}/supplier/update",
-            "description": "Cập nhật thông tin nhà cung cấp (supplier_id trong body). **Yêu cầu admin.**"
+            "description": "Cập nhật thông tin nhà cung cấp (supplier_id trong body). **Yêu cầu admin.** Có thể cập nhật ingredients array."
           },
           "response": [
             {
@@ -901,6 +917,90 @@
                 }
               ],
               "body": "{\n  \"message\": \"Cập nhật nhà cung cấp thành công!\",\n  \"data\": { ... }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get All Suppliers (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/supplier",
+            "description": "Lấy tất cả nhà cung cấp. **Yêu cầu JWT + admin.**\n\n**Response**:\n```json\n{\n  \"data\": [array of suppliers]\n}\n```"
+          },
+          "response": [
+            {
+              "name": "200 - Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": []\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Supplier by ID (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/supplier/{{supplierId}}",
+            "description": "Lấy chi tiết nhà cung cấp theo ID. **Yêu cầu JWT + admin.**"
+          },
+          "response": [
+            {
+              "name": "200 - Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": { ... }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Soft Delete Supplier (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/supplier/deleted/{{supplierId}}",
+            "description": "Soft delete (set isDeleted=true, isActive=false). **Yêu cầu JWT + admin.**"
+          },
+          "response": [
+            {
+              "name": "200 - Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": { ... }\n}"
             }
           ]
         }
@@ -949,6 +1049,12 @@
       "value": "",
       "type": "string",
       "description": "Store ID for employee creation"
+    },
+    {
+      "key": "supplierId",
+      "value": "",
+      "type": "string",
+      "description": "Supplier ID (auto-set by Create Supplier test script)"
     }
   ]
 }

@@ -1,10 +1,21 @@
 import mongoose from 'mongoose';
 
+export const Ingredient_category_list = [
+    'dough',
+    'seafood',
+    'meat',
+    'sauce',
+    'vegetable',
+    'drink',
+    'other',
+];
+
 const ingredientSchema = new mongoose.Schema(
     {
         name: {
             type: String,
             required: true,
+            unique: true,
             trim: true,
         },
         unit: {
@@ -14,6 +25,7 @@ const ingredientSchema = new mongoose.Schema(
         },
         category: {
             type: String,
+            enum: Ingredient_category_list,
             trim: true,
         },
         is_active: {

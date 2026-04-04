@@ -1,6 +1,11 @@
 import mongoose from 'mongoose';
 
-export const CATEGORY_LIST = ['main_ingredient', 'drink', 'seafood', 'vegetable'];
+export const CATEGORY_LIST = [
+    'main_ingredient',
+    'drink',
+    'seafood',
+    'vegetable',
+];
 
 const supplierIngredientSchema = new mongoose.Schema(
     {
@@ -8,16 +13,6 @@ const supplierIngredientSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Ingredient',
             required: true,
-        },
-        name: {
-            type: String,
-            required: true,
-            trim: true,
-        },
-        unit: {
-            type: String,
-            required: true,
-            trim: true,
         },
     },
     { _id: false },
@@ -35,11 +30,13 @@ const supplierSchema = new mongoose.Schema(
             trim: true,
             lowercase: true,
             default: '',
+            unique: true,
         },
         phone: {
             type: String,
             trim: true,
             default: '',
+            unique: true,
         },
         isActive: { type: Boolean, default: true },
         supplier_category: {
@@ -55,7 +52,6 @@ const supplierSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
-
     },
     { timestamps: true },
 );

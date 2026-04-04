@@ -2,7 +2,13 @@ import { Supplier } from './supplier.model.js';
 
 export const create = async (data) => {
     try {
-        const { name, email, phone, supplier_category } = data;
+        const {
+            name,
+            email,
+            phone,
+            supplier_category,
+            ingredients = [],
+        } = data;
         if (!name || !email || !phone) {
             throw new Error('Thiếu thông tin!');
         }
@@ -11,6 +17,7 @@ export const create = async (data) => {
             email,
             phone,
             supplier_category,
+            ingredients,
         });
         return supplier;
     } catch (error) {
@@ -25,19 +32,9 @@ export const update = async (data) => {
             throw new Error('Thiếu supplier_id!');
         }
 
-        // Chỉ cho phép update những trường có trong model (bỏ qua trường lạ)
-        const allowedFields = ['name', 'email', 'phone', 'supplier_category', 'isActive'];
-        const filteredData = {};
-
-        Object.keys(updateData).forEach((key) => {
-            if (allowedFields.includes(key)) {
-                filteredData[key] = updateData[key];
-            }
-        });
-
         const supplier = await Supplier.findByIdAndUpdate(
             supplier_id,
-            filteredData,
+            updateData,
             { new: true, runValidators: true },
         );
 
@@ -47,7 +44,7 @@ export const update = async (data) => {
 
         return supplier;
     } catch (error) {
-        throw error;
+        return error;
     }
 };
 

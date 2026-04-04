@@ -20,6 +20,19 @@ router.post(
     supplierController.updateSupplier,
 );
 
-router.get('/categories', supplierController.getCategorySupplier);
+router.get('/categories', requireAuth, supplierController.getCategorySupplier);
+router.get('/', requireAuth, requireAdmin, supplierController.getAllSuppliers);
+router.get(
+    '/:supplier_id',
+    requireAuth,
+    requireAdmin,
+    supplierController.getSupplier,
+);
 
+router.patch(
+    '/deleted/:supplier_id',
+    requireAuth,
+    requireAdmin,
+    supplierController.deletedSupplier,
+);
 export default router;

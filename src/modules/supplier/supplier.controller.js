@@ -3,12 +3,13 @@ import { CATEGORY_LIST } from './supplier.model.js';
 
 export const createSupplier = async (req, res, next) => {
     try {
-        const { name, email, phone, supplier_category } = req.body;
+        const { name, email, phone, supplier_category, ingredients } = req.body;
         const result = await supplierService.create({
             name,
             email,
             phone,
             supplier_category,
+            ingredients,
         });
         return res.status(200).json({
             message: 'Thêm nhà cung cấp mới thành công!',
@@ -36,11 +37,41 @@ export const updateSupplier = async (req, res, next) => {
     }
 };
 
-export const getAllSuppliers = async (req, res, next) => {};
+export const getAllSuppliers = async (req, res, next) => {
+    try {
+        const result = await supplierService.getAll();
 
-export const getSupplier = async (req, res, next) => {};
+        return res.status(200).json({
+            data: result,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
 
-export const deletedSupplier = async (req, res, next) => {};
+export const getSupplier = async (req, res, next) => {
+    try {
+        const supplier_id = req.params.supplier_id || req.body.supplier_id;
+        const supplier = await supplierService.getById(supplier_id);
+        return res.status(200).json({
+            data: supplier,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const deletedSupplier = async (req, res, next) => {
+    try {
+        const supplier_id = req.params.supplier_id || req.body.supplier_id;
+        const supplier = await supplierService.deletedSupplier(supplier_id);
+        return res.status(200).json({
+            data: supplier,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
 
 export const getCategorySupplier = (req, res) => {
     res.json({
