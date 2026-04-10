@@ -126,6 +126,11 @@ const orderSchema = new mongoose.Schema(
             type: contactInfoSchema,
             required: true,
         },
+        isDeleted: {
+            type: Boolean,
+            default: false,
+            index: true,
+        },
     },
     { timestamps: true },
 );

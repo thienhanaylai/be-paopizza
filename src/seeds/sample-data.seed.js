@@ -276,7 +276,10 @@ const seedSampleData = async () => {
                     price: 89000,
                     size: 'S',
                     images: [
-                        'https://picsum.photos/seed/pizza-hawaii-s/1200/800',
+                        {
+                            url: 'https://picsum.photos/seed/pizza-hawaii-s/1200/800',
+                            public_id: 'pizza-hawaii-s',
+                        },
                     ],
                     recipe: [
                         {
@@ -306,7 +309,10 @@ const seedSampleData = async () => {
                     price: 149000,
                     size: 'L',
                     images: [
-                        'https://picsum.photos/seed/pizza-hawaii-l/1200/800',
+                        {
+                            url: 'https://picsum.photos/seed/pizza-hawaii-l/1200/800',
+                            public_id: 'pizza-hawaii-l',
+                        },
                     ],
                     recipe: [
                         {
@@ -345,7 +351,10 @@ const seedSampleData = async () => {
                     price: 99000,
                     size: 'M',
                     images: [
-                        'https://picsum.photos/seed/pizza-margarita-m/1200/800',
+                        {
+                            url: 'https://picsum.photos/seed/pizza-margarita-m/1200/800',
+                            public_id: 'pizza-margarita-m',
+                        },
                     ],
                     recipe: [
                         {
@@ -384,7 +393,10 @@ const seedSampleData = async () => {
                     price: 95000,
                     size: 'S',
                     images: [
-                        'https://picsum.photos/seed/pizza-pepperoni-s/1200/800',
+                        {
+                            url: 'https://picsum.photos/seed/pizza-pepperoni-s/1200/800',
+                            public_id: 'pizza-pepperoni-s',
+                        },
                     ],
                     recipe: [
                         {
@@ -422,7 +434,12 @@ const seedSampleData = async () => {
                     sku: 'DRK-COLA-M',
                     price: 20000,
                     size: 'M',
-                    images: ['https://picsum.photos/seed/cola-m/1200/800'],
+                    images: [
+                        {
+                            url: 'https://picsum.photos/seed/cola-m/1200/800',
+                            public_id: 'cola-m',
+                        },
+                    ],
                     recipe: [
                         {
                             ingredient_id: ingredients[4]._id,
@@ -435,7 +452,12 @@ const seedSampleData = async () => {
                     sku: 'DRK-COLA-L',
                     price: 30000,
                     size: 'L',
-                    images: ['https://picsum.photos/seed/cola-l/1200/800'],
+                    images: [
+                        {
+                            url: 'https://picsum.photos/seed/cola-l/1200/800',
+                            public_id: 'cola-l',
+                        },
+                    ],
                     recipe: [
                         {
                             ingredient_id: ingredients[4]._id,
@@ -457,7 +479,12 @@ const seedSampleData = async () => {
                     sku: 'DRK-SPR-M',
                     price: 20000,
                     size: 'M',
-                    images: ['https://picsum.photos/seed/sprite-m/1200/800'],
+                    images: [
+                        {
+                            url: 'https://picsum.photos/seed/sprite-m/1200/800',
+                            public_id: 'sprite-m',
+                        },
+                    ],
                     recipe: [],
                 },
             ],
@@ -474,7 +501,10 @@ const seedSampleData = async () => {
                     price: 85000,
                     size: 'Regular',
                     images: [
-                        'https://picsum.photos/seed/pasta-carbonara-r/1200/800',
+                        {
+                            url: 'https://picsum.photos/seed/pasta-carbonara-r/1200/800',
+                            public_id: 'pasta-carbonara-r',
+                        },
                     ],
                     recipe: [
                         {
@@ -502,7 +532,12 @@ const seedSampleData = async () => {
                     sku: 'BRG-HAM-S',
                     price: 75000,
                     size: 'S',
-                    images: ['https://picsum.photos/seed/hamburger-s/1200/800'],
+                    images: [
+                        {
+                            url: 'https://picsum.photos/seed/hamburger-s/1200/800',
+                            public_id: 'hamburger-s',
+                        },
+                    ],
                     recipe: [
                         {
                             ingredient_id: ingredients[5]._id,
@@ -530,7 +565,10 @@ const seedSampleData = async () => {
                     price: 65000,
                     size: 'Regular',
                     images: [
-                        'https://picsum.photos/seed/caesar-salad-r/1200/800',
+                        {
+                            url: 'https://picsum.photos/seed/caesar-salad-r/1200/800',
+                            public_id: 'caesar-salad-r',
+                        },
                     ],
                     recipe: [
                         {
@@ -564,7 +602,10 @@ const seedSampleData = async () => {
                     price: 45000,
                     size: 'M',
                     images: [
-                        'https://picsum.photos/seed/tomato-soup-m/1200/800',
+                        {
+                            url: 'https://picsum.photos/seed/tomato-soup-m/1200/800',
+                            public_id: 'tomato-soup-m',
+                        },
                     ],
                     recipe: [
                         {

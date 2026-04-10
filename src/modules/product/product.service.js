@@ -1,0 +1,92 @@
+import { Product } from './product.model.js';
+import '../category/category.model.js';
+import '../ingredient/ingredient.model.js';
+
+export const create = async (data) => {
+    const { name, category_id, description, images = [], variants = [] } = data;
+    if (!name || !category_id || variants.length === 0) {
+        throw new Error('Thiếu thông tin sản phẩm hoặc variants!');
+    }
+
+    // Check duplicate name
+    const existing = await Product.findOne({ name, isDeleted: false });
+    if (existing) {
+        throw new Error('Sản phẩm với tên này đã tồn tại!');
+    }
+
+    const product = await Product.create({
+        name,
+        category_id,
+        description,
+        images,
+        variants,
+    });
+    return product;
+};
+
+export const update = async (data) => {
+    const { product_id, ...updateData } = data;
+    if (!product_id) {
+        throw new Error('Thiếu product_id!');
+    }
+
+    const product = await Product.findById(product_id);
+    if (!product || product.isDeleted) {
+        throw new Error('Không tìm thấy sản phẩm!');
+    }
+
+    if (updateData.name) {
+        const existing = await Product.findOne({
+            name: updateData.name,
+            _id: { $ne: product_id },
+            isDeleted: false,
+        });
+        if (existing) {
+            throw new Error('Tên sản phẩm đã tồn tại!');
+        }
+    }
+
+    const result = await Product.findByIdAndUpdate(product_id, updateData, {
+        new: true,
+        runValidators: true,
+    }).populate('category_id', 'name slug');
+    return result;
+};
+
+export const getAll = async () => {
+    return await Product.find({ isDeleted: false })
+        .populate('category_id', 'name slug')
+        .lean();
+};
+
+export const getById = async (product_id) => {
+    const product = await Product.findById(product_id)
+        .populate('category_id', 'name slug')
+        .lean();
+    if (!product || product.isDeleted)
+        throw new Error('Không tìm thấy sản phẩm!');
+    return product;
+};
+
+export const deletedProduct = async (product_id) => {
+    const product = await Product.findByIdAndUpdate(
+        product_id,
+        {
+            is_active: false,
+            isDeleted: true,
+        },
+        { new: true },
+    );
+    if (!product) throw new Error('Không tìm thấy sản phẩm!');
+    return product;
+};
+
+export const getByCategory = async (category_id) => {
+    return await Product.find({
+        category_id,
+        isDeleted: false,
+        is_active: true,
+    })
+        .populate('category_id', 'name slug')
+        .lean();
+};

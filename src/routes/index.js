@@ -6,7 +6,12 @@ import cartRoutes from '../modules/cart/cart.route.js';
 import employeeRoutes from '../modules/employee/employee.route.js';
 import supplierRoutes from '../modules/supplier/supplier.route.js';
 import ingredientRoutes from '../modules/ingredient/ingredient.route.js';
+import categoryRoutes from '../modules/category/category.route.js';
+import storeRoutes from '../modules/store/store.route.js';
+import productRoutes from '../modules/product/product.route.js';
+import inventoryRoutes from '../modules/inventory/inventory.route.js';
 import mediaRoute from '../modules/media/media.route.js';
+import orderRoutes from '../modules/order/order.route.js';
 const router = express.Router();
 
 router.get('/health', (_req, res) =>
@@ -23,5 +28,10 @@ router.use('/cart', cartRoutes);
 router.use('/employees', employeeRoutes);
 router.use('/supplier', supplierRoutes);
 router.use('/ingredient', ingredientRoutes);
+router.use('/categories', categoryRoutes);
+router.use('/stores', storeRoutes);
+router.use('/products', productRoutes);
+router.use('/inventory', inventoryRoutes);
 router.use('/img', mediaRoute);
+router.use('/orders', orderRoutes);
 export default router;

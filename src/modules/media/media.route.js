@@ -1,6 +1,7 @@
 import express from 'express';
 import createUploader from './media.middleware.js';
 import * as mediaController from './media.controller.js';
+import { asyncHandler } from '../../middlewares/index.js';
 
 const router = express.Router();
 
@@ -9,7 +10,7 @@ const uploadProductImage = createUploader('products');
 router.post(
     '/product',
     uploadProductImage.array('images', 5),
-    mediaController.uploadImage,
+    asyncHandler(mediaController.uploadImage),
 );
 
 //upload icon cate
@@ -21,9 +22,9 @@ const uploadCategoryIcon = createUploader('categories/icons', [
 router.post(
     '/category-icon',
     uploadCategoryIcon.single('icon'),
-    mediaController.uploadImage,
+    asyncHandler(mediaController.uploadImage),
 );
 
-router.patch('/delete', mediaController.deleteImage);
+router.patch('/delete', asyncHandler(mediaController.deleteImage));
 
 export default router;

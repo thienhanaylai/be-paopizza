@@ -2,6 +2,7 @@ import * as supplierController from './supplier.controller.js';
 import express from 'express';
 import passport from 'passport';
 import { authorize } from '../auth/auth.middleware.js';
+import { asyncHandler } from '../../middlewares/asyncHandler.js';
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 const requireAdmin = authorize(['admin']);
@@ -11,28 +12,33 @@ router.post(
     '/create',
     requireAuth,
     requireAdmin,
-    supplierController.createSupplier,
+    asyncHandler(supplierController.createSupplier),
 );
 router.post(
     '/update',
     requireAuth,
     requireAdmin,
-    supplierController.updateSupplier,
+    asyncHandler(supplierController.updateSupplier),
 );
 
-router.get('/categories', supplierController.getCategorySupplier);
-router.get('/', requireAuth, requireAdmin, supplierController.getAllSuppliers);
+router.get('/categories', asyncHandler(supplierController.getCategorySupplier));
+router.get(
+    '/',
+    requireAuth,
+    requireAdmin,
+    asyncHandler(supplierController.getAllSuppliers),
+);
 router.get(
     '/:supplier_id',
     requireAuth,
     requireAdmin,
-    supplierController.getSupplier,
+    asyncHandler(supplierController.getSupplier),
 );
 
 router.patch(
     '/deleted/:supplier_id',
     requireAuth,
     requireAdmin,
-    supplierController.deletedSupplier,
+    asyncHandler(supplierController.deletedSupplier),
 );
 export default router;
