@@ -56,3 +56,33 @@ export const createEmployee = async (data) => {
         throw error;
     }
 };
+
+export const updateEmployee = async (data) => {
+    try {
+        const { employee_id, ...updateData } = data;
+
+        const employee = await Employee.findByIdAndUpdate(
+            employee_id,
+            updateData,
+            { new: true },
+        );
+        if (!employee) {
+            throw new Error('Không tìm thấy nhân viên !');
+        }
+
+        return {
+            profile: employee,
+        };
+    } catch (error) {
+        throw new Error(error);
+    }
+};
+
+export const getEmployee = async (employee_id) => {
+    const employee = await Employee.findById(employee_id);
+    if (!employee) throw new Error('Không tìm thấy nhân viên');
+    return employee;
+};
+export const getAllEmployee = async () => {
+    return await Employee.find({});
+};

@@ -9,7 +9,7 @@ export const CATEGORY_LIST = [
 
 const supplierIngredientSchema = new mongoose.Schema(
     {
-        ingredient_id: {
+        ingredient: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Ingredient',
             required: true,

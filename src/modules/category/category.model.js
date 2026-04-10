@@ -22,6 +22,10 @@ const categorySchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        icon: {
+            type: String,
+            default: '',
+        },
     },
     { timestamps: true },
 );

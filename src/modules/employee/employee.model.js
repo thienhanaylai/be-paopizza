@@ -88,7 +88,7 @@ const employeeSchema = new mongoose.Schema(
         station: {
             type: String,
             enum: EMPLOYEE_STATIONS,
-            required: true,
+            default: null,
         },
         salary_type: {
             type: String,

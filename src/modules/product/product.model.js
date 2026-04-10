@@ -40,7 +40,12 @@ const variantSchema = new mongoose.Schema(
             trim: true,
         },
         images: {
-            type: [String],
+            type: [
+                {
+                    url: { type: String, default: '' },
+                    public_id: { type: String, default: '' },
+                },
+            ],
             default: [],
         },
         recipe: {

@@ -52,3 +52,47 @@ export const create = async (req, res, next) => {
         next(error);
     }
 };
+
+export const update = async (req, res, next) => {
+    try {
+        const { employee_id } = req.body;
+        const result = await employeeService.updateEmployee({
+            employee_id,
+            ...req.body,
+        });
+
+        return res.status(200).json({
+            message: 'Cập nhật thông tin thành công!',
+            data: result,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getEmployee = async (req, res, next) => {
+    try {
+        const { employee_id } = req.params.employee_id;
+        const result = await employeeService.getEmployee({
+            employee_id,
+        });
+
+        return res.status(200).json({
+            data: result,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getAllEmployee = async (req, res, next) => {
+    try {
+        const result = await employeeService.getAllEmployee();
+
+        return res.status(200).json({
+            data: result,
+        });
+    } catch (error) {
+        next(error);
+    }
+};

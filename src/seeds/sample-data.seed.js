@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 import environment from '../config/environment.js';
 import { Cart } from '../modules/cart/cart.model.js';
 import { Category } from '../modules/category/category.model.js';
@@ -138,7 +139,7 @@ const seedSampleData = async () => {
         {
             name: 'Pho mai mozzarella',
             unit: 'gram',
-            category: 'topping',
+            category: 'other',
             is_active: true,
         },
         { name: 'Sot ca chua', unit: 'ml', category: 'sauce', is_active: true },
@@ -154,7 +155,7 @@ const seedSampleData = async () => {
         {
             name: 'Trung ga',
             unit: 'quay',
-            category: 'ingredient',
+            category: 'other',
             is_active: true,
         },
         { name: 'Hang dong', unit: 'gram', category: 'meat', is_active: true },
@@ -171,143 +172,93 @@ const seedSampleData = async () => {
             category: 'vegetable',
             is_active: true,
         },
-        { name: 'Ot', unit: 'gram', category: 'spice', is_active: true },
-        { name: 'Dau olive', unit: 'ml', category: 'oil', is_active: true },
-        { name: 'Thao oi', unit: 'gram', category: 'spice', is_active: true },
+        { name: 'Ot', unit: 'gram', category: 'other', is_active: true },
+        { name: 'Dau olive', unit: 'ml', category: 'other', is_active: true },
+        { name: 'Thao oi', unit: 'gram', category: 'other', is_active: true },
     ]);
 
-    // Seed Suppliers (8)
+    // Seed Suppliers (8) - added required supplier_category
     const suppliers = await Supplier.insertMany([
         {
             name: 'Cong ty Nguyen Lieu Sai Gon',
             email: 'vendor.sg@example.com',
             phone: '02811112222',
+            supplier_category: 'main_ingredient',
             ingredients: [
-                {
-                    ingredient_id: ingredients[0]._id,
-                    name: ingredients[0].name,
-                    unit: ingredients[0].unit,
-                },
-                {
-                    ingredient_id: ingredients[1]._id,
-                    name: ingredients[1].name,
-                    unit: ingredients[1].unit,
-                },
-                {
-                    ingredient_id: ingredients[2]._id,
-                    name: ingredients[2].name,
-                    unit: ingredients[2].unit,
-                },
+                { ingredient: ingredients[0]._id },
+                { ingredient: ingredients[1]._id },
+                { ingredient: ingredients[2]._id },
             ],
+            isActive: true,
         },
         {
             name: 'Ha Noi Fresh Supply',
             email: 'vendor.hn@example.com',
             phone: '02433334444',
+            supplier_category: 'vegetable',
             ingredients: [
-                {
-                    ingredient_id: ingredients[3]._id,
-                    name: ingredients[3].name,
-                    unit: ingredients[3].unit,
-                },
-                {
-                    ingredient_id: ingredients[4]._id,
-                    name: ingredients[4].name,
-                    unit: ingredients[4].unit,
-                },
+                { ingredient: ingredients[3]._id },
+                { ingredient: ingredients[4]._id },
             ],
+            isActive: true,
         },
         {
             name: 'Tp.HCM Meat Factory',
             email: 'meat.hcm@example.com',
             phone: '02822225555',
+            supplier_category: 'main_ingredient',
             ingredients: [
-                {
-                    ingredient_id: ingredients[5]._id,
-                    name: ingredients[5].name,
-                    unit: ingredients[5].unit,
-                },
-                {
-                    ingredient_id: ingredients[8]._id,
-                    name: ingredients[8].name,
-                    unit: ingredients[8].unit,
-                },
+                { ingredient: ingredients[5]._id },
+                { ingredient: ingredients[8]._id },
             ],
+            isActive: true,
         },
         {
             name: 'Vegetable Import Export',
             email: 'vege.imex@example.com',
             phone: '02844446666',
+            supplier_category: 'vegetable',
             ingredients: [
-                {
-                    ingredient_id: ingredients[6]._id,
-                    name: ingredients[6].name,
-                    unit: ingredients[6].unit,
-                },
-                {
-                    ingredient_id: ingredients[9]._id,
-                    name: ingredients[9].name,
-                    unit: ingredients[9].unit,
-                },
-                {
-                    ingredient_id: ingredients[10]._id,
-                    name: ingredients[10].name,
-                    unit: ingredients[10].unit,
-                },
+                { ingredient: ingredients[6]._id },
+                { ingredient: ingredients[9]._id },
+                { ingredient: ingredients[10]._id },
             ],
+            isActive: true,
         },
         {
             name: 'Spice World Vietnam',
             email: 'spice@world.vn',
             phone: '02866667777',
+            supplier_category: 'main_ingredient',
             ingredients: [
-                {
-                    ingredient_id: ingredients[12]._id,
-                    name: ingredients[12].name,
-                    unit: ingredients[12].unit,
-                },
-                {
-                    ingredient_id: ingredients[14]._id,
-                    name: ingredients[14].name,
-                    unit: ingredients[14].unit,
-                },
+                { ingredient: ingredients[12]._id },
+                { ingredient: ingredients[14]._id },
             ],
+            isActive: true,
         },
         {
             name: 'Oil & Condiment Co',
             email: 'oil.condiment@example.com',
             phone: '02888889999',
-            ingredients: [
-                {
-                    ingredient_id: ingredients[13]._id,
-                    name: ingredients[13].name,
-                    unit: ingredients[13].unit,
-                },
-            ],
+            supplier_category: 'main_ingredient',
+            ingredients: [{ ingredient: ingredients[13]._id }],
+            isActive: true,
         },
         {
             name: 'Da Nang Seafood Ltd',
             email: 'seafood.dn@example.com',
             phone: '02511110000',
-            ingredients: [
-                {
-                    ingredient_id: ingredients[7]._id,
-                    name: ingredients[7].name,
-                    unit: ingredients[7].unit,
-                },
-            ],
+            supplier_category: 'seafood',
+            ingredients: [{ ingredient: ingredients[7]._id }],
+            isActive: true,
         },
         {
             name: 'Central Highlands Produce',
             email: 'highlands@example.com',
             phone: '02621112222',
-            ingredients: [
-                {
-                    ingredient_id: ingredients[11]._id,
-                    name: ingredients[11].name,
-                    unit: ingredients[11].unit,
-                },
-            ],
+            supplier_category: 'vegetable',
+            ingredients: [{ ingredient: ingredients[11]._id }],
+            isActive: true,
         },
     ]);
 
@@ -797,7 +748,7 @@ const seedSampleData = async () => {
             email: 'staff.lan@example.com',
             phone: '0966000444',
             address: 'Binh Thanh, TP.HCM',
-            station: 'staff',
+            station: 'kitchen',
             salary_type: 'hourly',
             salary: 32000,
             bank_account: {
@@ -882,7 +833,7 @@ const seedSampleData = async () => {
             email: 'staff.huong@example.com',
             phone: '0911222999',
             address: 'Ninh Kieu, Can Tho',
-            station: 'staff',
+            station: 'kitchen',
             salary_type: 'hourly',
             salary: 30000,
             bank_account: {
@@ -892,13 +843,40 @@ const seedSampleData = async () => {
             },
             status: true,
         },
+        {
+            store_id: stores[0]._id,
+            name: 'Ngô Gia Bảo',
+            birthday: new Date('1990-01-10T00:00:00.000Z'),
+            email: 'admin@example.com',
+            phone: '0917580680',
+            address: 'Quan 1, TP.HCM',
+            station: null,
+            salary_type: 'monthly',
+            salary: 22000000,
+            bank_account: {
+                bank_name: 'VCB',
+                account_number: '000111222333',
+                account_name: 'LE VAN ADMIN',
+            },
+            status: true,
+        },
     ]);
 
-    // Seed Users (10)
+    // Seed Users (10) - passwords now hashed (pre-save hook bypassed by insertMany)
+    const hashedPassword = await bcrypt.hash('12345678', 10);
+    const hashedadPassword = await bcrypt.hash('BAO123@az', 10);
     const users = await User.insertMany([
         {
+            username: 'admin',
+            password: hashedadPassword,
+            role: 'admin',
+            user_type: 'Employee',
+            ref_id: employees[9]._id,
+            status: true,
+        },
+        {
             username: 'admin_q1',
-            password: '12345678',
+            password: hashedPassword,
             role: 'admin',
             user_type: 'Employee',
             ref_id: employees[0]._id,
@@ -906,7 +884,7 @@ const seedSampleData = async () => {
         },
         {
             username: 'manager_q1',
-            password: '12345678',
+            password: hashedPassword,
             role: 'manager',
             user_type: 'Employee',
             ref_id: employees[1]._id,
@@ -914,7 +892,7 @@ const seedSampleData = async () => {
         },
         {
             username: 'cashier_hk',
-            password: '12345678',
+            password: hashedPassword,
             role: 'staff',
             user_type: 'Employee',
             ref_id: employees[2]._id,
@@ -922,7 +900,7 @@ const seedSampleData = async () => {
         },
         {
             username: 'kitchen_tan',
-            password: '12345678',
+            password: hashedPassword,
             role: 'staff',
             user_type: 'Employee',
             ref_id: employees[3]._id,
@@ -930,7 +908,7 @@ const seedSampleData = async () => {
         },
         {
             username: 'staff_lan',
-            password: '12345678',
+            password: hashedPassword,
             role: 'staff',
             user_type: 'Employee',
             ref_id: employees[4]._id,
@@ -938,7 +916,7 @@ const seedSampleData = async () => {
         },
         {
             username: 'delivery_nam',
-            password: '12345678',
+            password: hashedPassword,
             role: 'staff',
             user_type: 'Employee',
             ref_id: employees[5]._id,
@@ -946,7 +924,7 @@ const seedSampleData = async () => {
         },
         {
             username: 'customer_a',
-            password: '12345678',
+            password: hashedPassword,
             role: null,
             user_type: 'Customer',
             ref_id: customers[0]._id,
@@ -954,7 +932,7 @@ const seedSampleData = async () => {
         },
         {
             username: 'customer_b',
-            password: '12345678',
+            password: hashedPassword,
             role: null,
             user_type: 'Customer',
             ref_id: customers[1]._id,
@@ -962,7 +940,7 @@ const seedSampleData = async () => {
         },
         {
             username: 'customer_c',
-            password: '12345678',
+            password: hashedPassword,
             role: null,
             user_type: 'Customer',
             ref_id: customers[2]._id,
@@ -970,7 +948,7 @@ const seedSampleData = async () => {
         },
         {
             username: 'customer_d',
-            password: '12345678',
+            password: hashedPassword,
             role: null,
             user_type: 'Customer',
             ref_id: customers[3]._id,

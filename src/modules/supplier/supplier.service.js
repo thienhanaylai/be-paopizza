@@ -1,3 +1,4 @@
+import '../ingredient/ingredient.model.js';
 import { Supplier } from './supplier.model.js';
 
 export const create = async (data) => {
@@ -49,11 +50,21 @@ export const update = async (data) => {
 };
 
 export const getAll = async () => {
-    return await Supplier.find({});
+    return await Supplier.find({})
+        .populate({
+            path: 'ingredients.ingredient',
+            select: 'name unit',
+        })
+        .lean();
 };
 
 export const getById = async (supplier_id) => {
-    const supplier = await Supplier.findById(supplier_id);
+    const supplier = await Supplier.findById(supplier_id)
+        .populate({
+            path: 'ingredients.ingredient',
+            select: 'name unit',
+        })
+        .lean();
     if (!supplier) throw new Error('Không tìm thấy nhà cung cấp!');
     return supplier;
 };
