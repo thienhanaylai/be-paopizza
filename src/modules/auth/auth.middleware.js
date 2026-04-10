@@ -1,8 +1,4 @@
 export const authorize = (allowedRoles = []) => {
-    if (typeof allowedRoles === 'string') {
-        allowedRoles = [allowedRoles];
-    }
-
     return (req, res, next) => {
         const user = req.user;
 

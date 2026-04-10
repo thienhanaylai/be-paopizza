@@ -10,7 +10,9 @@ const createUploader = (folderName, customTransform = []) => {
     ];
     console.log(folderName);
     const slugify = (str) => {
-        return str
+        const value = typeof str === 'string' ? str : String(str || 'upload');
+
+        return value
             .toLowerCase()
             .normalize('NFD')
             .replace(/[\u0300-\u036f]/g, '')
@@ -19,8 +21,12 @@ const createUploader = (folderName, customTransform = []) => {
     };
     const storage = new CloudinaryStorage({
         cloudinary: cloudinary,
-        params: async (req, file) => {
-            const customName = req.body.name || req.params.id;
+        params: async (req, _file) => {
+            const customName =
+                req.body.name ||
+                req.params.id ||
+                req.body.product_id ||
+                `upload-${Date.now()}`;
             const folderPath = `${folderName}/${customName}`;
             const fileName = `${slugify(customName)}-${Date.now()}`;
             return {

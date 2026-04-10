@@ -21,14 +21,13 @@ const customerSchema = new mongoose.Schema(
             type: String,
             trim: true,
             unique: true,
-            default: '',
         },
         email: {
             type: String,
             trim: true,
             lowercase: true,
             unique: true,
-            default: '',
+            default: null,
         },
         isDeleted: {
             type: Boolean,

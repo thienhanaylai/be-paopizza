@@ -60,6 +60,7 @@ export const updateStatus = async (req, res) => {
         return res.status(400).json({ message: error.message });
     }
 };
+
 export const update = async (req, res) => {
     try {
         const { id } = req.params;
@@ -78,5 +79,19 @@ export const update = async (req, res) => {
         });
     } catch (error) {
         return res.status(400).json({ message: error.message });
+    }
+};
+export const getMe = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        const user = await userService.getUserById(userId);
+
+        return res.status(200).json({
+            message: 'Lấy thông tin cá nhân thành công',
+            data: user,
+        });
+    } catch (error) {
+        return res.status(404).json({ message: error.message });
     }
 };

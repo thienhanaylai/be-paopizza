@@ -4,7 +4,12 @@ import '../ingredient/ingredient.model.js';
 
 export const create = async (data) => {
     const { name, category_id, description, images = [], variants = [] } = data;
-    if (!name || !category_id || variants.length === 0) {
+    if (
+        !name ||
+        !category_id ||
+        !Array.isArray(variants) ||
+        variants.length === 0
+    ) {
         throw new Error('Thiếu thông tin sản phẩm hoặc variants!');
     }
 

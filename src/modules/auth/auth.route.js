@@ -7,17 +7,9 @@ import { asyncHandler } from '../../middlewares/asyncHandler.js';
 const requireAuth = passport.authenticate('jwt', { session: false });
 const router = express.Router();
 
-router.post(
-    '/EmployeeLogin',
-    passport.authenticate('local', { session: false }),
-    asyncHandler(authController.EmployeeLogin),
-);
+router.post('/EmployeeLogin', asyncHandler(authController.EmployeeLogin));
 
-router.post(
-    '/CustomerLogin',
-    passport.authenticate('local', { session: false }),
-    asyncHandler(authController.CustomerLogin),
-);
+router.post('/CustomerLogin', asyncHandler(authController.CustomerLogin));
 
 router.post('/refresh', asyncHandler(authController.refreshToken));
 router.post('/logout', asyncHandler(authController.logout));
