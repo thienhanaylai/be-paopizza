@@ -1,6 +1,6 @@
 import * as productService from './product.service.js';
 
-export const createProduct = async (req, res, next) => {
+export const createProduct = async (req, res) => {
     const result = await productService.create(req.body);
     return res.status(201).json({
         message: 'Tạo sản phẩm thành công!',
@@ -8,7 +8,7 @@ export const createProduct = async (req, res, next) => {
     });
 };
 
-export const updateProduct = async (req, res, next) => {
+export const updateProduct = async (req, res) => {
     const product_id = req.params.product_id || req.body.product_id;
     const result = await productService.update({
         product_id,
@@ -20,14 +20,14 @@ export const updateProduct = async (req, res, next) => {
     });
 };
 
-export const getAllProduct = async (req, res, next) => {
+export const getAllProducts = async (req, res) => {
     const result = await productService.getAll();
     return res.status(200).json({
         data: result,
     });
 };
 
-export const getProduct = async (req, res, next) => {
+export const getProduct = async (req, res) => {
     const { product_id } = req.params;
     const result = await productService.getById(product_id);
     return res.status(200).json({
@@ -35,7 +35,7 @@ export const getProduct = async (req, res, next) => {
     });
 };
 
-export const deletedProduct = async (req, res, next) => {
+export const deletedProduct = async (req, res) => {
     const product_id = req.params.product_id || req.body.product_id;
     const result = await productService.deletedProduct(product_id);
     return res.status(200).json({
@@ -44,7 +44,7 @@ export const deletedProduct = async (req, res, next) => {
     });
 };
 
-export const getProductsByCategory = async (req, res, next) => {
+export const getProductsByCategory = async (req, res) => {
     const { category_id } = req.params;
     const result = await productService.getByCategory(category_id);
     return res.status(200).json({

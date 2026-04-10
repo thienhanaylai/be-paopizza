@@ -1,19 +1,16 @@
 import * as customerService from './customer.service.js';
 
-export const register = async (req, res, next) => {
-    const { username, password, name, phone, address, email } = req.body;
+export const register = async (req, res) => {
+    const { password, name, phone, address, email } = req.body;
 
-    // Validate cơ bản
-    if (!username || !password || !name) {
+    if (!phone || !password || !name) {
         return res.status(400).json({
-            message:
-                'Vui lòng điền đầy đủ Tên đăng nhập, Mật khẩu và Tên hiển thị',
+            message: 'Vui lòng điền đầy đủ Số điện thoại, Mật khẩu và Tên ',
         });
     }
 
     // Gọi service xử lý
     const result = await customerService.registerCustomer({
-        username,
         password,
         name,
         phone,
@@ -27,7 +24,7 @@ export const register = async (req, res, next) => {
     });
 };
 
-export const update = async (req, res, next) => {
+export const update = async (req, res) => {
     const { user_id, name, phone, address, email } = req.body;
     if (!user_id) {
         throw new Error('user_id missing!');

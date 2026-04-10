@@ -26,7 +26,7 @@ const createEmployeeSchema = z
     })
     .strict();
 
-export const create = async (req, res, next) => {
+export const create = async (req, res) => {
     const result = createEmployeeSchema.safeParse(req.body);
 
     if (!result.success) {
@@ -48,7 +48,7 @@ export const create = async (req, res, next) => {
     });
 };
 
-export const update = async (req, res, next) => {
+export const update = async (req, res) => {
     const { employee_id } = req.body;
     const result = await employeeService.updateEmployee({
         employee_id,
@@ -61,7 +61,7 @@ export const update = async (req, res, next) => {
     });
 };
 
-export const getEmployee = async (req, res, next) => {
+export const getEmployee = async (req, res) => {
     const { employee_id } = req.params.employee_id;
     const result = await employeeService.getEmployee({
         employee_id,
@@ -72,7 +72,7 @@ export const getEmployee = async (req, res, next) => {
     });
 };
 
-export const getAllEmployee = async (req, res, next) => {
+export const getAllEmployee = async (req, res) => {
     const result = await employeeService.getAllEmployee();
 
     return res.status(200).json({

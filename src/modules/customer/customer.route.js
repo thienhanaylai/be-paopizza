@@ -1,7 +1,7 @@
 import express from 'express';
 import * as customerController from './customer.controller.js';
 import passport from 'passport';
-import { asyncHandler } from '../../middlewares/asyncHandler.js';
+import { asyncHandler } from '../../middlewares/index.js';
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 

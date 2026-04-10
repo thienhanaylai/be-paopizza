@@ -40,6 +40,11 @@ const promotionSchema = new mongoose.Schema(
             ref: 'Store',
             default: [],
         },
+        isDeleted: {
+            type: Boolean,
+            default: false,
+            index: true,
+        },
     },
     { timestamps: true },
 );

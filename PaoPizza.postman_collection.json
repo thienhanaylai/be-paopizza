@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "d4e5ca2d-2f14-47fe-a5cf-6f4e19af8642",
     "name": "PaoPizza API",
-    "description": "Backend API for PaoPizza.\n\nBase path: `/api/v1`\n\n**Active modules (full CRUD)**: auth, users, customers (partial), employees, cart (full), supplier, ingredient, category, store, product (variants/recipes/populate), inventory (stock/low-stock), **order (basic CRUD with items/populate/soft-delete — totals/inventory sync TODO)**. **Models-only (pending implementation)**: promotion, payroll, shift, schedule.\n\n**Auth**: Passport.js Local + JWT (Bearer token in Authorization: Bearer <token>) + Refresh in cookie. Use seed credentials below.\n\n**Seed credentials** (password: `12345678` for all):\n- Admin: `admin_q1`\n- Manager/Staff: `manager_q1`, `cashier_hk`, etc.\n- Customers: `customer_a` etc.\n\n**Test flow**: `npm run seed:sample` (full relations) → Login (/auth/EmployeeLogin or /CustomerLogin) → Bearer token for active CRUD (categories/stores/products/inventory/cart/employees/supplier/ingredient). Test soft-delete, populate, validation/Zod errors. Order/promotion/HR (payroll/shift/schedule) pending (models only).\n\n**Note**: No rate limits. Standardized to middlewares/index.js imports + cleaned controllers (asyncHandler + service throws; minor try/catch remain in some). Full modules audit done — prioritize order module. See plan.md for details.",
+    "description": "Backend API for PaoPizza.\n\nBase path: `/api/v1`\n\n**Active modules (full CRUD)**: auth, users, customers (phone-as-username + rollback), employees, cart (price lookup), supplier, ingredient, category, store, product (variants), inventory, **order (full: price lookup from variants, totals calc, inventory stock check + decrement on create, promotion support)**, **promotion (full CRUD with code validation, dates, applicable stores, soft-delete)**. HR (payroll/shift/schedule) pending full implementation (models exist).\n\n**Auth**: Passport.js Local + JWT (Bearer token in Authorization: Bearer <token>) + Refresh in cookie. Use seed credentials below.\n\n**Seed credentials** (password: `12345678` for all):\n- Admin: `admin_q1`\n- Manager/Staff: `manager_q1`, `cashier_hk`, etc.\n- Customers: `customer_a` etc.\n\n**Test flow**: `npm run seed:sample` (full relations) → Login (/auth/EmployeeLogin or /CustomerLogin) → Bearer token for active CRUD (categories/stores/products/inventory/cart/employees/supplier/ingredient). Test soft-delete, populate, validation/Zod errors. Order/promotion/HR (payroll/shift/schedule) pending (models only).\n\n**Note**: No rate limits. Standardized to middlewares/index.js imports + cleaned controllers (asyncHandler + service throws; minor try/catch remain in some). Full modules audit done — prioritize order module. See plan.md for details.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -599,7 +599,7 @@
     },
     {
       "name": "Customers",
-      "description": "Customer registration.\n\nCreates both a `Customer` profile and a `User` account with `user_type: Customer`.",
+      "description": "Customer registration and update.\n\n**Updated**: register creates Customer first then linked User (username = phone for login, rollback on User failure by deleting Customer). Update uses user_id to find ref_id in Customer. Public register, auth for update. Matches service logic (phone as username for customers).",
       "item": [
         {
           "name": "Register Customer",
@@ -613,7 +613,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"customer_new\",\n  \"password\": \"12345678\",\n  \"name\": \"Nguyen Van A\",\n  \"phone\": \"0900000001\",\n  \"address\": \"123 Le Loi, Q1, HCM\",\n  \"email\": \"newcustomer@example.com\"\n}",
+              "raw": "{\n  \"password\": \"12345678\",\n  \"name\": \"Nguyen Van A\",\n  \"phone\": \"0900000001\",\n  \"address\": \"123 Le Loi, Q1, HCM\",\n  \"email\": \"newcustomer@example.com\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -621,7 +621,7 @@
               }
             },
             "url": "{{baseUrl}}/customers/register",
-            "description": "Register a new customer account. **Public endpoint.**\n\nCreates a `Customer` document first, then a `User` account linked to it. Rolls back Customer if User creation fails.\n\n**Body**:\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| username | string | Yes | unique |\n| password | string | Yes | min 6 chars |\n| name | string | Yes | display name |\n| phone | string | No | unique if provided |\n| address | string | No | |\n| email | string | No | unique, lowercase |\n\n**Response 201**:\n```json\n{\n  \"message\": \"Đăng ký tài khoản khách hàng thành công\",\n  \"data\": {\n    \"account\": { ...user without password },\n    \"profile\": { ...customer object }\n  }\n}\n```\n\n**Response 400**: `{ \"message\": \"Vui lòng điền đầy đủ Tên đăng nhập, Mật khẩu và Tên hiển thị\" }`"
+            "description": "Register new customer (updated). **Public.** Validates phone/password/name. Username internally = phone for login. Creates Customer first, then linked User (ref_id). Rollback deletes Customer on failure. Matches current controller/service.\n\n**Body**:\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| password | string | Yes | min 6 |\n| name | string | Yes | display name |\n| phone | string | Yes | used as username, unique |\n| address | string | No | |\n| email | string | No | unique, lowercase |\n\n**Response 201**:\n```json\n{\n  \"message\": \"Đăng ký tài khoản khách hàng thành công\",\n  \"data\": {\n    \"account\": { ...user without password, username=phone },\n    \"profile\": { ...customer }\n  }\n}\n```\n\n**Response 400**: `{ \"message\": \"Vui lòng điền đầy đủ Số điện thoại, Mật khẩu và Tên \" }` (updated validation)."
           },
           "response": [
             {
@@ -634,7 +634,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"message\": \"Đăng ký tài khoản khách hàng thành công\",\n  \"data\": {\n    \"account\": {\n      \"_id\": \"67a8b123456789abcdef0030\",\n      \"username\": \"customer_new\",\n      \"user_type\": \"Customer\",\n      \"role\": null,\n      \"ref_id\": \"67a8b123456789abcdef0031\",\n      \"status\": true\n    },\n    \"profile\": {\n      \"_id\": \"67a8b123456789abcdef0031\",\n      \"name\": \"Nguyen Van A\",\n      \"phone\": \"0900000001\",\n      \"address\": \"123 Le Loi, Q1, HCM\",\n      \"email\": \"newcustomer@example.com\",\n      \"point\": 0\n    }\n  }\n}"
+              "body": "{\n  \"message\": \"Đăng ký tài khoản khách hàng thành công\",\n  \"data\": {\n    \"account\": {\n      \"_id\": \"67a8b123456789abcdef0030\",\n      \"username\": \"0900000001\",\n      \"user_type\": \"Customer\",\n      \"role\": null,\n      \"ref_id\": \"67a8b123456789abcdef0031\",\n      \"status\": true\n    },\n    \"profile\": {\n      \"_id\": \"67a8b123456789abcdef0031\",\n      \"name\": \"Nguyen Van A\",\n      \"phone\": \"0900000001\",\n      \"address\": \"123 Le Loi, Q1, HCM\",\n      \"email\": \"newcustomer@example.com\",\n      \"point\": 0\n    }\n  }\n}"
             },
             {
               "name": "400 - Missing Fields",
@@ -646,7 +646,48 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"message\": \"Vui lòng điền đầy đủ Tên đăng nhập, Mật khẩu và Tên hiển thị\"\n}"
+              "body": "{\n  \"message\": \"Vui lòng điền đầy đủ Số điện thoại, Mật khẩu và Tên \"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{userId}}\",\n  \"name\": \"Updated Name\",\n  \"phone\": \"0900000002\",\n  \"address\": \"New Address\",\n  \"email\": \"updated@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/customers/update",
+            "description": "Update customer profile via user_id (finds ref_id). **Requires auth.** Matches updated service."
+          },
+          "response": [
+            {
+              "name": "200 - Updated",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"profile\": { ...updated customer }\n}"
             }
           ]
         }

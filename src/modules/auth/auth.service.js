@@ -30,7 +30,7 @@ export const refreshAuthTokens = async (oldRefreshToken) => {
         }
 
         return generateAuthTokens(user);
-    } catch (error) {
+    } catch (_) {
         throw new Error('Refresh Token không hợp lệ hoặc đã hết hạn');
     }
 };
