@@ -9,7 +9,7 @@ export const register = async (req, res) => {
         });
     }
 
-    // Gọi service xử lý
+    
     const result = await customerService.registerCustomer({
         password,
         name,

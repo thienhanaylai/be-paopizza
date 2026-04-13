@@ -3,17 +3,17 @@ import '../category/category.model.js';
 import '../ingredient/ingredient.model.js';
 
 export const create = async (data) => {
-    const { name, category_id, description, images = [], variants = [] } = data;
+    const { name, category, description, variants = [] } = data;
     if (
         !name ||
-        !category_id ||
+        !category ||
         !Array.isArray(variants) ||
         variants.length === 0
     ) {
         throw new Error('Thiếu thông tin sản phẩm hoặc variants!');
     }
 
-    // Check duplicate name
+     
     const existing = await Product.findOne({ name, isDeleted: false });
     if (existing) {
         throw new Error('Sản phẩm với tên này đã tồn tại!');
@@ -21,9 +21,8 @@ export const create = async (data) => {
 
     const product = await Product.create({
         name,
-        category_id,
+        category,
         description,
-        images,
         variants,
     });
     return product;
@@ -34,6 +33,12 @@ export const update = async (data) => {
     if (!product_id) {
         throw new Error('Thiếu product_id!');
     }
+
+    if (!updateData.category && updateData.category_id) {
+        updateData.category = updateData.category_id;
+    }
+    delete updateData.category_id;
+    delete updateData.images;
 
     const product = await Product.findById(product_id);
     if (!product || product.isDeleted) {
@@ -54,19 +59,32 @@ export const update = async (data) => {
     const result = await Product.findByIdAndUpdate(product_id, updateData, {
         new: true,
         runValidators: true,
-    }).populate('category_id', 'name slug');
+    })
+        .populate('category', 'name slug')
+        .populate({
+            path: 'variants.recipe.ingredient',
+            select: 'name unit',
+        });
     return result;
 };
 
 export const getAll = async () => {
-    return await Product.find({ isDeleted: false })
-        .populate('category_id', 'name slug')
+    return await Product.find({ isDeleted: false, is_active: true })
+        .populate('category', 'name slug')
+        .populate({
+            path: 'variants.recipe.ingredient',
+            select: 'name unit',
+        })
         .lean();
 };
 
 export const getById = async (product_id) => {
     const product = await Product.findById(product_id)
-        .populate('category_id', 'name slug')
+        .populate('category', 'name slug')
+        .populate({
+            path: 'variants.recipe.ingredient',
+            select: 'name unit',
+        })
         .lean();
     if (!product || product.isDeleted)
         throw new Error('Không tìm thấy sản phẩm!');
@@ -88,10 +106,14 @@ export const deletedProduct = async (product_id) => {
 
 export const getByCategory = async (category_id) => {
     return await Product.find({
-        category_id,
+        category: category_id,
         isDeleted: false,
         is_active: true,
     })
-        .populate('category_id', 'name slug')
+        .populate('category', 'name slug')
+        .populate({
+            path: 'variants.recipe.ingredient',
+            select: 'name unit',
+        })
         .lean();
 };

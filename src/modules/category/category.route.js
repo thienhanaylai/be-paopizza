@@ -9,12 +9,8 @@ const requireAdmin = authorize(['admin']);
 
 const router = express.Router();
 
-router.get('/', requireAuth, asyncHandler(categoryController.getAllCategory));
-router.get(
-    '/:category_id',
-    requireAuth,
-    asyncHandler(categoryController.getCategory),
-);
+router.get('/', asyncHandler(categoryController.getAllCategory));
+router.get('/:category_id', asyncHandler(categoryController.getCategory));
 router.post(
     '/create',
     requireAuth,

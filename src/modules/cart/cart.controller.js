@@ -1,7 +1,7 @@
 import * as cartService from './cart.service.js';
 
 export const getCart = async (req, res) => {
-    const { userId } = req.params || req.query || req.body; // support different ways
+    const { userId } = req.params || req.query || req.body;
     if (!userId) {
         throw new Error('userId is required');
     }

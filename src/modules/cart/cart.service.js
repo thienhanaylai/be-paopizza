@@ -5,7 +5,7 @@ export const getCart = async (data) => {
     const { userId } = data;
     let cart = await Cart.findOne({ user_id: userId }).populate({
         path: 'items.product_id',
-        select: 'name variants images',
+        select: 'name variants',
     });
     if (!cart) {
         cart = await Cart.create({ user_id: userId });
@@ -44,15 +44,18 @@ export const addToCart = async (data) => {
     );
 
     const price = variant.price;
+    const sku = variant.sku;
 
     if (existingIndex !== -1) {
         cart.items[existingIndex].quantity += quantity;
         cart.items[existingIndex].price = price;
+        cart.items[existingIndex].sku = sku;
         if (note) cart.items[existingIndex].note = note;
     } else {
         cart.items.push({
             product_id,
             price,
+            sku,
             size,
             quantity,
             note,

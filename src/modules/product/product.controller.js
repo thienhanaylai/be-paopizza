@@ -13,46 +13,114 @@ const parseJsonField = (value) => {
     }
 };
 
-const normalizeImageUrls = (files, imagesInput) => {
-    if (Array.isArray(files) && files.length > 0) {
-        return files.map((file) => file.path);
+const normalizeImageObject = (input) => {
+    if (!input) return undefined;
+
+    if (Array.isArray(input)) {
+        if (input.length === 0) return undefined;
+        return normalizeImageObject(input[0]);
     }
 
-    if (Array.isArray(imagesInput)) {
-        return imagesInput.filter(Boolean);
+    if (typeof input === 'string') {
+        const url = input.trim();
+        if (!url) return undefined;
+        return { url, public_id: '' };
     }
 
-    if (typeof imagesInput === 'string') {
-        const parsed = parseJsonField(imagesInput);
-        if (Array.isArray(parsed)) {
-            return parsed.filter(Boolean);
-        }
-
-        if (imagesInput.includes(',')) {
-            return imagesInput
-                .split(',')
-                .map((item) => item.trim())
-                .filter(Boolean);
-        }
-
-        const singleImage = imagesInput.trim();
-        return singleImage ? [singleImage] : [];
+    if (typeof input === 'object') {
+        const url = typeof input.url === 'string' ? input.url.trim() : '';
+        const public_id =
+            typeof input.public_id === 'string' ? input.public_id.trim() : '';
+        if (!url && !public_id) return undefined;
+        return { url, public_id };
     }
 
-    return [];
+    return undefined;
+};
+
+const normalizeRecipe = (recipeInput) => {
+    const parsed = parseJsonField(recipeInput);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+        .map((item) => {
+            if (!item || typeof item !== 'object') return null;
+
+            const ingredient = item.ingredient || item.ingredient_id;
+            if (!ingredient) return null;
+
+            return {
+                ingredient,
+                quantity: item.quantity,
+                unit: item.unit,
+            };
+        })
+        .filter(Boolean);
+};
+
+const normalizeVariants = (variantsInput) => {
+    const parsed = parseJsonField(variantsInput);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+        .map((variant) => {
+            if (!variant || typeof variant !== 'object') return null;
+
+            const normalized = {
+                sku: variant.sku,
+                price: variant.price,
+                size: variant.size,
+                recipe: normalizeRecipe(variant.recipe),
+            };
+
+            const image = normalizeImageObject(variant.image || variant.images);
+            if (image) normalized.image = image;
+
+            return normalized;
+        })
+        .filter(Boolean);
+};
+
+const applyUploadedImagesToVariants = (variants, files) => {
+    if (!Array.isArray(files) || files.length === 0) return variants;
+
+    return variants.map((variant, index) => {
+        const file = files[index];
+        if (!file) return variant;
+
+        return {
+            ...variant,
+            image: {
+                url: file.path || '',
+                public_id: file.filename || file.public_id || '',
+            },
+        };
+    });
 };
 
 const normalizePayload = (req) => {
     const payload = {
         ...req.body,
-        variants: parseJsonField(req.body.variants),
     };
 
-    if (Array.isArray(req.files) && req.files.length > 0) {
-        payload.images = normalizeImageUrls(req.files, req.body.images);
-    } else if (Object.prototype.hasOwnProperty.call(req.body, 'images')) {
-        payload.images = normalizeImageUrls(req.files, req.body.images);
+    if (
+        Object.prototype.hasOwnProperty.call(req.body, 'category') ||
+        Object.prototype.hasOwnProperty.call(req.body, 'category_id')
+    ) {
+        payload.category = req.body.category || req.body.category_id;
     }
+
+    if (
+        Object.prototype.hasOwnProperty.call(req.body, 'variants') ||
+        (Array.isArray(req.files) && req.files.length > 0)
+    ) {
+        let variants = normalizeVariants(req.body.variants);
+        variants = applyUploadedImagesToVariants(variants, req.files);
+        payload.variants = variants;
+    }
+
+    delete payload.category_id;
+    delete payload.images;
 
     return payload;
 };

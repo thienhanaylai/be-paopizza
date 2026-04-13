@@ -123,14 +123,54 @@ const seedSampleData = async () => {
 
     // Seed Categories (8)
     const categories = await Category.insertMany([
-        { name: 'Pizza', slug: 'pizza', is_active: true },
-        { name: 'Drink', slug: 'drink', is_active: true },
-        { name: 'Appetizer', slug: 'appetizer', is_active: true },
-        { name: 'Dessert', slug: 'dessert', is_active: true },
-        { name: 'Pasta', slug: 'pasta', is_active: true },
-        { name: 'Burger', slug: 'burger', is_active: true },
-        { name: 'Salad', slug: 'salad', is_active: true },
-        { name: 'Soup', slug: 'soup', is_active: true },
+        {
+            name: 'Pizza',
+            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXBpenphLWljb24gbHVjaWRlLXBpenphIj48cGF0aCBkPSJtMTIgMTQtMSAxIi8+PHBhdGggZD0ibTEzLjc1IDE4LjI1LTEuMjUgMS40MiIvPjxwYXRoIGQ9Ik0xNy43NzUgNS42NTRhMTUuNjggMTUuNjggMCAwIDAtMTIuMTIxIDEyLjEyIi8+PHBhdGggZD0iTTE4LjggOS4zYTEgMSAwIDAgMCAyLjEgNy43Ii8+PHBhdGggZD0iTTIxLjk2NCAyMC43MzJhMSAxIDAgMCAxLTEuMjMyIDEuMjMybC0xOC01YTEgMSAwIDAgMS0uNjk1LTEuMjMyQTE5LjY4IDE5LjY4IDAgMCAxIDE1LjczMiAyLjAzN2ExIDEgMCAwIDEgMS4yMzIuNjk1eiIvPjwvc3ZnPg==',
+            slug: 'pizza',
+            is_active: true,
+        },
+        {
+            name: 'Drink',
+            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWN1cC1zb2RhLWljb24gbHVjaWRlLWN1cC1zb2RhIj48cGF0aCBkPSJtNiA4IDEuNzUgMTIuMjhhMiAyIDAgMCAwIDIgMS43Mmg0LjU0YTIgMiAwIDAgMCAyLTEuNzJMMTggOCIvPjxwYXRoIGQ9Ik01IDhoMTQiLz48cGF0aCBkPSJNNyAxNWE2LjQ3IDYuNDcgMCAwIDEgNSAwIDYuNDcgNi40NyAwIDAgMCA1IDAiLz48cGF0aCBkPSJtMTIgOCAxLTZoMiIvPjwvc3ZnPg==',
+            slug: 'drink',
+            is_active: true,
+        },
+        {
+            name: 'Appetizer',
+            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWljZS1jcmVhbS1jb25lLWljb24gbHVjaWRlLWljZS1jcmVhbS1jb25lIj48cGF0aCBkPSJtNyAxMSA0LjA4IDEwLjM1YTEgMSAwIDAgMCAxLjg0IDBMMTcgMTEiLz48cGF0aCBkPSJNMTcgN0E1IDUgMCAwIDAgNyA3Ii8+PHBhdGggZD0iTTE3IDdhMiAyIDAgMCAxIDAgNEg3YTIgMiAwIDAgMSAwLTQiLz48L3N2Zz4=',
+            slug: 'appetizer',
+            is_active: true,
+        },
+        {
+            name: 'Dessert',
+            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWNha2Utc2xpY2UtaWNvbiBsdWNpZGUtY2FrZS1zbGljZSI+PHBhdGggZD0iTTE2IDEzSDMiLz48cGF0aCBkPSJNMTYgMTdIMyIvPjxwYXRoIGQ9Im03LjIgNy45LTMuMzg4IDIuNUEyIDIgMCAwIDAgMyAxMi4wMVYyMGExIDEgMCAwIDAgMSAxaDE2YTEgMSAwIDAgMCAxLTF2LTguNjU0YzAtMi0yLjQ0LTYuMDI2LTYuNDQtOC4wMjZhMSAxIDAgMCAwLTEuMDgyLjA1N0wxMC40IDUuNiIvPjxjaXJjbGUgY3g9IjkiIGN5PSI3IiByPSIyIi8+PC9zdmc+',
+            slug: 'dessert',
+            is_active: true,
+        },
+        {
+            name: 'Pasta',
+            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXV0ZW5zaWxzLWNyb3NzZWQtaWNvbiBsdWNpZGUtdXRlbnNpbHMtY3Jvc3NlZCI+PHBhdGggZD0ibTE2IDItMi4zIDIuM2EzIDMgMCAwIDAgMCA0LjJsMS44IDEuOGEzIDMgMCAwIDAgNC4yIDBMMjIgOCIvPjxwYXRoIGQ9Ik0xNSAxNSAzLjMgMy4zYTQuMiA0LjIgMCAwIDAgMCA2bDcuMyA3LjNjLjcuNyAyIC43IDIuOCAwTDE1IDE1Wm0wIDAgNyA3Ii8+PHBhdGggZD0ibTIuMSAyMS44IDYuNC02LjMiLz48cGF0aCBkPSJtMTkgNS03IDciLz48L3N2Zz4=',
+            slug: 'pasta',
+            is_active: true,
+        },
+        {
+            name: 'Burger',
+            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWhhbWJ1cmdlci1pY29uIGx1Y2lkZS1oYW1idXJnZXIiPjxwYXRoIGQ9Ik0xMiAxNkg0YTIgMiAwIDEgMSAwLTRoMTZhMiAyIDAgMSAxIDAgNGgtNC4yNSIvPjxwYXRoIGQ9Ik01IDEyYTIgMiAwIDAgMS0yLTIgOSA3IDAgMCAxIDE4IDAgMiAyIDAgMCAxLTIgMiIvPjxwYXRoIGQ9Ik01IDE2YTIgMiAwIDAgMC0yIDIgMyAzIDAgMCAwIDMgM2gxMmEzIDMgMCAwIDAgMy0zIDIgMiAwIDAgMC0yLTJxMCAwIDAgMCIvPjxwYXRoIGQ9Im02LjY3IDEyIDYuMTMgNC42YTIgMiAwIDAgMCAyLjgtLjRsMy4xNS00LjIiLz48L3N2Zz4=',
+            slug: 'burger',
+            is_active: true,
+        },
+        {
+            name: 'Salad',
+            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXNhbGFkLWljb24gbHVjaWRlLXNhbGFkIj48cGF0aCBkPSJNNyAyMWgxMCIvPjxwYXRoIGQ9Ik0xMiAyMWE5IDkgMCAwIDAgOS05SDNhOSA5IDAgMCAwIDkgOVoiLz48cGF0aCBkPSJNMTEuMzggMTJhMi40IDIuNCAwIDAgMS0uNC00Ljc3IDIuNCAyLjQgMCAwIDEgMy4yLTIuNzcgMi40IDIuNCAwIDAgMSAzLjQ3LS42MyAyLjQgMi40IDAgMCAxIDMuMzcgMy4zNyAyLjQgMi40IDAgMCAxLTEuMSAzLjcgMi41MSAyLjUxIDAgMCAxIC4wMyAxLjEiLz48cGF0aCBkPSJtMTMgMTIgNC00Ii8+PHBhdGggZD0iTTEwLjkgNy4yNUEzLjk5IDMuOTkgMCAwIDAgNCAxMGMwIC43My4yIDEuNDEuNTQgMiIvPjwvc3ZnPg==',
+            slug: 'salad',
+            is_active: true,
+        },
+        {
+            name: 'Soup',
+            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXNvdXAtaWNvbiBsdWNpZGUtc291cCI+PHBhdGggZD0iTTEyIDIxYTkgOSAwIDAgMCA5LTlIM2E5IDkgMCAwIDAgOSA5WiIvPjxwYXRoIGQ9Ik03IDIxaDEwIi8+PHBhdGggZD0iTTE5LjUgMTIgMjIgNiIvPjxwYXRoIGQ9Ik0xNi4yNSAzYy4yNy4xLjguNTMuNzUgMS4zNi0uMDYuODMtLjkzIDEuMi0xIDIuMDItLjA1Ljc4LjM0IDEuMjQuNzMgMS42MiIvPjxwYXRoIGQ9Ik0xMS4yNSAzYy4yNy4xLjguNTMuNzQgMS4zNi0uMDUuODMtLjkzIDEuMi0uOTggMi4wMi0uMDYuNzguMzMgMS4yNC43MiAxLjYyIi8+PHBhdGggZD0iTTYuMjUgM2MuMjcuMS44LjUzLjc1IDEuMzYtLjA2LjgzLS45MyAxLjItMSAyLjAyLS4wNS43OC4zNCAxLjI0Ljc0IDEuNjIiLz48L3N2Zz4=',
+            slug: 'soup',
+            is_active: true,
+        },
     ]);
 
     // Seed Ingredients (15)
@@ -262,43 +302,40 @@ const seedSampleData = async () => {
         },
     ]);
 
-    // Seed Products (10)
+    // Seed Products (9)
     const products = await Product.insertMany([
         {
-            category_id: categories[0]._id,
+            category: categories[0]._id,
             name: 'Pizza Hawaii',
             description: 'Pizza de mem voi pho mai, topping xuc xich va dua.',
-            images: ['https://picsum.photos/seed/pizza-hawaii/1200/800'],
             is_active: true,
             variants: [
                 {
                     sku: 'PIZ-HAW-S',
                     price: 89000,
                     size: 'S',
-                    images: [
-                        {
-                            url: 'https://picsum.photos/seed/pizza-hawaii-s/1200/800',
-                            public_id: 'pizza-hawaii-s',
-                        },
-                    ],
+                    image: {
+                        url: 'https://img.freepik.com/free-photo/crispy-mixed-pizza-with-olives-sausage_140725-3095.jpg?semt=ais_hybrid&w=740&q=80',
+                        public_id: 'seed-pizza-hawaii-s',
+                    },
                     recipe: [
                         {
-                            ingredient_id: ingredients[0]._id,
+                            ingredient: ingredients[0]._id,
                             quantity: 180,
                             unit: 'gram',
                         },
                         {
-                            ingredient_id: ingredients[1]._id,
+                            ingredient: ingredients[1]._id,
                             quantity: 90,
                             unit: 'gram',
                         },
                         {
-                            ingredient_id: ingredients[2]._id,
+                            ingredient: ingredients[2]._id,
                             quantity: 45,
                             unit: 'ml',
                         },
                         {
-                            ingredient_id: ingredients[3]._id,
+                            ingredient: ingredients[3]._id,
                             quantity: 70,
                             unit: 'gram',
                         },
@@ -308,30 +345,28 @@ const seedSampleData = async () => {
                     sku: 'PIZ-HAW-L',
                     price: 149000,
                     size: 'L',
-                    images: [
-                        {
-                            url: 'https://picsum.photos/seed/pizza-hawaii-l/1200/800',
-                            public_id: 'pizza-hawaii-l',
-                        },
-                    ],
+                    image: {
+                        url: 'https://img.freepik.com/free-photo/crispy-mixed-pizza-with-olives-sausage_140725-3095.jpg?semt=ais_hybrid&w=740&q=80',
+                        public_id: 'seed-pizza-hawaii-l',
+                    },
                     recipe: [
                         {
-                            ingredient_id: ingredients[0]._id,
+                            ingredient: ingredients[0]._id,
                             quantity: 280,
                             unit: 'gram',
                         },
                         {
-                            ingredient_id: ingredients[1]._id,
+                            ingredient: ingredients[1]._id,
                             quantity: 140,
                             unit: 'gram',
                         },
                         {
-                            ingredient_id: ingredients[2]._id,
+                            ingredient: ingredients[2]._id,
                             quantity: 70,
                             unit: 'ml',
                         },
                         {
-                            ingredient_id: ingredients[3]._id,
+                            ingredient: ingredients[3]._id,
                             quantity: 110,
                             unit: 'gram',
                         },
@@ -340,40 +375,37 @@ const seedSampleData = async () => {
             ],
         },
         {
-            category_id: categories[0]._id,
-            name: 'Pizza Margarita',
+            category: categories[0]._id,
+            name: 'Pizza Margherita',
             description: 'Pizza co ban voi ca chua, pho mai va thao oi.',
-            images: ['https://picsum.photos/seed/pizza-margarita/1200/800'],
             is_active: true,
             variants: [
                 {
                     sku: 'PIZ-MAR-M',
                     price: 99000,
                     size: 'M',
-                    images: [
-                        {
-                            url: 'https://picsum.photos/seed/pizza-margarita-m/1200/800',
-                            public_id: 'pizza-margarita-m',
-                        },
-                    ],
+                    image: {
+                        url: 'https://img.freepik.com/free-photo/side-view-pizza-with-pepper-tomato-pizza-slices-board-cookware_176474-3184.jpg?semt=ais_hybrid&w=740&q=80',
+                        public_id: 'seed-pizza-margherita-m',
+                    },
                     recipe: [
                         {
-                            ingredient_id: ingredients[0]._id,
+                            ingredient: ingredients[0]._id,
                             quantity: 200,
                             unit: 'gram',
                         },
                         {
-                            ingredient_id: ingredients[1]._id,
+                            ingredient: ingredients[1]._id,
                             quantity: 100,
                             unit: 'gram',
                         },
                         {
-                            ingredient_id: ingredients[2]._id,
+                            ingredient: ingredients[2]._id,
                             quantity: 50,
                             unit: 'ml',
                         },
                         {
-                            ingredient_id: ingredients[14]._id,
+                            ingredient: ingredients[14]._id,
                             quantity: 5,
                             unit: 'gram',
                         },
@@ -382,40 +414,37 @@ const seedSampleData = async () => {
             ],
         },
         {
-            category_id: categories[0]._id,
+            category: categories[0]._id,
             name: 'Pizza Pepperoni',
             description: 'Pizza voi pepperoni va pho mai dam da.',
-            images: ['https://picsum.photos/seed/pizza-pepperoni/1200/800'],
             is_active: true,
             variants: [
                 {
                     sku: 'PIZ-PEP-S',
                     price: 95000,
                     size: 'S',
-                    images: [
-                        {
-                            url: 'https://picsum.photos/seed/pizza-pepperoni-s/1200/800',
-                            public_id: 'pizza-pepperoni-s',
-                        },
-                    ],
+                    image: {
+                        url: 'https://img.freepik.com/free-photo/pizza-with-pepperoni-slices-tomato-sauce_114579-2944.jpg?semt=ais_hybrid&w=740&q=80',
+                        public_id: 'seed-pizza-pepperoni-s',
+                    },
                     recipe: [
                         {
-                            ingredient_id: ingredients[0]._id,
+                            ingredient: ingredients[0]._id,
                             quantity: 180,
                             unit: 'gram',
                         },
                         {
-                            ingredient_id: ingredients[1]._id,
+                            ingredient: ingredients[1]._id,
                             quantity: 95,
                             unit: 'gram',
                         },
                         {
-                            ingredient_id: ingredients[2]._id,
+                            ingredient: ingredients[2]._id,
                             quantity: 40,
                             unit: 'ml',
                         },
                         {
-                            ingredient_id: ingredients[3]._id,
+                            ingredient: ingredients[3]._id,
                             quantity: 60,
                             unit: 'gram',
                         },
@@ -424,25 +453,22 @@ const seedSampleData = async () => {
             ],
         },
         {
-            category_id: categories[1]._id,
+            category: categories[1]._id,
             name: 'Coca Cola',
             description: 'Nuoc ngot co ga.',
-            images: ['https://picsum.photos/seed/cola/1200/800'],
             is_active: true,
             variants: [
                 {
                     sku: 'DRK-COLA-M',
                     price: 20000,
                     size: 'M',
-                    images: [
-                        {
-                            url: 'https://picsum.photos/seed/cola-m/1200/800',
-                            public_id: 'cola-m',
-                        },
-                    ],
+                    image: {
+                        url: 'https://picsum.photos/seed/cola-m/1200/800',
+                        public_id: 'seed-coca-cola-m',
+                    },
                     recipe: [
                         {
-                            ingredient_id: ingredients[4]._id,
+                            ingredient: ingredients[4]._id,
                             quantity: 150,
                             unit: 'ml',
                         },
@@ -452,15 +478,13 @@ const seedSampleData = async () => {
                     sku: 'DRK-COLA-L',
                     price: 30000,
                     size: 'L',
-                    images: [
-                        {
-                            url: 'https://picsum.photos/seed/cola-l/1200/800',
-                            public_id: 'cola-l',
-                        },
-                    ],
+                    image: {
+                        url: 'https://picsum.photos/seed/cola-l/1200/800',
+                        public_id: 'seed-coca-cola-l',
+                    },
                     recipe: [
                         {
-                            ingredient_id: ingredients[4]._id,
+                            ingredient: ingredients[4]._id,
                             quantity: 300,
                             unit: 'ml',
                         },
@@ -469,51 +493,45 @@ const seedSampleData = async () => {
             ],
         },
         {
-            category_id: categories[1]._id,
+            category: categories[1]._id,
             name: 'Sprite',
             description: 'Nuoc ngot CO2.',
-            images: ['https://picsum.photos/seed/sprite/1200/800'],
             is_active: true,
             variants: [
                 {
                     sku: 'DRK-SPR-M',
                     price: 20000,
                     size: 'M',
-                    images: [
-                        {
-                            url: 'https://picsum.photos/seed/sprite-m/1200/800',
-                            public_id: 'sprite-m',
-                        },
-                    ],
+                    image: {
+                        url: 'https://picsum.photos/seed/sprite-m/1200/800',
+                        public_id: 'seed-sprite-m',
+                    },
                     recipe: [],
                 },
             ],
         },
         {
-            category_id: categories[4]._id,
+            category: categories[4]._id,
             name: 'Spaghetti Carbonara',
             description: 'Spaghetti voi trung, thit heo.',
-            images: ['https://picsum.photos/seed/pasta-carbonara/1200/800'],
             is_active: true,
             variants: [
                 {
                     sku: 'PST-CAR-R',
                     price: 85000,
                     size: 'Regular',
-                    images: [
-                        {
-                            url: 'https://picsum.photos/seed/pasta-carbonara-r/1200/800',
-                            public_id: 'pasta-carbonara-r',
-                        },
-                    ],
+                    image: {
+                        url: 'https://picsum.photos/seed/pasta-carbonara-r/1200/800',
+                        public_id: 'seed-spaghetti-carbonara-r',
+                    },
                     recipe: [
                         {
-                            ingredient_id: ingredients[7]._id,
+                            ingredient: ingredients[7]._id,
                             quantity: 2,
                             unit: 'quay',
                         },
                         {
-                            ingredient_id: ingredients[8]._id,
+                            ingredient: ingredients[8]._id,
                             quantity: 100,
                             unit: 'gram',
                         },
@@ -522,30 +540,27 @@ const seedSampleData = async () => {
             ],
         },
         {
-            category_id: categories[5]._id,
+            category: categories[5]._id,
             name: 'Hamburger',
             description: 'Hamburger thom ngon voi pho mai.',
-            images: ['https://picsum.photos/seed/hamburger/1200/800'],
             is_active: true,
             variants: [
                 {
                     sku: 'BRG-HAM-S',
                     price: 75000,
                     size: 'S',
-                    images: [
-                        {
-                            url: 'https://picsum.photos/seed/hamburger-s/1200/800',
-                            public_id: 'hamburger-s',
-                        },
-                    ],
+                    image: {
+                        url: 'https://picsum.photos/seed/hamburger-s/1200/800',
+                        public_id: 'seed-hamburger-s',
+                    },
                     recipe: [
                         {
-                            ingredient_id: ingredients[5]._id,
+                            ingredient: ingredients[5]._id,
                             quantity: 150,
                             unit: 'gram',
                         },
                         {
-                            ingredient_id: ingredients[1]._id,
+                            ingredient: ingredients[1]._id,
                             quantity: 50,
                             unit: 'gram',
                         },
@@ -554,35 +569,32 @@ const seedSampleData = async () => {
             ],
         },
         {
-            category_id: categories[6]._id,
+            category: categories[6]._id,
             name: 'Caesar Salad',
             description: 'Salad voi rau dap, ot ca chua, pho mai va dau olive.',
-            images: ['https://picsum.photos/seed/caesar-salad/1200/800'],
             is_active: true,
             variants: [
                 {
                     sku: 'SLD-CES-R',
                     price: 65000,
                     size: 'Regular',
-                    images: [
-                        {
-                            url: 'https://picsum.photos/seed/caesar-salad-r/1200/800',
-                            public_id: 'caesar-salad-r',
-                        },
-                    ],
+                    image: {
+                        url: 'https://picsum.photos/seed/caesar-salad-r/1200/800',
+                        public_id: 'seed-caesar-salad-r',
+                    },
                     recipe: [
                         {
-                            ingredient_id: ingredients[6]._id,
+                            ingredient: ingredients[6]._id,
                             quantity: 200,
                             unit: 'gram',
                         },
                         {
-                            ingredient_id: ingredients[12]._id,
+                            ingredient: ingredients[12]._id,
                             quantity: 10,
                             unit: 'gram',
                         },
                         {
-                            ingredient_id: ingredients[13]._id,
+                            ingredient: ingredients[13]._id,
                             quantity: 30,
                             unit: 'ml',
                         },
@@ -591,30 +603,27 @@ const seedSampleData = async () => {
             ],
         },
         {
-            category_id: categories[7]._id,
+            category: categories[7]._id,
             name: 'Tomato Soup',
             description: 'Canh ca chua dam da voi kem.',
-            images: ['https://picsum.photos/seed/tomato-soup/1200/800'],
             is_active: true,
             variants: [
                 {
                     sku: 'SOP-TOM-M',
                     price: 45000,
                     size: 'M',
-                    images: [
-                        {
-                            url: 'https://picsum.photos/seed/tomato-soup-m/1200/800',
-                            public_id: 'tomato-soup-m',
-                        },
-                    ],
+                    image: {
+                        url: 'https://picsum.photos/seed/tomato-soup-m/1200/800',
+                        public_id: 'seed-tomato-soup-m',
+                    },
                     recipe: [
                         {
-                            ingredient_id: ingredients[2]._id,
+                            ingredient: ingredients[2]._id,
                             quantity: 200,
                             unit: 'ml',
                         },
                         {
-                            ingredient_id: ingredients[10]._id,
+                            ingredient: ingredients[10]._id,
                             quantity: 30,
                             unit: 'gram',
                         },
@@ -1004,6 +1013,7 @@ const seedSampleData = async () => {
             items: [
                 {
                     product_id: products[0]._id,
+                    sku: 'PIZ-HAW-S',
                     price: 89000,
                     size: 'S',
                     quantity: 1,
@@ -1011,6 +1021,7 @@ const seedSampleData = async () => {
                 },
                 {
                     product_id: products[3]._id,
+                    sku: 'DRK-COLA-M',
                     price: 20000,
                     size: 'M',
                     quantity: 2,
@@ -1023,6 +1034,7 @@ const seedSampleData = async () => {
             items: [
                 {
                     product_id: products[0]._id,
+                    sku: 'PIZ-HAW-L',
                     price: 149000,
                     size: 'L',
                     quantity: 1,
@@ -1030,6 +1042,7 @@ const seedSampleData = async () => {
                 },
                 {
                     product_id: products[1]._id,
+                    sku: 'PIZ-MAR-M',
                     price: 99000,
                     size: 'M',
                     quantity: 1,
@@ -1042,6 +1055,7 @@ const seedSampleData = async () => {
             items: [
                 {
                     product_id: products[2]._id,
+                    sku: 'PIZ-PEP-S',
                     price: 95000,
                     size: 'S',
                     quantity: 2,
@@ -1054,6 +1068,7 @@ const seedSampleData = async () => {
             items: [
                 {
                     product_id: products[5]._id,
+                    sku: 'PST-CAR-R',
                     price: 85000,
                     size: 'Regular',
                     quantity: 1,
@@ -1061,6 +1076,7 @@ const seedSampleData = async () => {
                 },
                 {
                     product_id: products[3]._id,
+                    sku: 'DRK-COLA-L',
                     price: 30000,
                     size: 'L',
                     quantity: 1,
@@ -1073,6 +1089,7 @@ const seedSampleData = async () => {
             items: [
                 {
                     product_id: products[4]._id,
+                    sku: 'DRK-SPR-M',
                     price: 20000,
                     size: 'M',
                     quantity: 3,
@@ -1085,6 +1102,7 @@ const seedSampleData = async () => {
             items: [
                 {
                     product_id: products[6]._id,
+                    sku: 'BRG-HAM-S',
                     price: 75000,
                     size: 'S',
                     quantity: 1,
@@ -1097,6 +1115,7 @@ const seedSampleData = async () => {
             items: [
                 {
                     product_id: products[7]._id,
+                    sku: 'SLD-CES-R',
                     price: 65000,
                     size: 'Regular',
                     quantity: 1,
@@ -1109,6 +1128,7 @@ const seedSampleData = async () => {
             items: [
                 {
                     product_id: products[8]._id,
+                    sku: 'SOP-TOM-M',
                     price: 45000,
                     size: 'M',
                     quantity: 2,

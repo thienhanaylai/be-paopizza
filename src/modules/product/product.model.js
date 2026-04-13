@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const variantRecipeSchema = new mongoose.Schema(
     {
-        ingredient_id: {
+        ingredient: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Ingredient',
             required: true,
@@ -39,14 +39,13 @@ const variantSchema = new mongoose.Schema(
             required: true,
             trim: true,
         },
-        images: {
-            type: [
-                {
-                    url: { type: String, default: '' },
-                    public_id: { type: String, default: '' },
-                },
-            ],
-            default: [],
+        image: {
+            type: {
+                url: { type: String, default: '' },
+                public_id: { type: String, default: '' },
+            },
+
+            default: {},
         },
         recipe: {
             type: [variantRecipeSchema],
@@ -58,7 +57,7 @@ const variantSchema = new mongoose.Schema(
 
 const productSchema = new mongoose.Schema(
     {
-        category_id: {
+        category: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Category',
             required: true,
@@ -73,10 +72,7 @@ const productSchema = new mongoose.Schema(
             trim: true,
             default: '',
         },
-        images: {
-            type: [String],
-            default: [],
-        },
+
         is_active: {
             type: Boolean,
             default: true,

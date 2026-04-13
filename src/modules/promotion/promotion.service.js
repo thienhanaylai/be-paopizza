@@ -85,7 +85,7 @@ export const update = async (data) => {
     if (applicable_store !== undefined)
         updateData.applicable_store = applicable_store;
 
-    // Check duplicate code if changing
+    
     if (code) {
         const existing = await Promotion.findOne({
             code: code.toUpperCase().trim(),

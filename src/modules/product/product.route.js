@@ -11,7 +11,7 @@ const uploadProductImage = createUploader('products');
 
 const router = express.Router();
 
-router.get('/', requireAuth, asyncHandler(productController.getAllProducts));
+router.get('/', asyncHandler(productController.getAllProducts));
 router.get(
     '/:product_id',
     requireAuth,

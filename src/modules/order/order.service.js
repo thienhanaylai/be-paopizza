@@ -26,7 +26,7 @@ export const create = async (data) => {
     }
 
     let sub_total = 0;
-    const inventoryUpdates = new Map(); // ingredient_id (string) -> total required qty
+    const inventoryUpdates = new Map();
     const populatedItems = [];
 
     for (const item of items) {
@@ -61,7 +61,6 @@ export const create = async (data) => {
             note,
         });
 
-        // Accumulate ingredient requirements from recipe for inventory check/decrement
         if (variant.recipe?.length) {
             for (const rec of variant.recipe) {
                 const ingId = rec.ingredient_id.toString();
@@ -97,7 +96,6 @@ export const create = async (data) => {
 
     const total = sub_total - discount_amount;
 
-    // Check stock for all required ingredients
     for (const [ingIdStr, needed] of inventoryUpdates.entries()) {
         const inventory = await Inventory.findOne({
             store_id,
@@ -122,12 +120,10 @@ export const create = async (data) => {
         order_type,
         paymentMethod,
         contact_info,
-        // promotion_code can be added to schema if needed
     };
 
     const order = await Order.create(orderData);
 
-    // Decrement inventory (atomic updates)
     for (const [ingIdStr, needed] of inventoryUpdates.entries()) {
         await Inventory.findOneAndUpdate(
             { store_id, ingredient_id: ingIdStr },
@@ -136,7 +132,6 @@ export const create = async (data) => {
         );
     }
 
-    // Return fully populated order (avoid TDZ by duplicating query)
     const populatedOrder = await Order.findOne({
         _id: order._id,
         isDeleted: false,

@@ -1,10 +1,17 @@
 import mongoose from 'mongoose';
+import { trim } from 'zod';
 const itemSchema = new mongoose.Schema(
     {
         product_id: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Product',
             required: true,
+        },
+        sku: {
+            type: String,
+            require: true,
+
+            trim: true,
         },
         price: {
             type: Number,
