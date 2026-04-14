@@ -27,6 +27,7 @@ const customerSchema = new mongoose.Schema(
             trim: true,
             lowercase: true,
             unique: true,
+            sparse: true,
             default: null,
         },
         isDeleted: {
