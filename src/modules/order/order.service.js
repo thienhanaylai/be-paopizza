@@ -2,6 +2,7 @@ import { Order } from './order.model.js';
 import { Product } from '../product/product.model.js';
 import { Inventory } from '../inventory/inventory.model.js';
 import { Promotion } from '../promotion/promotion.model.js';
+import { User } from '../user/user.model.js';
 
 export const create = async (data) => {
     const {
@@ -63,7 +64,7 @@ export const create = async (data) => {
 
         if (variant.recipe?.length) {
             for (const rec of variant.recipe) {
-                const ingId = rec.ingredient_id.toString();
+                const ingId = rec.ingredient._id.toString();
                 const needed = (rec.quantity || 1) * quantity;
                 inventoryUpdates.set(
                     ingId,
@@ -96,17 +97,17 @@ export const create = async (data) => {
 
     const total = sub_total - discount_amount;
 
-    for (const [ingIdStr, needed] of inventoryUpdates.entries()) {
-        const inventory = await Inventory.findOne({
-            store_id,
-            ingredient_id: ingIdStr,
-        });
-        if (!inventory || inventory.current_stock < needed) {
-            throw new Error(
-                `Hết nguyên liệu cho một số món trong đơn hàng! Vui lòng kiểm tra kho.`,
-            );
-        }
-    }
+    // for (const [ingIdStr, needed] of inventoryUpdates.entries()) {
+    //     const inventory = await Inventory.findOne({
+    //         store_id,
+    //         ingredient_id: ingIdStr,
+    //     });
+    //     if (!inventory || inventory.current_stock < needed) {
+    //         throw new Error(
+    //             `Hết nguyên liệu cho một số món trong đơn hàng! Vui lòng kiểm tra kho.`,
+    //         );
+    //     }
+    // }
 
     const orderData = {
         store_id,
@@ -179,4 +180,18 @@ export const deleted = async (order_id) => {
         throw new Error('Không tìm thấy đơn hàng để xoá!');
     }
     return order;
+};
+
+export const getHistoryOrder = async (user_id) => {
+    const customer = await User.findById(user_id)
+        .populate('ref_id')
+        .select('-password');
+    const orders = await Order.find({
+        customer_id: customer.ref_id._id,
+    }).populate('items.product_id');
+
+    if (!orders) {
+        throw new Error('Chưa có đơn hàng nào!');
+    }
+    return orders;
 };

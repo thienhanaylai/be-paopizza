@@ -17,6 +17,8 @@ import { Store } from '../modules/store/store.model.js';
 import { Supplier } from '../modules/supplier/supplier.model.js';
 import { User } from '../modules/user/user.model.js';
 
+const TARGET_COUNT = 20;
+
 const connectDatabase = async () => {
     await mongoose.connect(environment.mongoUri, {
         dbName: 'express_app',
@@ -56,1755 +58,636 @@ const syncModelIndexes = async () => {
     ]);
 };
 
-const seedSampleData = async () => {
-    // Seed Stores (10)
-    const stores = await Store.insertMany([
-        {
-            name: 'Pao Pizza Quan 1',
-            address: '12 Nguyen Hue, Quan 1, TP.HCM',
-            phone: '0909000001',
-            status: true,
-        },
-        {
-            name: 'Pao Pizza Hoan Kiem',
-            address: '99 Trang Tien, Hoan Kiem, Ha Noi',
-            phone: '0909000002',
-            status: true,
-        },
-        {
-            name: 'Pao Pizza Tan Binh',
-            address: '55 Cach Mang Thang Tam, Tan Binh, TP.HCM',
-            phone: '0909000003',
-            status: true,
-        },
-        {
-            name: 'Pao Pizza Binh Thanh',
-            address: '123 Vo Van Tan, Binh Thanh, TP.HCM',
-            phone: '0909000004',
-            status: true,
-        },
-        {
-            name: 'Pao Pizza District 3',
-            address: '45 Ly Chi Thanh, Quan 3, TP.HCM',
-            phone: '0909000005',
-            status: true,
-        },
-        {
-            name: 'Pao Pizza Thanh Xuan',
-            address: '78 Duong Lang, Thanh Xuan, Ha Noi',
-            phone: '0909000006',
-            status: true,
-        },
-        {
-            name: 'Pao Pizza Hai Ba Trung',
-            address: '88 Trang Tien, Hai Ba Trung, Ha Noi',
-            phone: '0909000007',
-            status: true,
-        },
-        {
-            name: 'Pao Pizza Dong Da',
-            address: '156 Kham Thien, Dong Da, Ha Noi',
-            phone: '0909000008',
-            status: true,
-        },
-        {
-            name: 'Pao Pizza Can Tho',
-            address: '34 Nam Ky Khoi Nghia, Ninh Kieu, Can Tho',
-            phone: '0909000009',
-            status: true,
-        },
-        {
-            name: 'Pao Pizza Da Nang',
-            address: '67 Hoang Dieu, Hai Chau, Da Nang',
-            phone: '0909000010',
-            status: true,
-        },
-    ]);
+const pad = (value, length = 2) => String(value).padStart(length, '0');
 
-    // Seed Categories (8)
+const dateUtc = (year, monthIndex, day) =>
+    new Date(Date.UTC(year, monthIndex, day, 0, 0, 0, 0));
+
+const pick = (arr, index) => arr[index % arr.length];
+
+const seedSampleData = async () => {
+    const districtPool = [
+        'Quan 1',
+        'Quan 3',
+        'Binh Thanh',
+        'Tan Binh',
+        'Go Vap',
+        'Thu Duc',
+        'Hai Chau',
+        'Thanh Khe',
+        'Son Tra',
+        'Ninh Kieu',
+    ];
+
+    const cityPool = ['TP.HCM', 'Ha Noi', 'Da Nang', 'Can Tho', 'Hai Phong'];
+    const storeStatuses = ['active', 'active', 'maintenance', 'close'];
+
+    const stores = await Store.insertMany(
+        Array.from({ length: TARGET_COUNT }, (_, index) => ({
+            name: `Pao Pizza Store ${pad(index + 1)}`,
+            address: `${100 + index} Street ${pad(index + 1)}, ${pick(districtPool, index)}, ${pick(cityPool, index)}`,
+            phone: `0909${pad(index + 1, 6)}`,
+            email: `store${pad(index + 1)}@paopizza.com`,
+            time_open: pick(['07:00', '08:00', '09:00'], index),
+            time_close: pick(['21:00', '22:00', '23:00'], index),
+            manager_by: null,
+            status: pick(storeStatuses, index),
+            isDeleted: false,
+        })),
+    );
+
+    // Keep category dataset unchanged (8 categories)
     const categories = await Category.insertMany([
         {
             name: 'Pizza',
-            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXBpenphLWljb24gbHVjaWRlLXBpenphIj48cGF0aCBkPSJtMTIgMTQtMSAxIi8+PHBhdGggZD0ibTEzLjc1IDE4LjI1LTEuMjUgMS40MiIvPjxwYXRoIGQ9Ik0xNy43NzUgNS42NTRhMTUuNjggMTUuNjggMCAwIDAtMTIuMTIxIDEyLjEyIi8+PHBhdGggZD0iTTE4LjggOS4zYTEgMSAwIDAgMCAyLjEgNy43Ii8+PHBhdGggZD0iTTIxLjk2NCAyMC43MzJhMSAxIDAgMCAxLTEuMjMyIDEuMjMybC0xOC01YTEgMSAwIDAgMS0uNjk1LTEuMjMyQTE5LjY4IDE5LjY4IDAgMCAxIDE1LjczMiAyLjAzN2ExIDEgMCAwIDEgMS4yMzIuNjk1eiIvPjwvc3ZnPg==',
             slug: 'pizza',
+            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXBpenphLWljb24gbHVjaWRlLXBpenphIj48cGF0aCBkPSJtMTIgMTQtMSAxIi8+PHBhdGggZD0ibTEzLjc1IDE4LjI1LTEuMjUgMS40MiIvPjxwYXRoIGQ9Ik0xNy43NzUgNS42NTRhMTUuNjggMTUuNjggMCAwIDAtMTIuMTIxIDEyLjEyIi8+PHBhdGggZD0iTTE4LjggOS4zYTEgMSAwIDAgMCAyLjEgNy43Ii8+PHBhdGggZD0iTTIxLjk2NCAyMC43MzJhMSAxIDAgMCAxLTEuMjMyIDEuMjMybC0xOC01YTEgMSAwIDAgMS0uNjk1LTEuMjMyQTE5LjY4IDE5LjY4IDAgMCAxIDE1LjczMiAyLjAzN2ExIDEgMCAwIDEgMS4yMzIuNjk1eiIvPjwvc3ZnPg==',
             is_active: true,
+            isDeleted: false,
         },
         {
             name: 'Drink',
-            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWN1cC1zb2RhLWljb24gbHVjaWRlLWN1cC1zb2RhIj48cGF0aCBkPSJtNiA4IDEuNzUgMTIuMjhhMiAyIDAgMCAwIDIgMS43Mmg0LjU0YTIgMiAwIDAgMCAyLTEuNzJMMTggOCIvPjxwYXRoIGQ9Ik01IDhoMTQiLz48cGF0aCBkPSJNNyAxNWE2LjQ3IDYuNDcgMCAwIDEgNSAwIDYuNDcgNi40NyAwIDAgMCA1IDAiLz48cGF0aCBkPSJtMTIgOCAxLTZoMiIvPjwvc3ZnPg==',
             slug: 'drink',
+            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWN1cC1zb2RhLWljb24gbHVjaWRlLWN1cC1zb2RhIj48cGF0aCBkPSJtNiA4IDEuNzUgMTIuMjhhMiAyIDAgMCAwIDIgMS43Mmg0LjU0YTIgMiAwIDAgMCAyLTEuNzJMMTggOCIvPjxwYXRoIGQ9Ik01IDhoMTQiLz48cGF0aCBkPSJNNyAxNWE2LjQ3IDYuNDcgMCAwIDEgNSAwIDYuNDcgNi40NyAwIDAgMCA1IDAiLz48cGF0aCBkPSJtMTIgOCAxLTZoMiIvPjwvc3ZnPg==',
             is_active: true,
+            isDeleted: false,
         },
         {
             name: 'Appetizer',
-            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWljZS1jcmVhbS1jb25lLWljb24gbHVjaWRlLWljZS1jcmVhbS1jb25lIj48cGF0aCBkPSJtNyAxMSA0LjA4IDEwLjM1YTEgMSAwIDAgMCAxLjg0IDBMMTcgMTEiLz48cGF0aCBkPSJNMTcgN0E1IDUgMCAwIDAgNyA3Ii8+PHBhdGggZD0iTTE3IDdhMiAyIDAgMCAxIDAgNEg3YTIgMiAwIDAgMSAwLTQiLz48L3N2Zz4=',
             slug: 'appetizer',
+            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWNha2Utc2xpY2UtaWNvbiBsdWNpZGUtY2FrZS1zbGljZSI+PHBhdGggZD0iTTE2IDEzSDMiLz48cGF0aCBkPSJNMTYgMTdIMyIvPjxwYXRoIGQ9Im03LjIgNy45LTMuMzg4IDIuNUEyIDIgMCAwIDAgMyAxMi4wMVYyMGExIDEgMCAwIDAgMSAxaDE2YTEgMSAwIDAgMCAxLTF2LTguNjU0YzAtMi0yLjQ0LTYuMDI2LTYuNDQtOC4wMjZhMSAxIDAgMCAwLTEuMDgyLjA1N0wxMC40IDUuNiIvPjxjaXJjbGUgY3g9IjkiIGN5PSI3IiByPSIyIi8+PC9zdmc+',
             is_active: true,
+            isDeleted: false,
         },
         {
             name: 'Dessert',
-            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWNha2Utc2xpY2UtaWNvbiBsdWNpZGUtY2FrZS1zbGljZSI+PHBhdGggZD0iTTE2IDEzSDMiLz48cGF0aCBkPSJNMTYgMTdIMyIvPjxwYXRoIGQ9Im03LjIgNy45LTMuMzg4IDIuNUEyIDIgMCAwIDAgMyAxMi4wMVYyMGExIDEgMCAwIDAgMSAxaDE2YTEgMSAwIDAgMCAxLTF2LTguNjU0YzAtMi0yLjQ0LTYuMDI2LTYuNDQtOC4wMjZhMSAxIDAgMCAwLTEuMDgyLjA1N0wxMC40IDUuNiIvPjxjaXJjbGUgY3g9IjkiIGN5PSI3IiByPSIyIi8+PC9zdmc+',
             slug: 'dessert',
+            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWRlc3NlcnQtaWNvbiBsdWNpZGUtZGVzc2VydCI+PHBhdGggZD0iTTEwLjE2MiAzLjE2N0ExMCAxMCAwIDAgMCAyIDEzYTIgMiAwIDAgMCA0IDB2LTFhMiAyIDAgMCAxIDQgMHY0YTIgMiAwIDAgMCA0IDB2LTRhMiAyIDAgMCAxIDQgMHYxYTIgMiAwIDAgMCA0LS4wMDYgMTAgMTAgMCAwIDAtOC4xNjEtOS44MjYiLz48cGF0aCBkPSJNMjAuODA0IDE0Ljg2OWE5IDkgMCAwIDEtMTcuNjA4IDAiLz48Y2lyY2xlIGN4PSIxMiIgY3k9IjQiIHI9IjIiLz48L3N2Zz4=',
             is_active: true,
+            isDeleted: false,
         },
         {
             name: 'Pasta',
-            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXV0ZW5zaWxzLWNyb3NzZWQtaWNvbiBsdWNpZGUtdXRlbnNpbHMtY3Jvc3NlZCI+PHBhdGggZD0ibTE2IDItMi4zIDIuM2EzIDMgMCAwIDAgMCA0LjJsMS44IDEuOGEzIDMgMCAwIDAgNC4yIDBMMjIgOCIvPjxwYXRoIGQ9Ik0xNSAxNSAzLjMgMy4zYTQuMiA0LjIgMCAwIDAgMCA2bDcuMyA3LjNjLjcuNyAyIC43IDIuOCAwTDE1IDE1Wm0wIDAgNyA3Ii8+PHBhdGggZD0ibTIuMSAyMS44IDYuNC02LjMiLz48cGF0aCBkPSJtMTkgNS03IDciLz48L3N2Zz4=',
             slug: 'pasta',
+            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXNoZWxsLWljb24gbHVjaWRlLXNoZWxsIj48cGF0aCBkPSJNMTQgMTFhMiAyIDAgMSAxLTQgMCA0IDQgMCAwIDEgOCAwIDYgNiAwIDAgMS0xMiAwIDggOCAwIDAgMSAxNiAwIDEwIDEwIDAgMSAxLTIwIDAgMTEuOTMgMTEuOTMgMCAwIDEgMi40Mi03LjIyIDIgMiAwIDEgMSAzLjE2IDIuNDQiLz48L3N2Zz4=',
             is_active: true,
+            isDeleted: false,
         },
         {
             name: 'Burger',
-            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWhhbWJ1cmdlci1pY29uIGx1Y2lkZS1oYW1idXJnZXIiPjxwYXRoIGQ9Ik0xMiAxNkg0YTIgMiAwIDEgMSAwLTRoMTZhMiAyIDAgMSAxIDAgNGgtNC4yNSIvPjxwYXRoIGQ9Ik01IDEyYTIgMiAwIDAgMS0yLTIgOSA3IDAgMCAxIDE4IDAgMiAyIDAgMCAxLTIgMiIvPjxwYXRoIGQ9Ik01IDE2YTIgMiAwIDAgMC0yIDIgMyAzIDAgMCAwIDMgM2gxMmEzIDMgMCAwIDAgMy0zIDIgMiAwIDAgMC0yLTJxMCAwIDAgMCIvPjxwYXRoIGQ9Im02LjY3IDEyIDYuMTMgNC42YTIgMiAwIDAgMCAyLjgtLjRsMy4xNS00LjIiLz48L3N2Zz4=',
             slug: 'burger',
+            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWhhbWJ1cmdlci1pY29uIGx1Y2lkZS1oYW1idXJnZXIiPjxwYXRoIGQ9Ik0xMiAxNkg0YTIgMiAwIDEgMSAwLTRoMTZhMiAyIDAgMSAxIDAgNGgtNC4yNSIvPjxwYXRoIGQ9Ik01IDEyYTIgMiAwIDAgMS0yLTIgOSA3IDAgMCAxIDE4IDAgMiAyIDAgMCAxLTIgMiIvPjxwYXRoIGQ9Ik01IDE2YTIgMiAwIDAgMC0yIDIgMyAzIDAgMCAwIDMgM2gxMmEzIDMgMCAwIDAgMy0zIDIgMiAwIDAgMC0yLTJxMCAwIDAgMCIvPjxwYXRoIGQ9Im02LjY3IDEyIDYuMTMgNC42YTIgMiAwIDAgMCAyLjgtLjRsMy4xNS00LjIiLz48L3N2Zz4=',
             is_active: true,
+            isDeleted: false,
         },
         {
             name: 'Salad',
-            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXNhbGFkLWljb24gbHVjaWRlLXNhbGFkIj48cGF0aCBkPSJNNyAyMWgxMCIvPjxwYXRoIGQ9Ik0xMiAyMWE5IDkgMCAwIDAgOS05SDNhOSA5IDAgMCAwIDkgOVoiLz48cGF0aCBkPSJNMTEuMzggMTJhMi40IDIuNCAwIDAgMS0uNC00Ljc3IDIuNCAyLjQgMCAwIDEgMy4yLTIuNzcgMi40IDIuNCAwIDAgMSAzLjQ3LS42MyAyLjQgMi40IDAgMCAxIDMuMzcgMy4zNyAyLjQgMi40IDAgMCAxLTEuMSAzLjcgMi41MSAyLjUxIDAgMCAxIC4wMyAxLjEiLz48cGF0aCBkPSJtMTMgMTIgNC00Ii8+PHBhdGggZD0iTTEwLjkgNy4yNUEzLjk5IDMuOTkgMCAwIDAgNCAxMGMwIC43My4yIDEuNDEuNTQgMiIvPjwvc3ZnPg==',
             slug: 'salad',
+            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWhvcC1pY29uIGx1Y2lkZS1ob3AiPjxwYXRoIGQ9Ik0xMC44MiAxNi4xMmMxLjY5LjYgMy45MS43OSA1LjE4Ljg1LjU1LjAzIDEtLjQyLjk3LS45Ny0uMDYtMS4yNy0uMjYtMy41LS44NS01LjE4Ii8+PHBhdGggZD0iTTExLjUgNi41YzEuNjQgMCA1LS4zOCA2LjcxLTEuMDcuNTItLjIuNTUtLjgyLjEyLTEuMTdBMTAgMTAgMCAwIDAgNC4yNiAxOC4zM2MuMzUuNDMuOTYuNCAxLjE3LS4xMi42OS0xLjcxIDEuMDctNS4wNyAxLjA3LTYuNzEgMS4zNC40NSAzLjEuOSA0Ljg4LjYyYS44OC44OCAwIDAgMCAuNzMtLjc0Yy4zLTIuMTQtLjE1LTMuNS0uNjEtNC44OCIvPjxwYXRoIGQ9Ik0xNS42MiAxNi45NWMuMi44NS42MiAyLjc2LjUgNC4yOGEuNzcuNzcgMCAwIDEtLjkuNyAxNi42NCAxNi42NCAwIDAgMS00LjA4LTEuMzYiLz48cGF0aCBkPSJNMTYuMTMgMjEuMDVjMS42NS42MyAzLjY4Ljg0IDQuODcuOTFhLjkuOSAwIDAgMCAuOTYtLjk2IDE3LjY4IDE3LjY4IDAgMCAwLS45LTQuODciLz48cGF0aCBkPSJNMTYuOTQgMTUuNjJjLjg2LjIgMi43Ny42MiA0LjI5LjVhLjc3Ljc3IDAgMCAwIC43LS45IDE2LjY0IDE2LjY0IDAgMCAwLTEuMzYtNC4wOCIvPjxwYXRoIGQ9Ik0xNy45OSA1LjUyYTIwLjgyIDIwLjgyIDAgMCAxIDMuMTUgNC41LjguOCAwIDAgMS0uNjggMS4xM2MtMi4zMy4yLTUuMy0uMzItOC4yNy0xLjU3Ii8+PHBhdGggZD0iTTQuOTMgNC45MyAzIDNhLjcuNyAwIDAgMSAwLTEiLz48cGF0aCBkPSJNOS41OCAxMi4xOGMxLjI0IDIuOTggMS43NyA1Ljk1IDEuNTcgOC4yOGEuOC44IDAgMCAxLTEuMTMuNjggMjAuODIgMjAuODIgMCAwIDEtNC41LTMuMTUiLz48L3N2Zz4=',
             is_active: true,
+            isDeleted: false,
         },
         {
             name: 'Soup',
-            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXNvdXAtaWNvbiBsdWNpZGUtc291cCI+PHBhdGggZD0iTTEyIDIxYTkgOSAwIDAgMCA5LTlIM2E5IDkgMCAwIDAgOSA5WiIvPjxwYXRoIGQ9Ik03IDIxaDEwIi8+PHBhdGggZD0iTTE5LjUgMTIgMjIgNiIvPjxwYXRoIGQ9Ik0xNi4yNSAzYy4yNy4xLjguNTMuNzUgMS4zNi0uMDYuODMtLjkzIDEuMi0xIDIuMDItLjA1Ljc4LjM0IDEuMjQuNzMgMS42MiIvPjxwYXRoIGQ9Ik0xMS4yNSAzYy4yNy4xLjguNTMuNzQgMS4zNi0uMDUuODMtLjkzIDEuMi0uOTggMi4wMi0uMDYuNzguMzMgMS4yNC43MiAxLjYyIi8+PHBhdGggZD0iTTYuMjUgM2MuMjcuMS44LjUzLjc1IDEuMzYtLjA2LjgzLS45MyAxLjItMSAyLjAyLS4wNS43OC4zNCAxLjI0Ljc0IDEuNjIiLz48L3N2Zz4=',
             slug: 'soup',
+            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXNvdXAtaWNvbiBsdWNpZGUtc291cCI+PHBhdGggZD0iTTEyIDIxYTkgOSAwIDAgMCA5LTlIM2E5IDkgMCAwIDAgOSA5WiIvPjxwYXRoIGQ9Ik03IDIxaDEwIi8+PHBhdGggZD0iTTE5LjUgMTIgMjIgNiIvPjxwYXRoIGQ9Ik0xNi4yNSAzYy4yNy4xLjguNTMuNzUgMS4zNi0uMDYuODMtLjkzIDEuMi0xIDIuMDItLjA1Ljc4LjM0IDEuMjQuNzMgMS42MiIvPjxwYXRoIGQ9Ik0xMS4yNSAzYy4yNy4xLjguNTMuNzQgMS4zNi0uMDUuODMtLjkzIDEuMi0uOTggMi4wMi0uMDYuNzguMzMgMS4yNC43MiAxLjYyIi8+PHBhdGggZD0iTTYuMjUgM2MuMjcuMS44LjUzLjc1IDEuMzYtLjA2LjgzLS45MyAxLjItMSAyLjAyLS4wNS43OC4zNCAxLjI0Ljc0IDEuNjIiLz48L3N2Zz4=',
             is_active: true,
+            isDeleted: false,
         },
     ]);
 
-    // Seed Ingredients (15)
-    const ingredients = await Ingredient.insertMany([
-        { name: 'Bot mi', unit: 'gram', category: 'dough', is_active: true },
-        {
-            name: 'Pho mai mozzarella',
-            unit: 'gram',
-            category: 'other',
-            is_active: true,
-        },
-        { name: 'Sot ca chua', unit: 'ml', category: 'sauce', is_active: true },
-        { name: 'Xuc xich', unit: 'gram', category: 'meat', is_active: true },
-        { name: 'Syrup cola', unit: 'ml', category: 'drink', is_active: true },
-        { name: 'Thit ga', unit: 'gram', category: 'meat', is_active: true },
-        {
-            name: 'Rau diep',
-            unit: 'gram',
-            category: 'vegetable',
-            is_active: true,
-        },
-        {
-            name: 'Trung ga',
-            unit: 'quay',
-            category: 'other',
-            is_active: true,
-        },
-        { name: 'Hang dong', unit: 'gram', category: 'meat', is_active: true },
-        {
-            name: 'Hanh tay',
-            unit: 'gram',
-            category: 'vegetable',
-            is_active: true,
-        },
-        { name: 'Toi', unit: 'gram', category: 'vegetable', is_active: true },
-        {
-            name: 'Hanh la',
-            unit: 'gram',
-            category: 'vegetable',
-            is_active: true,
-        },
-        { name: 'Ot', unit: 'gram', category: 'other', is_active: true },
-        { name: 'Dau olive', unit: 'ml', category: 'other', is_active: true },
-        { name: 'Thao oi', unit: 'gram', category: 'other', is_active: true },
-    ]);
+    const ingredientSeedData = [
+        { name: 'Bot Mi So 00', unit: 'kg', category: 'dough' },
+        { name: 'Pho Mai Mozzarella', unit: 'kg', category: 'other' },
+        { name: 'Sot Ca Chua Napoli', unit: 'lit', category: 'sauce' },
+        { name: 'Pepperoni Cat Lat', unit: 'kg', category: 'meat' },
+        { name: 'Uc Ga Phi Le', unit: 'kg', category: 'meat' },
+        { name: 'Thit Bo Xay', unit: 'kg', category: 'meat' },
+        { name: 'Tom Tuoi', unit: 'kg', category: 'seafood' },
+        { name: 'Muc Ong Cat Khoanh', unit: 'kg', category: 'seafood' },
+        { name: 'Nam Mo', unit: 'kg', category: 'vegetable' },
+        { name: 'Ot Chuong Do', unit: 'kg', category: 'vegetable' },
+        { name: 'Ot Chuong Vang', unit: 'kg', category: 'vegetable' },
+        { name: 'Hanh Tay', unit: 'kg', category: 'vegetable' },
+        { name: 'Toi Bam', unit: 'kg', category: 'vegetable' },
+        { name: 'La Que Kho', unit: 'package', category: 'other' },
+        { name: 'Dau Olive', unit: 'lit', category: 'other' },
+        { name: 'Duong Nau', unit: 'kg', category: 'other' },
+        { name: 'Muoi Bien', unit: 'kg', category: 'other' },
+        { name: 'Tieu Den Xay', unit: 'kg', category: 'other' },
+        { name: 'Sot Mayonnaise', unit: 'lit', category: 'sauce' },
+        { name: 'Sot BBQ', unit: 'lit', category: 'sauce' },
+    ];
 
-    // Seed Suppliers (8) - added required supplier_category
-    const suppliers = await Supplier.insertMany([
-        {
-            name: 'Cong ty Nguyen Lieu Sai Gon',
-            email: 'vendor.sg@example.com',
-            phone: '02811112222',
-            supplier_category: 'main_ingredient',
-            ingredients: [
-                { ingredient: ingredients[0]._id },
-                { ingredient: ingredients[1]._id },
-                { ingredient: ingredients[2]._id },
-            ],
-            isActive: true,
-        },
-        {
-            name: 'Ha Noi Fresh Supply',
-            email: 'vendor.hn@example.com',
-            phone: '02433334444',
-            supplier_category: 'vegetable',
-            ingredients: [
-                { ingredient: ingredients[3]._id },
-                { ingredient: ingredients[4]._id },
-            ],
-            isActive: true,
-        },
-        {
-            name: 'Tp.HCM Meat Factory',
-            email: 'meat.hcm@example.com',
-            phone: '02822225555',
-            supplier_category: 'main_ingredient',
-            ingredients: [
-                { ingredient: ingredients[5]._id },
-                { ingredient: ingredients[8]._id },
-            ],
-            isActive: true,
-        },
-        {
-            name: 'Vegetable Import Export',
-            email: 'vege.imex@example.com',
-            phone: '02844446666',
-            supplier_category: 'vegetable',
-            ingredients: [
-                { ingredient: ingredients[6]._id },
-                { ingredient: ingredients[9]._id },
-                { ingredient: ingredients[10]._id },
-            ],
-            isActive: true,
-        },
-        {
-            name: 'Spice World Vietnam',
-            email: 'spice@world.vn',
-            phone: '02866667777',
-            supplier_category: 'main_ingredient',
-            ingredients: [
-                { ingredient: ingredients[12]._id },
-                { ingredient: ingredients[14]._id },
-            ],
-            isActive: true,
-        },
-        {
-            name: 'Oil & Condiment Co',
-            email: 'oil.condiment@example.com',
-            phone: '02888889999',
-            supplier_category: 'main_ingredient',
-            ingredients: [{ ingredient: ingredients[13]._id }],
-            isActive: true,
-        },
-        {
-            name: 'Da Nang Seafood Ltd',
-            email: 'seafood.dn@example.com',
-            phone: '02511110000',
-            supplier_category: 'seafood',
-            ingredients: [{ ingredient: ingredients[7]._id }],
-            isActive: true,
-        },
-        {
-            name: 'Central Highlands Produce',
-            email: 'highlands@example.com',
-            phone: '02621112222',
-            supplier_category: 'vegetable',
-            ingredients: [{ ingredient: ingredients[11]._id }],
-            isActive: true,
-        },
-    ]);
+    const ingredients = await Ingredient.insertMany(
+        ingredientSeedData.map((ingredient, index) => ({
+            ...ingredient,
+            is_active: index % 7 !== 0,
+            isDeleted: false,
+        })),
+    );
 
-    // Seed Products (9)
-    const products = await Product.insertMany([
-        {
-            category: categories[0]._id,
-            name: 'Pizza Hawaii',
-            description: 'Pizza de mem voi pho mai, topping xuc xich va dua.',
-            is_active: true,
-            variants: [
-                {
-                    sku: 'PIZ-HAW-S',
-                    price: 89000,
-                    size: 'S',
-                    image: {
-                        url: 'https://img.freepik.com/free-photo/crispy-mixed-pizza-with-olives-sausage_140725-3095.jpg?semt=ais_hybrid&w=740&q=80',
-                        public_id: 'seed-pizza-hawaii-s',
-                    },
-                    recipe: [
-                        {
-                            ingredient: ingredients[0]._id,
-                            quantity: 180,
-                            unit: 'gram',
-                        },
-                        {
-                            ingredient: ingredients[1]._id,
-                            quantity: 90,
-                            unit: 'gram',
-                        },
-                        {
-                            ingredient: ingredients[2]._id,
-                            quantity: 45,
-                            unit: 'ml',
-                        },
-                        {
-                            ingredient: ingredients[3]._id,
-                            quantity: 70,
-                            unit: 'gram',
-                        },
-                    ],
-                },
-                {
-                    sku: 'PIZ-HAW-L',
-                    price: 149000,
-                    size: 'L',
-                    image: {
-                        url: 'https://img.freepik.com/free-photo/crispy-mixed-pizza-with-olives-sausage_140725-3095.jpg?semt=ais_hybrid&w=740&q=80',
-                        public_id: 'seed-pizza-hawaii-l',
-                    },
-                    recipe: [
-                        {
-                            ingredient: ingredients[0]._id,
-                            quantity: 280,
-                            unit: 'gram',
-                        },
-                        {
-                            ingredient: ingredients[1]._id,
-                            quantity: 140,
-                            unit: 'gram',
-                        },
-                        {
-                            ingredient: ingredients[2]._id,
-                            quantity: 70,
-                            unit: 'ml',
-                        },
-                        {
-                            ingredient: ingredients[3]._id,
-                            quantity: 110,
-                            unit: 'gram',
-                        },
-                    ],
-                },
-            ],
-        },
-        {
-            category: categories[0]._id,
-            name: 'Pizza Margherita',
-            description: 'Pizza co ban voi ca chua, pho mai va thao oi.',
-            is_active: true,
-            variants: [
-                {
-                    sku: 'PIZ-MAR-M',
-                    price: 99000,
-                    size: 'M',
-                    image: {
-                        url: 'https://img.freepik.com/free-photo/side-view-pizza-with-pepper-tomato-pizza-slices-board-cookware_176474-3184.jpg?semt=ais_hybrid&w=740&q=80',
-                        public_id: 'seed-pizza-margherita-m',
-                    },
-                    recipe: [
-                        {
-                            ingredient: ingredients[0]._id,
-                            quantity: 200,
-                            unit: 'gram',
-                        },
-                        {
-                            ingredient: ingredients[1]._id,
-                            quantity: 100,
-                            unit: 'gram',
-                        },
-                        {
-                            ingredient: ingredients[2]._id,
-                            quantity: 50,
-                            unit: 'ml',
-                        },
-                        {
-                            ingredient: ingredients[14]._id,
-                            quantity: 5,
-                            unit: 'gram',
-                        },
-                    ],
-                },
-            ],
-        },
-        {
-            category: categories[0]._id,
-            name: 'Pizza Pepperoni',
-            description: 'Pizza voi pepperoni va pho mai dam da.',
-            is_active: true,
-            variants: [
-                {
-                    sku: 'PIZ-PEP-S',
-                    price: 95000,
-                    size: 'S',
-                    image: {
-                        url: 'https://img.freepik.com/free-photo/pizza-with-pepperoni-slices-tomato-sauce_114579-2944.jpg?semt=ais_hybrid&w=740&q=80',
-                        public_id: 'seed-pizza-pepperoni-s',
-                    },
-                    recipe: [
-                        {
-                            ingredient: ingredients[0]._id,
-                            quantity: 180,
-                            unit: 'gram',
-                        },
-                        {
-                            ingredient: ingredients[1]._id,
-                            quantity: 95,
-                            unit: 'gram',
-                        },
-                        {
-                            ingredient: ingredients[2]._id,
-                            quantity: 40,
-                            unit: 'ml',
-                        },
-                        {
-                            ingredient: ingredients[3]._id,
-                            quantity: 60,
-                            unit: 'gram',
-                        },
-                    ],
-                },
-            ],
-        },
-        {
-            category: categories[1]._id,
-            name: 'Coca Cola',
-            description: 'Nuoc ngot co ga.',
-            is_active: true,
-            variants: [
-                {
-                    sku: 'DRK-COLA-M',
-                    price: 20000,
-                    size: 'M',
-                    image: {
-                        url: 'https://picsum.photos/seed/cola-m/1200/800',
-                        public_id: 'seed-coca-cola-m',
-                    },
-                    recipe: [
-                        {
-                            ingredient: ingredients[4]._id,
-                            quantity: 150,
-                            unit: 'ml',
-                        },
-                    ],
-                },
-                {
-                    sku: 'DRK-COLA-L',
-                    price: 30000,
-                    size: 'L',
-                    image: {
-                        url: 'https://picsum.photos/seed/cola-l/1200/800',
-                        public_id: 'seed-coca-cola-l',
-                    },
-                    recipe: [
-                        {
-                            ingredient: ingredients[4]._id,
-                            quantity: 300,
-                            unit: 'ml',
-                        },
-                    ],
-                },
-            ],
-        },
-        {
-            category: categories[1]._id,
-            name: 'Sprite',
-            description: 'Nuoc ngot CO2.',
-            is_active: true,
-            variants: [
-                {
-                    sku: 'DRK-SPR-M',
-                    price: 20000,
-                    size: 'M',
-                    image: {
-                        url: 'https://picsum.photos/seed/sprite-m/1200/800',
-                        public_id: 'seed-sprite-m',
-                    },
-                    recipe: [],
-                },
-            ],
-        },
-        {
-            category: categories[4]._id,
-            name: 'Spaghetti Carbonara',
-            description: 'Spaghetti voi trung, thit heo.',
-            is_active: true,
-            variants: [
-                {
-                    sku: 'PST-CAR-R',
-                    price: 85000,
-                    size: 'Regular',
-                    image: {
-                        url: 'https://picsum.photos/seed/pasta-carbonara-r/1200/800',
-                        public_id: 'seed-spaghetti-carbonara-r',
-                    },
-                    recipe: [
-                        {
-                            ingredient: ingredients[7]._id,
-                            quantity: 2,
-                            unit: 'quay',
-                        },
-                        {
-                            ingredient: ingredients[8]._id,
-                            quantity: 100,
-                            unit: 'gram',
-                        },
-                    ],
-                },
-            ],
-        },
-        {
-            category: categories[5]._id,
-            name: 'Hamburger',
-            description: 'Hamburger thom ngon voi pho mai.',
-            is_active: true,
-            variants: [
-                {
-                    sku: 'BRG-HAM-S',
-                    price: 75000,
-                    size: 'S',
-                    image: {
-                        url: 'https://picsum.photos/seed/hamburger-s/1200/800',
-                        public_id: 'seed-hamburger-s',
-                    },
-                    recipe: [
-                        {
-                            ingredient: ingredients[5]._id,
-                            quantity: 150,
-                            unit: 'gram',
-                        },
-                        {
-                            ingredient: ingredients[1]._id,
-                            quantity: 50,
-                            unit: 'gram',
-                        },
-                    ],
-                },
-            ],
-        },
-        {
-            category: categories[6]._id,
-            name: 'Caesar Salad',
-            description: 'Salad voi rau dap, ot ca chua, pho mai va dau olive.',
-            is_active: true,
-            variants: [
-                {
-                    sku: 'SLD-CES-R',
-                    price: 65000,
-                    size: 'Regular',
-                    image: {
-                        url: 'https://picsum.photos/seed/caesar-salad-r/1200/800',
-                        public_id: 'seed-caesar-salad-r',
-                    },
-                    recipe: [
-                        {
-                            ingredient: ingredients[6]._id,
-                            quantity: 200,
-                            unit: 'gram',
-                        },
-                        {
-                            ingredient: ingredients[12]._id,
-                            quantity: 10,
-                            unit: 'gram',
-                        },
-                        {
-                            ingredient: ingredients[13]._id,
-                            quantity: 30,
-                            unit: 'ml',
-                        },
-                    ],
-                },
-            ],
-        },
-        {
-            category: categories[7]._id,
-            name: 'Tomato Soup',
-            description: 'Canh ca chua dam da voi kem.',
-            is_active: true,
-            variants: [
-                {
-                    sku: 'SOP-TOM-M',
-                    price: 45000,
-                    size: 'M',
-                    image: {
-                        url: 'https://picsum.photos/seed/tomato-soup-m/1200/800',
-                        public_id: 'seed-tomato-soup-m',
-                    },
-                    recipe: [
-                        {
-                            ingredient: ingredients[2]._id,
-                            quantity: 200,
-                            unit: 'ml',
-                        },
-                        {
-                            ingredient: ingredients[10]._id,
-                            quantity: 30,
-                            unit: 'gram',
-                        },
-                    ],
-                },
-            ],
-        },
-    ]);
+    const supplierCategories = [
+        'main_ingredient',
+        'drink',
+        'seafood',
+        'vegetable',
+    ];
 
-    // Seed Inventory (40+)
-    const inventoryData = [];
-    for (let i = 0; i < stores.length; i++) {
-        for (let j = 0; j < 4; j++) {
-            inventoryData.push({
-                store_id: stores[i]._id,
-                ingredient_id: ingredients[(i + j) % ingredients.length]._id,
-                current_stock: Math.floor(Math.random() * 50000) + 5000,
-                min_stock_level: Math.floor(Math.random() * 5000) + 1000,
-            });
-        }
-    }
+    const suppliers = await Supplier.insertMany(
+        Array.from({ length: TARGET_COUNT }, (_, index) => ({
+            name: `Supplier ${pad(index + 1)} Food Service`,
+            email: `supplier${pad(index + 1)}@vendor.com`,
+            phone: `0287${pad(index + 1, 6)}`,
+            supplier_category: pick(supplierCategories, index),
+            ingredients: [
+                { ingredient: ingredients[index % ingredients.length]._id },
+                {
+                    ingredient:
+                        ingredients[(index + 5) % ingredients.length]._id,
+                },
+            ],
+            isActive: index % 8 !== 0,
+            isDeleted: false,
+        })),
+    );
+
+    const productStyle = [
+        'Classic',
+        'Premium',
+        'Family',
+        'Hot Deal',
+        'Chef Special',
+    ];
+    const variantSizes = ['S', 'M', 'L', 'Regular'];
+
+    const products = await Product.insertMany(
+        Array.from({ length: TARGET_COUNT }, (_, index) => {
+            const ingredientA = ingredients[index % ingredients.length];
+            const ingredientB = ingredients[(index + 4) % ingredients.length];
+            const ingredientC = ingredients[(index + 9) % ingredients.length];
+            const basePrice = 59000 + index * 3000;
+            const firstSize = pick(variantSizes, index);
+            const secondSize = pick(variantSizes, index + 1);
+
+            return {
+                category: categories[index % categories.length]._id,
+                name: `${pick(productStyle, index)} Item ${pad(index + 1)}`,
+                description: `Menu item ${pad(index + 1)} with balanced flavors and flexible size.`,
+                is_active: index % 9 !== 0,
+                variants: [
+                    {
+                        sku: `PRD-${pad(index + 1, 3)}-${firstSize}`,
+                        price: basePrice,
+                        size: firstSize,
+                        image: {
+                            url: `https://picsum.photos/seed/product-${index + 1}-a/1200/800`,
+                            public_id: `seed-product-${index + 1}-a`,
+                        },
+                        recipe: [
+                            {
+                                ingredient: ingredientA._id,
+                                quantity: 120 + index,
+                                unit: ingredientA.unit,
+                            },
+                            {
+                                ingredient: ingredientB._id,
+                                quantity: 80 + (index % 15),
+                                unit: ingredientB.unit,
+                            },
+                            {
+                                ingredient: ingredientC._id,
+                                quantity: 30 + (index % 12),
+                                unit: ingredientC.unit,
+                            },
+                        ],
+                    },
+                    {
+                        sku: `PRD-${pad(index + 1, 3)}-${secondSize}`,
+                        price: basePrice + 20000,
+                        size: secondSize,
+                        image: {
+                            url: `https://picsum.photos/seed/product-${index + 1}-b/1200/800`,
+                            public_id: `seed-product-${index + 1}-b`,
+                        },
+                        recipe: [
+                            {
+                                ingredient: ingredientA._id,
+                                quantity: 170 + index,
+                                unit: ingredientA.unit,
+                            },
+                            {
+                                ingredient: ingredientB._id,
+                                quantity: 110 + (index % 20),
+                                unit: ingredientB.unit,
+                            },
+                            {
+                                ingredient: ingredientC._id,
+                                quantity: 45 + (index % 16),
+                                unit: ingredientC.unit,
+                            },
+                        ],
+                    },
+                ],
+                isDeleted: false,
+            };
+        }),
+    );
+
+    const inventoryData = Array.from({ length: TARGET_COUNT }, (_, index) => ({
+        store_id: stores[index % stores.length]._id,
+        ingredient_id: ingredients[(index * 3) % ingredients.length]._id,
+        current_stock: 4500 + index * 320,
+        min_stock_level: 850 + index * 35,
+    }));
     await Inventory.insertMany(inventoryData);
 
-    // Seed Customers (10)
-    const customers = await Customer.insertMany([
-        {
-            point: 120,
-            name: 'Nguyen Khach A',
-            address: '45 Le Loi, Quan 1, TP.HCM',
-            phone: '0908111222',
-            email: 'customer.a@example.com',
-        },
-        {
-            point: 65,
-            name: 'Tran Khach B',
-            address: '8 Hai Ba Trung, Hoan Kiem, Ha Noi',
-            phone: '0919222333',
-            email: 'customer.b@example.com',
-        },
-        {
-            point: 280,
-            name: 'Pham Khach C',
-            address: '33 Vo Van Tan, Binh Thanh, TP.HCM',
-            phone: '0901333444',
-            email: 'customer.c@example.com',
-        },
-        {
-            point: 95,
-            name: 'Hoang Khach D',
-            address: '56 Tran Quoc Viet, Thanh Xuan, Ha Noi',
-            phone: '0912444555',
-            email: 'customer.d@example.com',
-        },
-        {
-            point: 150,
-            name: 'Nguyen Khach E',
-            address: '77 Ly Thuong Kiet, Hoan Kiem, Ha Noi',
-            phone: '0923555666',
-            email: 'customer.e@example.com',
-        },
-        {
-            point: 45,
-            name: 'Tran Khach F',
-            address: '99 Nguyen Hue, Quan 1, TP.HCM',
-            phone: '0934666777',
-            email: 'customer.f@example.com',
-        },
-        {
-            point: 200,
-            name: 'Le Khach G',
-            address: '12 Ba Trieu, Hai Ba Trung, Ha Noi',
-            phone: '0945777888',
-            email: 'customer.g@example.com',
-        },
-        {
-            point: 75,
-            name: 'Phan Khach H',
-            address: '88 Cao Thang, Da Nang',
-            phone: '0956888999',
-            email: 'customer.h@example.com',
-        },
-        {
-            point: 180,
-            name: 'Do Khach I',
-            address: '44 Nam Ky Khoi Nghia, Can Tho',
-            phone: '0967999000',
-            email: 'customer.i@example.com',
-        },
-        {
-            point: 110,
-            name: 'Ho Khach J',
-            address: '23 Dien Bien Phu, Tan Binh, TP.HCM',
-            phone: '0978000111',
-            email: 'customer.j@example.com',
-        },
-    ]);
+    const firstNames = [
+        'An',
+        'Binh',
+        'Cuong',
+        'Dung',
+        'Giang',
+        'Hanh',
+        'Khanh',
+        'Linh',
+        'Minh',
+        'Nhi',
+    ];
+    const lastNames = [
+        'Nguyen',
+        'Tran',
+        'Le',
+        'Pham',
+        'Hoang',
+        'Do',
+        'Bui',
+        'Vo',
+        'Dang',
+        'Phan',
+    ];
 
-    // Seed Employees (10)
-    const employees = await Employee.insertMany([
-        {
-            store_id: stores[0]._id,
-            name: 'Le Van Admin',
-            birthday: new Date('1990-01-10T00:00:00.000Z'),
-            email: 'admin.q1@example.com',
-            phone: '0933000001',
-            address: 'Quan 1, TP.HCM',
-            station: 'manager',
-            salary_type: 'monthly',
-            salary: 22000000,
-            bank_account: {
-                bank_name: 'VCB',
-                account_number: '000111222333',
-                account_name: 'LE VAN ADMIN',
-            },
-            status: true,
-        },
-        {
-            store_id: stores[0]._id,
-            name: 'Nguyen Van Quan',
-            birthday: new Date('1992-06-15T00:00:00.000Z'),
-            email: 'manager.q1@example.com',
-            phone: '0933000111',
-            address: 'Quan 3, TP.HCM',
-            station: 'manager',
-            salary_type: 'monthly',
-            salary: 18000000,
-            bank_account: {
-                bank_name: 'VCB',
-                account_number: '001122334455',
-                account_name: 'NGUYEN VAN QUAN',
-            },
-            status: true,
-        },
-        {
-            store_id: stores[1]._id,
-            name: 'Tran Thi Hoa',
-            birthday: new Date('1998-02-10T00:00:00.000Z'),
-            email: 'cashier.hk@example.com',
-            phone: '0944000222',
-            address: 'Dong Da, Ha Noi',
-            station: 'cashier',
-            salary_type: 'hourly',
-            salary: 35000,
-            bank_account: {
-                bank_name: 'ACB',
-                account_number: '998877665544',
-                account_name: 'TRAN THI HOA',
-            },
-            status: true,
-        },
-        {
-            store_id: stores[2]._id,
-            name: 'Pham Anh Tuan',
-            birthday: new Date('1995-07-20T00:00:00.000Z'),
-            email: 'kitchen.tan@example.com',
-            phone: '0955000333',
-            address: 'Tan Binh, TP.HCM',
-            station: 'kitchen',
-            salary_type: 'hourly',
-            salary: 40000,
-            bank_account: {
-                bank_name: 'VCB',
-                account_number: '111222333444',
-                account_name: 'PHAM ANH TUAN',
-            },
-            status: true,
-        },
-        {
-            store_id: stores[3]._id,
-            name: 'Dao Thi Lan Anh',
-            birthday: new Date('1994-03-12T00:00:00.000Z'),
-            email: 'staff.lan@example.com',
-            phone: '0966000444',
-            address: 'Binh Thanh, TP.HCM',
-            station: 'kitchen',
-            salary_type: 'hourly',
-            salary: 32000,
-            bank_account: {
-                bank_name: 'ACB',
-                account_number: '222333444555',
-                account_name: 'DAO THI LAN ANH',
-            },
-            status: true,
-        },
-        {
-            store_id: stores[4]._id,
-            name: 'Vuong Van Nam',
-            birthday: new Date('1997-11-08T00:00:00.000Z'),
-            email: 'delivery.nam@example.com',
-            phone: '0977000555',
-            address: 'Quan 3, TP.HCM',
-            station: 'delivery',
-            salary_type: 'hourly',
-            salary: 28000,
-            bank_account: {
-                bank_name: 'VCB',
-                account_number: '333444555666',
-                account_name: 'VUONG VAN NAM',
-            },
-            status: true,
-        },
-        {
-            store_id: stores[5]._id,
-            name: 'Dang Thanh Hai',
-            birthday: new Date('1993-09-25T00:00:00.000Z'),
-            email: 'cashier.hai@example.com',
-            phone: '0988000666',
-            address: 'Thanh Xuan, Ha Noi',
-            station: 'cashier',
-            salary_type: 'hourly',
-            salary: 34000,
-            bank_account: {
-                bank_name: 'ACB',
-                account_number: '444555666777',
-                account_name: 'DANG THANH HAI',
-            },
-            status: true,
-        },
-        {
-            store_id: stores[6]._id,
-            name: 'Bui Hoa Linh',
-            birthday: new Date('1996-05-14T00:00:00.000Z'),
-            email: 'kitchen.linh@example.com',
-            phone: '0999000777',
-            address: 'Hai Ba Trung, Ha Noi',
-            station: 'kitchen',
-            salary_type: 'hourly',
-            salary: 38000,
-            bank_account: {
-                bank_name: 'VCB',
-                account_number: '555666777888',
-                account_name: 'BUI HOA LINH',
-            },
-            status: true,
-        },
-        {
-            store_id: stores[7]._id,
-            name: 'Vu Minh Duc',
-            birthday: new Date('1991-12-30T00:00:00.000Z'),
-            email: 'manager.duc@example.com',
-            phone: '0900111888',
-            address: 'Dong Da, Ha Noi',
-            station: 'manager',
-            salary_type: 'monthly',
-            salary: 17000000,
-            bank_account: {
-                bank_name: 'ACB',
-                account_number: '666777888999',
-                account_name: 'VU MINH DUC',
-            },
-            status: true,
-        },
-        {
-            store_id: stores[8]._id,
-            name: 'Nguyen Thanh Huong',
-            birthday: new Date('1999-08-07T00:00:00.000Z'),
-            email: 'staff.huong@example.com',
-            phone: '0911222999',
-            address: 'Ninh Kieu, Can Tho',
-            station: 'kitchen',
-            salary_type: 'hourly',
-            salary: 30000,
-            bank_account: {
-                bank_name: 'VCB',
-                account_number: '777888999000',
-                account_name: 'NGUYEN THANH HUONG',
-            },
-            status: true,
-        },
-        {
-            store_id: stores[0]._id,
-            name: 'Ngô Gia Bảo',
-            birthday: new Date('1990-01-10T00:00:00.000Z'),
-            email: 'admin@example.com',
-            phone: '0917580680',
-            address: 'Quan 1, TP.HCM',
-            station: null,
-            salary_type: 'monthly',
-            salary: 22000000,
-            bank_account: {
-                bank_name: 'VCB',
-                account_number: '000111222333',
-                account_name: 'LE VAN ADMIN',
-            },
-            status: true,
-        },
-    ]);
+    const customers = await Customer.insertMany(
+        Array.from({ length: TARGET_COUNT }, (_, index) => ({
+            point: 30 + index * 20,
+            name: `${pick(lastNames, index)} ${pick(firstNames, index + 2)} ${pad(index + 1)}`,
+            address: `${20 + index} Residence ${pick(districtPool, index)}, ${pick(cityPool, index)}`,
+            phone: `0918${pad(index + 1, 6)}`,
+            email: `customer${pad(index + 1)}@mail.com`,
+            isDeleted: false,
+        })),
+    );
 
-    // Seed Users (10) - passwords now hashed (pre-save hook bypassed by insertMany)
-    const hashedPassword = await bcrypt.hash('12345678', 10);
-    const hashedadPassword = await bcrypt.hash('BAO123@az', 10);
-    const users = await User.insertMany([
-        {
-            username: 'admin',
-            password: hashedadPassword,
-            role: 'admin',
+    const employeeStations = [
+        'store_manager',
+        'manager',
+        'cashier',
+        'kitchen',
+        'delivery',
+        'barista',
+    ];
+
+    const employees = await Employee.insertMany(
+        Array.from({ length: TARGET_COUNT }, (_, index) => {
+            const station =
+                index === 0 ? 'store_manager' : pick(employeeStations, index);
+            const salaryType =
+                station === 'store_manager' || station === 'manager'
+                    ? 'monthly'
+                    : 'hourly';
+            const salary =
+                salaryType === 'monthly'
+                    ? 14000000 + index * 260000
+                    : 28000 + index * 700;
+
+            return {
+                store_id: stores[index % stores.length]._id,
+                name: `Employee ${pick(firstNames, index)} ${pick(lastNames, index + 4)} ${pad(index + 1)}`,
+                birthday: dateUtc(
+                    1988 + (index % 12),
+                    (index * 2) % 12,
+                    1 + (index % 27),
+                ),
+                email: `employee${pad(index + 1)}@paopizza.com`,
+                phone: `0937${pad(index + 1, 6)}`,
+                address: `${110 + index} Staff Lane, ${pick(cityPool, index)}`,
+                station,
+                salary_type: salaryType,
+                salary,
+                bank_account: {
+                    bank_name: pick(['VCB', 'ACB', 'MB', 'TPB'], index),
+                    account_number: `22${pad(index + 1, 10)}`,
+                    account_name: `EMPLOYEE ${pad(index + 1)}`,
+                },
+                status: index % 10 !== 0,
+                isDeleted: false,
+            };
+        }),
+    );
+
+    const managerByStore = new Map();
+    for (const employee of employees) {
+        const storeKey = employee.store_id?.toString();
+        if (!storeKey) continue;
+        if (
+            !managerByStore.has(storeKey) &&
+            ['store_manager', 'manager'].includes(employee.station)
+        ) {
+            managerByStore.set(storeKey, employee._id);
+        }
+    }
+
+    for (const employee of employees) {
+        const storeKey = employee.store_id?.toString();
+        if (!storeKey) continue;
+        if (!managerByStore.has(storeKey)) {
+            managerByStore.set(storeKey, employee._id);
+        }
+    }
+
+    const fallbackManagerId = employees[0]?._id;
+    await Promise.all(
+        stores.map((store) =>
+            Store.findByIdAndUpdate(
+                store._id,
+                {
+                    manager_by:
+                        managerByStore.get(store._id.toString()) ||
+                        fallbackManagerId,
+                },
+                { new: false },
+            ),
+        ),
+    );
+
+    const hashedDefaultPassword = await bcrypt.hash('12345678', 10);
+    const hashedAdminPassword = await bcrypt.hash('BAO123@az', 10);
+
+    const employeeUserCount = 12;
+    const usersData = [];
+
+    for (let index = 0; index < employeeUserCount; index += 1) {
+        const employee = employees[index];
+        const role =
+            index === 0
+                ? 'admin'
+                : ['store_manager', 'manager'].includes(employee.station)
+                  ? 'manager'
+                  : 'staff';
+
+        usersData.push({
+            username: index === 0 ? 'admin' : `emp_${pad(index + 1)}`,
+            password: index === 0 ? hashedAdminPassword : hashedDefaultPassword,
+            role,
             user_type: 'Employee',
-            ref_id: employees[9]._id,
-            status: true,
-        },
-        {
-            username: 'admin_q1',
-            password: hashedPassword,
-            role: 'admin',
-            user_type: 'Employee',
-            ref_id: employees[0]._id,
-            status: true,
-        },
-        {
-            username: 'manager_q1',
-            password: hashedPassword,
-            role: 'manager',
-            user_type: 'Employee',
-            ref_id: employees[1]._id,
-            status: true,
-        },
-        {
-            username: 'cashier_hk',
-            password: hashedPassword,
-            role: 'staff',
-            user_type: 'Employee',
-            ref_id: employees[2]._id,
-            status: true,
-        },
-        {
-            username: 'kitchen_tan',
-            password: hashedPassword,
-            role: 'staff',
-            user_type: 'Employee',
-            ref_id: employees[3]._id,
-            status: true,
-        },
-        {
-            username: 'staff_lan',
-            password: hashedPassword,
-            role: 'staff',
-            user_type: 'Employee',
-            ref_id: employees[4]._id,
-            status: true,
-        },
-        {
-            username: 'delivery_nam',
-            password: hashedPassword,
-            role: 'staff',
-            user_type: 'Employee',
-            ref_id: employees[5]._id,
-            status: true,
-        },
-        {
-            username: 'customer_a',
-            password: hashedPassword,
+            ref_id: employee._id,
+            status: index % 8 !== 0,
+            isDeleted: false,
+        });
+    }
+
+    for (let index = 0; index < TARGET_COUNT - employeeUserCount; index += 1) {
+        usersData.push({
+            username: customers[index].phone,
+            password: hashedDefaultPassword,
             role: null,
             user_type: 'Customer',
-            ref_id: customers[0]._id,
-            status: true,
-        },
-        {
-            username: 'customer_b',
-            password: hashedPassword,
-            role: null,
-            user_type: 'Customer',
-            ref_id: customers[1]._id,
-            status: true,
-        },
-        {
-            username: 'customer_c',
-            password: hashedPassword,
-            role: null,
-            user_type: 'Customer',
-            ref_id: customers[2]._id,
-            status: true,
-        },
-        {
-            username: 'customer_d',
-            password: hashedPassword,
-            role: null,
-            user_type: 'Customer',
-            ref_id: customers[3]._id,
-            status: true,
-        },
-    ]);
+            ref_id: customers[index]._id,
+            status: index % 7 !== 0,
+            isDeleted: false,
+        });
+    }
 
-    // Seed Carts (8)
-    const carts = await Cart.insertMany([
-        {
-            user_id: users[6]._id,
-            items: [
-                {
-                    product_id: products[0]._id,
-                    sku: 'PIZ-HAW-S',
-                    price: 89000,
-                    size: 'S',
-                    quantity: 1,
-                    note: 'De vien mong',
-                },
-                {
-                    product_id: products[3]._id,
-                    sku: 'DRK-COLA-M',
-                    price: 20000,
-                    size: 'M',
-                    quantity: 2,
-                    note: '',
-                },
-            ],
-        },
-        {
-            user_id: users[7]._id,
-            items: [
-                {
-                    product_id: products[0]._id,
-                    sku: 'PIZ-HAW-L',
-                    price: 149000,
-                    size: 'L',
-                    quantity: 1,
-                    note: 'Them ot',
-                },
-                {
-                    product_id: products[1]._id,
-                    sku: 'PIZ-MAR-M',
-                    price: 99000,
-                    size: 'M',
-                    quantity: 1,
-                    note: '',
-                },
-            ],
-        },
-        {
-            user_id: users[8]._id,
-            items: [
-                {
-                    product_id: products[2]._id,
-                    sku: 'PIZ-PEP-S',
-                    price: 95000,
-                    size: 'S',
-                    quantity: 2,
-                    note: 'De pho mai',
-                },
-            ],
-        },
-        {
-            user_id: users[9]._id,
-            items: [
-                {
-                    product_id: products[5]._id,
-                    sku: 'PST-CAR-R',
-                    price: 85000,
-                    size: 'Regular',
-                    quantity: 1,
-                    note: '',
-                },
-                {
-                    product_id: products[3]._id,
-                    sku: 'DRK-COLA-L',
-                    price: 30000,
-                    size: 'L',
-                    quantity: 1,
-                    note: '',
-                },
-            ],
-        },
-        {
-            user_id: users[0]._id,
-            items: [
-                {
-                    product_id: products[4]._id,
-                    sku: 'DRK-SPR-M',
-                    price: 20000,
-                    size: 'M',
-                    quantity: 3,
-                    note: '',
-                },
-            ],
-        },
-        {
-            user_id: users[1]._id,
-            items: [
-                {
-                    product_id: products[6]._id,
-                    sku: 'BRG-HAM-S',
-                    price: 75000,
-                    size: 'S',
-                    quantity: 1,
-                    note: 'Them sot',
-                },
-            ],
-        },
-        {
-            user_id: users[2]._id,
-            items: [
-                {
-                    product_id: products[7]._id,
-                    sku: 'SLD-CES-R',
-                    price: 65000,
-                    size: 'Regular',
-                    quantity: 1,
-                    note: '',
-                },
-            ],
-        },
-        {
-            user_id: users[3]._id,
-            items: [
-                {
-                    product_id: products[8]._id,
-                    sku: 'SOP-TOM-M',
-                    price: 45000,
-                    size: 'M',
-                    quantity: 2,
-                    note: '',
-                },
-            ],
-        },
-    ]);
+    const users = await User.insertMany(usersData);
 
-    // Seed Promotions (10)
-    const promotions = await Promotion.insertMany([
-        {
-            code: 'WELCOME10',
-            type: 'percentage',
-            value: 10,
-            start_date: new Date('2026-01-01T00:00:00.000Z'),
-            end_date: new Date('2026-12-31T23:59:59.000Z'),
-            status: 'active',
-            applicable_store: [stores[0]._id, stores[1]._id],
-        },
-        {
-            code: 'HN30K',
-            type: 'fixed_amount',
-            value: 30000,
-            start_date: new Date('2026-03-01T00:00:00.000Z'),
-            end_date: new Date('2026-08-31T23:59:59.000Z'),
-            status: 'active',
-            applicable_store: [stores[1]._id],
-        },
-        {
-            code: 'SUMMER20',
-            type: 'percentage',
-            value: 20,
-            start_date: new Date('2026-05-01T00:00:00.000Z'),
-            end_date: new Date('2026-08-31T23:59:59.000Z'),
-            status: 'draft',
-            applicable_store: stores.map((s) => s._id),
-        },
-        {
-            code: 'HAPPYBIRTHDAY',
-            type: 'fixed_amount',
-            value: 50000,
-            start_date: new Date('2026-04-01T00:00:00.000Z'),
-            end_date: new Date('2026-04-30T23:59:59.000Z'),
-            status: 'active',
-            applicable_store: [stores[2]._id, stores[3]._id],
-        },
-        {
-            code: 'NEWMEMBER15',
-            type: 'percentage',
-            value: 15,
-            start_date: new Date('2026-03-15T00:00:00.000Z'),
-            end_date: new Date('2026-04-15T23:59:59.000Z'),
-            status: 'active',
-            applicable_store: stores.slice(0, 5).map((s) => s._id),
-        },
-        {
-            code: 'FREESHIP',
-            type: 'fixed_amount',
-            value: 20000,
-            start_date: new Date('2026-03-20T00:00:00.000Z'),
-            end_date: new Date('2026-06-20T23:59:59.000Z'),
-            status: 'active',
-            applicable_store: [stores[4]._id, stores[5]._id, stores[6]._id],
-        },
-        {
-            code: 'VIP25',
-            type: 'percentage',
-            value: 25,
-            start_date: new Date('2026-02-01T00:00:00.000Z'),
-            end_date: new Date('2026-02-28T23:59:59.000Z'),
-            status: 'inactive',
-            applicable_store: stores.map((s) => s._id),
-        },
-        {
-            code: 'WEEKEND50K',
-            type: 'fixed_amount',
-            value: 50000,
-            start_date: new Date('2026-03-27T00:00:00.000Z'),
-            end_date: new Date('2026-03-29T23:59:59.000Z'),
-            status: 'active',
-            applicable_store: [stores[0]._id, stores[1]._id, stores[2]._id],
-        },
-        {
-            code: 'FLASH5',
-            type: 'percentage',
-            value: 5,
-            start_date: new Date('2026-03-28T00:00:00.000Z'),
-            end_date: new Date('2026-03-28T23:59:59.000Z'),
-            status: 'active',
-            applicable_store: stores.map((s) => s._id),
-        },
-        {
-            code: 'LOYALTY100',
-            type: 'fixed_amount',
-            value: 100000,
-            start_date: new Date('2026-03-01T00:00:00.000Z'),
-            end_date: new Date('2026-12-31T23:59:59.000Z'),
-            status: 'active',
-            applicable_store: stores.map((s) => s._id),
-        },
-    ]);
+    const cartNotes = [
+        'Please add more cheese',
+        'No onion',
+        'Cut into 8 slices',
+        'Less sauce',
+        'Extra spicy',
+        '',
+    ];
 
-    // Seed Shifts (10)
-    const shifts = await Shift.insertMany([
-        {
-            employee_id: employees[0]._id,
-            start_time: '06:00',
-            end_time: '14:00',
-            station: 'maker',
-            status: 'APPROVED',
-            staff_involved: { check_in: null, check_out: null },
-        },
-        {
-            employee_id: employees[1]._id,
-            start_time: '14:00',
-            end_time: '22:00',
-            station: 'cashier',
-            status: 'APPROVED',
-            staff_involved: { check_in: null, check_out: null },
-        },
-        {
-            employee_id: employees[2]._id,
-            start_time: '08:00',
-            end_time: '16:00',
-            station: 'cashier',
-            status: 'WORKING',
-            staff_involved: { check_in: '08:00', check_out: null },
-        },
-        {
-            employee_id: employees[3]._id,
-            start_time: '16:00',
-            end_time: '23:00',
-            station: 'maker',
-            status: 'APPROVED',
-            staff_involved: { check_in: null, check_out: null },
-        },
-        {
-            employee_id: employees[4]._id,
-            start_time: '10:00',
-            end_time: '18:00',
-            station: 'delivery',
-            status: 'PENDING',
-            staff_involved: { check_in: null, check_out: null },
-        },
-        {
-            employee_id: employees[5]._id,
-            start_time: '12:00',
-            end_time: '20:00',
-            station: 'delivery',
-            status: 'APPROVED',
-            staff_involved: { check_in: null, check_out: null },
-        },
-        {
-            employee_id: employees[6]._id,
-            start_time: '07:00',
-            end_time: '15:00',
-            station: 'maker',
-            status: 'DONE',
-            staff_involved: { check_in: '07:00', check_out: '15:00' },
-        },
-        {
-            employee_id: employees[7]._id,
-            start_time: '11:00',
-            end_time: '19:00',
-            station: 'cashier',
-            status: 'APPROVED',
-            staff_involved: { check_in: null, check_out: null },
-        },
-        {
-            employee_id: employees[8]._id,
-            start_time: '09:00',
-            end_time: '17:00',
-            station: 'maker',
-            status: 'WORKING',
-            staff_involved: { check_in: '09:00', check_out: null },
-        },
-        {
-            employee_id: employees[9]._id,
-            start_time: '15:00',
-            end_time: '23:00',
-            station: 'maker',
-            status: 'PENDING',
-            staff_involved: { check_in: null, check_out: null },
-        },
-    ]);
+    const carts = await Cart.insertMany(
+        users.map((user, index) => {
+            const productA = products[index % products.length];
+            const productB = products[(index + 3) % products.length];
+            const variantA =
+                productA.variants[index % productA.variants.length];
+            const variantB =
+                productB.variants[(index + 1) % productB.variants.length];
 
-    // Seed Schedules (10)
-    const schedules = await Schedule.insertMany([
-        {
-            store_id: stores[0]._id,
-            work_date: new Date('2026-03-24T00:00:00.000Z'),
-            list_shift: [
-                { shift_id: shifts[0]._id },
-                { shift_id: shifts[1]._id },
-            ],
-        },
-        {
-            store_id: stores[1]._id,
-            work_date: new Date('2026-03-25T00:00:00.000Z'),
-            list_shift: [{ shift_id: shifts[2]._id }],
-        },
-        {
-            store_id: stores[2]._id,
-            work_date: new Date('2026-03-26T00:00:00.000Z'),
-            list_shift: [
-                { shift_id: shifts[3]._id },
-                { shift_id: shifts[4]._id },
-            ],
-        },
-        {
-            store_id: stores[3]._id,
-            work_date: new Date('2026-03-27T00:00:00.000Z'),
-            list_shift: [{ shift_id: shifts[5]._id }],
-        },
-        {
-            store_id: stores[4]._id,
-            work_date: new Date('2026-03-28T00:00:00.000Z'),
-            list_shift: [{ shift_id: shifts[6]._id }],
-        },
-        {
-            store_id: stores[5]._id,
-            work_date: new Date('2026-03-29T00:00:00.000Z'),
-            list_shift: [
-                { shift_id: shifts[7]._id },
-                { shift_id: shifts[8]._id },
-            ],
-        },
-        {
-            store_id: stores[6]._id,
-            work_date: new Date('2026-03-30T00:00:00.000Z'),
-            list_shift: [{ shift_id: shifts[9]._id }],
-        },
-        {
-            store_id: stores[7]._id,
-            work_date: new Date('2026-03-31T00:00:00.000Z'),
-            list_shift: [{ shift_id: shifts[0]._id }],
-        },
-        {
-            store_id: stores[8]._id,
-            work_date: new Date('2026-04-01T00:00:00.000Z'),
-            list_shift: [
-                { shift_id: shifts[1]._id },
-                { shift_id: shifts[2]._id },
-            ],
-        },
-        {
-            store_id: stores[9]._id,
-            work_date: new Date('2026-04-02T00:00:00.000Z'),
-            list_shift: [{ shift_id: shifts[3]._id }],
-        },
-    ]);
+            const items = [
+                {
+                    product_id: productA._id,
+                    sku: variantA.sku,
+                    price: variantA.price,
+                    size: variantA.size,
+                    quantity: 1 + (index % 3),
+                    note: pick(cartNotes, index),
+                },
+            ];
 
-    // Seed Payrolls (10)
-    const payrolls = await Payroll.insertMany([
-        {
-            employee_id: employees[0]._id,
-            period: { month: 3, year: 2026 },
-            total_hours: 208,
-            gross_salary: 22000000,
-            additions: [{ reason: 'KPI bonus', amount: 1500000 }],
-            deductions: [{ reason: 'Social insurance', amount: 1500000 }],
-            net_salary: 22000000,
-            status: 'paid',
-        },
-        {
-            employee_id: employees[1]._id,
-            period: { month: 3, year: 2026 },
-            total_hours: 208,
-            gross_salary: 18000000,
-            additions: [{ reason: 'KPI bonus', amount: 1200000 }],
-            deductions: [{ reason: 'Social insurance', amount: 1200000 }],
-            net_salary: 18000000,
-            status: 'paid',
-        },
-        {
-            employee_id: employees[2]._id,
-            period: { month: 3, year: 2026 },
-            total_hours: 184,
-            gross_salary: 6440000,
-            additions: [{ reason: 'OT allowance', amount: 350000 }],
-            deductions: [{ reason: 'Late penalty', amount: 150000 }],
-            net_salary: 6640000,
-            status: 'pending',
-        },
-        {
-            employee_id: employees[3]._id,
-            period: { month: 3, year: 2026 },
-            total_hours: 192,
-            gross_salary: 7680000,
-            additions: [{ reason: 'Attendance bonus', amount: 200000 }],
-            deductions: [{ reason: 'Absent penalty', amount: 100000 }],
-            net_salary: 7780000,
-            status: 'paid',
-        },
-        {
-            employee_id: employees[4]._id,
-            period: { month: 3, year: 2026 },
-            total_hours: 176,
-            gross_salary: 5632000,
-            additions: [{ reason: 'OT allowance', amount: 280000 }],
-            deductions: [],
-            net_salary: 5912000,
-            status: 'pending',
-        },
-        {
-            employee_id: employees[5]._id,
-            period: { month: 3, year: 2026 },
-            total_hours: 200,
-            gross_salary: 5600000,
-            additions: [],
-            deductions: [{ reason: 'Late deduction', amount: 200000 }],
-            net_salary: 5400000,
-            status: 'paid',
-        },
-        {
-            employee_id: employees[6]._id,
-            period: { month: 3, year: 2026 },
-            total_hours: 208,
-            gross_salary: 7904000,
-            additions: [{ reason: 'Performance bonus', amount: 500000 }],
-            deductions: [{ reason: 'Medical checkup', amount: 300000 }],
-            net_salary: 8104000,
-            status: 'paid',
-        },
-        {
-            employee_id: employees[7]._id,
-            period: { month: 3, year: 2026 },
-            total_hours: 200,
-            gross_salary: 17000000,
-            additions: [{ reason: 'KPI bonus', amount: 1000000 }],
-            deductions: [{ reason: 'Social insurance', amount: 1100000 }],
-            net_salary: 16900000,
-            status: 'pending',
-        },
-        {
-            employee_id: employees[8]._id,
-            period: { month: 3, year: 2026 },
-            total_hours: 196,
-            gross_salary: 6080000,
-            additions: [{ reason: 'Attendance bonus', amount: 150000 }],
-            deductions: [],
-            net_salary: 6230000,
-            status: 'paid',
-        },
-        {
-            employee_id: employees[9]._id,
-            period: { month: 3, year: 2026 },
-            total_hours: 176,
-            gross_salary: 5280000,
-            additions: [],
-            deductions: [{ reason: 'Absent penalty', amount: 300000 }],
-            net_salary: 4980000,
-            status: 'pending',
-        },
-    ]);
+            if (index % 2 === 0) {
+                items.push({
+                    product_id: productB._id,
+                    sku: variantB.sku,
+                    price: variantB.price,
+                    size: variantB.size,
+                    quantity: 1,
+                    note: pick(cartNotes, index + 2),
+                });
+            }
 
-    // Seed Orders (10)
-    const orders = await Order.insertMany([
-        {
-            store_id: stores[0]._id,
-            customer_id: customers[0]._id,
-            employee_id: employees[1]._id,
-            items: [
+            return {
+                user_id: user._id,
+                items,
+            };
+        }),
+    );
+
+    const promotionStatuses = ['draft', 'active', 'inactive', 'expired'];
+
+    const promotions = await Promotion.insertMany(
+        Array.from({ length: TARGET_COUNT }, (_, index) => {
+            const type = index % 2 === 0 ? 'percentage' : 'fixed_amount';
+            const value =
+                type === 'percentage'
+                    ? 5 + (index % 5) * 5
+                    : 10000 + index * 2500;
+
+            return {
+                code: `PROMO${pad(index + 1)}`,
+                type,
+                value,
+                start_date: dateUtc(2026, 0, 1 + index),
+                end_date: dateUtc(2026, 2, 1 + index),
+                status: pick(promotionStatuses, index),
+                applicable_store: [
+                    stores[index % stores.length]._id,
+                    stores[(index + 6) % stores.length]._id,
+                ],
+                isDeleted: false,
+            };
+        }),
+    );
+
+    const shiftSlots = [
+        { start: '06:00', end: '14:00' },
+        { start: '08:00', end: '16:00' },
+        { start: '10:00', end: '18:00' },
+        { start: '12:00', end: '20:00' },
+        { start: '14:00', end: '22:00' },
+    ];
+    const shiftStations = ['maker', 'drink', 'cashier', 'delivery'];
+    const shiftStatuses = ['PENDING', 'APPROVED', 'WORKING', 'DONE'];
+
+    const shifts = await Shift.insertMany(
+        Array.from({ length: TARGET_COUNT }, (_, index) => {
+            const slot = pick(shiftSlots, index);
+            const status = pick(shiftStatuses, index);
+
+            return {
+                employee_id: employees[index % employees.length]._id,
+                start_time: slot.start,
+                end_time: slot.end,
+                station: pick(shiftStations, index),
+                status,
+                staff_involved:
+                    status === 'WORKING'
+                        ? { check_in: slot.start, check_out: null }
+                        : status === 'DONE'
+                          ? { check_in: slot.start, check_out: slot.end }
+                          : { check_in: null, check_out: null },
+            };
+        }),
+    );
+
+    const schedules = await Schedule.insertMany(
+        Array.from({ length: TARGET_COUNT }, (_, index) => ({
+            store_id: stores[index % stores.length]._id,
+            work_date: dateUtc(2026, 3, 1 + index),
+            list_shift:
+                index % 2 === 0
+                    ? [
+                          { shift_id: shifts[index % shifts.length]._id },
+                          { shift_id: shifts[(index + 1) % shifts.length]._id },
+                      ]
+                    : [{ shift_id: shifts[index % shifts.length]._id }],
+        })),
+    );
+
+    const payrollStatuses = ['pending', 'paid', 'cancelled'];
+    const payrolls = await Payroll.insertMany(
+        employees.map((employee, index) => {
+            const totalHours = 160 + (index % 5) * 8;
+            const grossSalary =
+                employee.salary_type === 'monthly'
+                    ? employee.salary
+                    : employee.salary * totalHours;
+            const additionAmount = index % 3 === 0 ? 220000 + index * 10000 : 0;
+            const deductionAmount = index % 4 === 0 ? 100000 + index * 8000 : 0;
+
+            return {
+                employee_id: employee._id,
+                period: { month: 4 + (index % 2), year: 2026 },
+                total_hours: totalHours,
+                gross_salary: grossSalary,
+                additions:
+                    additionAmount > 0
+                        ? [{ reason: 'KPI bonus', amount: additionAmount }]
+                        : [],
+                deductions:
+                    deductionAmount > 0
+                        ? [{ reason: 'Insurance', amount: deductionAmount }]
+                        : [],
+                net_salary: grossSalary + additionAmount - deductionAmount,
+                status: pick(payrollStatuses, index),
+            };
+        }),
+    );
+
+    const orderStatuses = [
+        'pending',
+        'confirmed',
+        'preparing',
+        'completed',
+        'cancelled',
+    ];
+    const orderTypes = ['carry_out', 'dining', 'delivery'];
+    const paymentMethods = ['cash', 'card', 'bank_transfer', 'ewallet'];
+
+    const orders = await Order.insertMany(
+        Array.from({ length: TARGET_COUNT }, (_, index) => {
+            const productA = products[index % products.length];
+            const productB = products[(index + 7) % products.length];
+            const variantA =
+                productA.variants[index % productA.variants.length];
+            const variantB =
+                productB.variants[(index + 1) % productB.variants.length];
+
+            const items = [
                 {
-                    product_id: products[0]._id,
-                    price: 149000,
-                    size: 'L',
+                    product_id: productA._id,
+                    price: variantA.price,
+                    size: variantA.size,
+                    quantity: 1 + (index % 2),
+                    note: pick(cartNotes, index),
+                },
+            ];
+
+            if (index % 2 === 0) {
+                items.push({
+                    product_id: productB._id,
+                    price: variantB.price,
+                    size: variantB.size,
                     quantity: 1,
-                    note: 'De nhieu pho mai',
-                },
-                {
-                    product_id: products[3]._id,
-                    price: 20000,
-                    size: 'M',
-                    quantity: 2,
-                    note: '',
-                },
-            ],
-            sub_total: 189000,
-            discount_amount: 18900,
-            total: 170100,
-            status: 'confirmed',
-            order_type: 'carry_out',
-            paymentMethod: 'cash',
-            contact_info: {
-                full_name: 'Nguyen Khach A',
-                phone: '0908111222',
-                address: '45 Le Loi, Quan 1, TP.HCM',
-                email: 'customer.a@example.com',
-            },
-        },
-        {
-            store_id: stores[1]._id,
-            customer_id: null,
-            employee_id: employees[2]._id,
-            items: [
-                {
-                    product_id: products[0]._id,
-                    price: 89000,
-                    size: 'S',
-                    quantity: 2,
-                    note: 'Cat 8 mieng',
-                },
-            ],
-            sub_total: 178000,
-            discount_amount: 0,
-            total: 178000,
-            status: 'pending',
-            order_type: 'delivery',
-            paymentMethod: 'ewallet',
-            contact_info: {
-                full_name: 'Le Van Khach Le',
-                phone: '0977555333',
-                address: '32 Kim Ma, Ba Dinh, Ha Noi',
-                email: 'guest.order@example.com',
-            },
-        },
-        {
-            store_id: stores[2]._id,
-            customer_id: customers[2]._id,
-            employee_id: employees[3]._id,
-            items: [
-                {
-                    product_id: products[1]._id,
-                    price: 99000,
-                    size: 'M',
-                    quantity: 1,
-                    note: 'De oi',
-                },
-                {
-                    product_id: products[4]._id,
-                    price: 20000,
-                    size: 'M',
-                    quantity: 1,
-                    note: '',
-                },
-            ],
-            sub_total: 119000,
-            discount_amount: 0,
-            total: 119000,
-            status: 'completed',
-            order_type: 'dining',
-            paymentMethod: 'card',
-            contact_info: {
-                full_name: 'Pham Khach C',
-                phone: '0901333444',
-                address: '33 Vo Van Tan, Binh Thanh, TP.HCM',
-                email: 'customer.c@example.com',
-            },
-        },
-        {
-            store_id: stores[3]._id,
-            customer_id: customers[3]._id,
-            employee_id: employees[4]._id,
-            items: [
-                {
-                    product_id: products[2]._id,
-                    price: 95000,
-                    size: 'S',
-                    quantity: 2,
-                    note: 'De pho mai',
-                },
-                {
-                    product_id: products[3]._id,
-                    price: 30000,
-                    size: 'L',
-                    quantity: 1,
-                    note: '',
-                },
-            ],
-            sub_total: 220000,
-            discount_amount: 22000,
-            total: 198000,
-            status: 'confirmed',
-            order_type: 'carry_out',
-            paymentMethod: 'cash',
-            contact_info: {
-                full_name: 'Hoang Khach D',
-                phone: '0912444555',
-                address: '56 Tran Quoc Viet, Thanh Xuan, Ha Noi',
-                email: 'customer.d@example.com',
-            },
-        },
-        {
-            store_id: stores[4]._id,
-            customer_id: customers[4]._id,
-            employee_id: employees[5]._id,
-            items: [
-                {
-                    product_id: products[5]._id,
-                    price: 85000,
-                    size: 'Regular',
-                    quantity: 1,
-                    note: '',
-                },
-                {
-                    product_id: products[6]._id,
-                    price: 75000,
-                    size: 'S',
-                    quantity: 1,
-                    note: 'Them sot',
-                },
-            ],
-            sub_total: 160000,
-            discount_amount: 0,
-            total: 160000,
-            status: 'preparing',
-            order_type: 'dining',
-            paymentMethod: 'card',
-            contact_info: {
-                full_name: 'Nguyen Khach E',
-                phone: '0923555666',
-                address: '77 Ly Thuong Kiet, Hoan Kiem, Ha Noi',
-                email: 'customer.e@example.com',
-            },
-        },
-        {
-            store_id: stores[5]._id,
-            customer_id: customers[5]._id,
-            employee_id: employees[6]._id,
-            items: [
-                {
-                    product_id: products[7]._id,
-                    price: 65000,
-                    size: 'Regular',
-                    quantity: 2,
-                    note: '',
-                },
-            ],
-            sub_total: 130000,
-            discount_amount: 13000,
-            total: 117000,
-            status: 'completed',
-            order_type: 'carry_out',
-            paymentMethod: 'cash',
-            contact_info: {
-                full_name: 'Tran Khach F',
-                phone: '0934666777',
-                address: '99 Nguyen Hue, Quan 1, TP.HCM',
-                email: 'customer.f@example.com',
-            },
-        },
-        {
-            store_id: stores[6]._id,
-            customer_id: customers[6]._id,
-            employee_id: employees[7]._id,
-            items: [
-                {
-                    product_id: products[8]._id,
-                    price: 45000,
-                    size: 'M',
-                    quantity: 3,
-                    note: '',
-                },
-            ],
-            sub_total: 135000,
-            discount_amount: 0,
-            total: 135000,
-            status: 'pending',
-            order_type: 'delivery',
-            paymentMethod: 'ewallet',
-            contact_info: {
-                full_name: 'Le Khach G',
-                phone: '0945777888',
-                address: '12 Ba Trieu, Hai Ba Trung, Ha Noi',
-                email: 'customer.g@example.com',
-            },
-        },
-        {
-            store_id: stores[7]._id,
-            customer_id: customers[7]._id,
-            employee_id: employees[0]._id,
-            items: [
-                {
-                    product_id: products[0]._id,
-                    price: 89000,
-                    size: 'S',
-                    quantity: 1,
-                    note: 'De vien mong',
-                },
-                {
-                    product_id: products[1]._id,
-                    price: 99000,
-                    size: 'M',
-                    quantity: 1,
-                    note: '',
-                },
-            ],
-            sub_total: 188000,
-            discount_amount: 0,
-            total: 188000,
-            status: 'confirmed',
-            order_type: 'dining',
-            paymentMethod: 'bank_transfer',
-            contact_info: {
-                full_name: 'Phan Khach H',
-                phone: '0956888999',
-                address: '88 Cao Thang, Da Nang',
-                email: 'customer.h@example.com',
-            },
-        },
-        {
-            store_id: stores[8]._id,
-            customer_id: customers[8]._id,
-            employee_id: employees[2]._id,
-            items: [
-                {
-                    product_id: products[4]._id,
-                    price: 20000,
-                    size: 'M',
-                    quantity: 5,
-                    note: '',
-                },
-                {
-                    product_id: products[5]._id,
-                    price: 85000,
-                    size: 'Regular',
-                    quantity: 1,
-                    note: '',
-                },
-            ],
-            sub_total: 185000,
-            discount_amount: 18500,
-            total: 166500,
-            status: 'completed',
-            order_type: 'carry_out',
-            paymentMethod: 'cash',
-            contact_info: {
-                full_name: 'Do Khach I',
-                phone: '0967999000',
-                address: '44 Nam Ky Khoi Nghia, Can Tho',
-                email: 'customer.i@example.com',
-            },
-        },
-        {
-            store_id: stores[9]._id,
-            customer_id: customers[9]._id,
-            employee_id: employees[3]._id,
-            items: [
-                {
-                    product_id: products[2]._id,
-                    price: 95000,
-                    size: 'S',
-                    quantity: 1,
-                    note: 'De pho mai',
-                },
-                {
-                    product_id: products[3]._id,
-                    price: 20000,
-                    size: 'M',
-                    quantity: 2,
-                    note: '',
-                },
-                {
-                    product_id: products[6]._id,
-                    price: 75000,
-                    size: 'S',
-                    quantity: 1,
-                    note: '',
-                },
-            ],
-            sub_total: 260000,
-            discount_amount: 26000,
-            total: 234000,
-            status: 'confirmed',
-            order_type: 'delivery',
-            paymentMethod: 'ewallet',
-            contact_info: {
-                full_name: 'Ho Khach J',
-                phone: '0978000111',
-                address: '23 Dien Bien Phu, Tan Binh, TP.HCM',
-                email: 'customer.j@example.com',
-            },
-        },
-    ]);
+                    note: pick(cartNotes, index + 1),
+                });
+            }
+
+            const subTotal = items.reduce(
+                (total, item) => total + item.price * item.quantity,
+                0,
+            );
+            const discountAmount =
+                index % 5 === 0
+                    ? Math.round(subTotal * 0.12)
+                    : index % 3 === 0
+                      ? 10000
+                      : 0;
+            const customer =
+                index % 4 === 0 ? null : customers[index % customers.length];
+
+            return {
+                store_id: stores[index % stores.length]._id,
+                customer_id: customer?._id || null,
+                employee_id: employees[index % employees.length]._id,
+                items,
+                sub_total: subTotal,
+                discount_amount: discountAmount,
+                total: subTotal - discountAmount,
+                status: pick(orderStatuses, index),
+                order_type: pick(orderTypes, index),
+                paymentMethod: pick(paymentMethods, index),
+                contact_info: customer
+                    ? {
+                          full_name: customer.name,
+                          phone: customer.phone,
+                          address: customer.address,
+                          email: customer.email,
+                      }
+                    : {
+                          full_name: `Guest Customer ${pad(index + 1)}`,
+                          phone: `0977${pad(index + 1, 6)}`,
+                          address: `${50 + index} Guest Avenue, ${pick(cityPool, index)}`,
+                          email: `guest${pad(index + 1)}@mail.com`,
+                      },
+                isDeleted: false,
+            };
+        }),
+    );
 
     return {
         stores: stores.length,

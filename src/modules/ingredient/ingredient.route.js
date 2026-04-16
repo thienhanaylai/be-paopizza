@@ -8,11 +8,12 @@ const requireAuth = passport.authenticate('jwt', { session: false });
 const requireAdmin = authorize(['admin']);
 const router = express.Router();
 
+router.get('/', asyncHandler(ingredientController.getAllIngredient));
 router.get(
-    '/',
-    requireAuth,
-    asyncHandler(ingredientController.getAllIngredient),
+    '/category',
+    asyncHandler(ingredientController.getCategoryIngredient),
 );
+router.get('/unit', asyncHandler(ingredientController.getUnitIngredient));
 router.get(
     '/:ingredient_id',
     requireAuth,

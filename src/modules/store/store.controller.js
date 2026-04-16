@@ -1,11 +1,25 @@
 import * as storeService from './store.service.js';
 
 export const createStore = async (req, res) => {
-    const { name, address, phone } = req.body;
+    const {
+        name,
+        address,
+        phone,
+        email,
+        time_open,
+        time_close,
+        manager_by,
+        status,
+    } = req.body;
     const result = await storeService.create({
         name,
         address,
         phone,
+        email,
+        time_open,
+        time_close,
+        manager_by,
+        status,
     });
     return res.status(201).json({
         message: 'Tạo cửa hàng mới thành công!',

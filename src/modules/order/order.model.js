@@ -54,7 +54,6 @@ const contactInfoSchema = new mongoose.Schema(
         },
         address: {
             type: String,
-            required: true,
             trim: true,
         },
         email: {

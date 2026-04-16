@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 
+export const status = ['active', 'maintenance', 'close'];
+
 const storeSchema = new mongoose.Schema(
     {
         name: {
@@ -17,9 +19,30 @@ const storeSchema = new mongoose.Schema(
             required: true,
             trim: true,
         },
+        email: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        time_open: {
+            type: String,
+            required: true,
+            match: /^([01]\d|2[0-3]):([0-5]\d)$/,
+        },
+        time_close: {
+            type: String,
+            required: true,
+            match: /^([01]\d|2[0-3]):([0-5]\d)$/,
+        },
+        manager_by: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Employee',
+            default: null,
+        },
         status: {
-            type: Boolean,
-            default: true,
+            type: String,
+            enum: status,
+            default: 'active',
         },
         isDeleted: {
             type: Boolean,

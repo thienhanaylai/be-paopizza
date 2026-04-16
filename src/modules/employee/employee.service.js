@@ -86,3 +86,12 @@ export const getEmployee = async (employee_id) => {
 export const getAllEmployee = async () => {
     return await Employee.find({});
 };
+
+export const getListEmployeeByRole = async (role) => {
+    if (role === 'customer') role = null;
+    const listEmployee = await User.find({ role })
+        .populate('ref_id')
+        .select(['-password']);
+    if (!listEmployee) throw new Error('Không có nhân viên thuộc role này!');
+    return listEmployee;
+};

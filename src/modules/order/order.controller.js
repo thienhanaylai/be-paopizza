@@ -41,3 +41,11 @@ export const deletedOrder = async (req, res) => {
         data: result,
     });
 };
+export const getHistoryOrder = async (req, res) => {
+    const userId = req.user._id;
+
+    const result = await orderService.getHistoryOrder(userId);
+    return res.status(200).json({
+        data: result,
+    });
+};

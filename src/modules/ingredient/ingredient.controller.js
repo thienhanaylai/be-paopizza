@@ -86,8 +86,25 @@ export const getAllIngredient = async (req, res, next) => {
 };
 export const getIngredient = async (req, res, next) => {
     try {
-        const { ingredient_id } = req.params.ingredient_id;
+        const { ingredient_id } = req.params;
         const result = await ingredientService.getIngredient(ingredient_id);
+        return res.status(201).json({ result });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getCategoryIngredient = async (req, res, next) => {
+    try {
+        const result = await ingredientService.getCategoryIngredient();
+        return res.status(201).json({ result });
+    } catch (error) {
+        next(error);
+    }
+};
+export const getUnitIngredient = async (req, res, next) => {
+    try {
+        const result = await ingredientService.getUnitIngredient();
         return res.status(201).json({ result });
     } catch (error) {
         next(error);

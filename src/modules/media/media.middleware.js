@@ -8,7 +8,7 @@ const createUploader = (folderName, customTransform = []) => {
         { quality: 'auto' },
         { fetch_format: 'auto' },
     ];
-    console.log(folderName);
+
     const slugify = (str) => {
         const value = typeof str === 'string' ? str : String(str || 'upload');
 

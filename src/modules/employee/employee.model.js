@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 const EMPLOYEE_STATIONS = [
+    'store_manager',
     'manager',
     'cashier',
     'kitchen',

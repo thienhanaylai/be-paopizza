@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "d4e5ca2d-2f14-47fe-a5cf-6f4e19af8642",
     "name": "PaoPizza API",
-    "description": "Backend API for PaoPizza.\n\nBase path: `/api/v1`\n\n**Active modules (full CRUD)**: auth, users, customers (phone-as-username + rollback), employees, cart (price lookup), supplier, ingredient, category, store, product (variants), inventory, **order (full: price lookup from variants, totals calc, inventory stock check + decrement on create, promotion support)**, **promotion (full CRUD with code validation, dates, applicable stores, soft-delete)**. HR (payroll/shift/schedule) pending full implementation (models exist).\n\n**Auth**: Passport.js Local + JWT (Bearer token in Authorization: Bearer <token>) + Refresh in cookie. Use seed credentials below.\n\n**Seed credentials** (password: `12345678` for all):\n- Admin: `admin_q1`\n- Manager/Staff: `manager_q1`, `cashier_hk`, etc.\n- Customers: `customer_a` etc.\n\n**Test flow**: `npm run seed:sample` (full relations) → Login (/auth/EmployeeLogin or /CustomerLogin) → Bearer token for active CRUD (categories/stores/products/inventory/cart/employees/supplier/ingredient). Test soft-delete, populate, validation/Zod errors. Order/promotion/HR (payroll/shift/schedule) pending (models only).\n\n**Note**: No rate limits. Standardized to middlewares/index.js imports + cleaned controllers (asyncHandler + service throws; minor try/catch remain in some). Full modules audit done — prioritize order module. See plan.md for details.",
+    "description": "Backend API for PaoPizza.\n\nBase path: `/api/v1`\n\nMounted modules: auth, users, customers, cart, employees, supplier, ingredient, categories, stores, products, inventory, orders, promotions, media.\nShift/schedule/payroll currently only have models/seed data and are not mounted as API routes.\n\nAuth: Passport Local + JWT Bearer + refresh token cookie.\n\nSeed login (password `12345678`):\n- Admin: `admin_q1`\n- Staff: `manager_q1`, `cashier_hk`\n- Customer (phone as username): `0908111222`",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -124,7 +124,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"username\": \"customer_a\",\n  \"password\": \"12345678\"\n}"
+                  "raw": "{\n  \"username\": \"0908111222\",\n  \"password\": \"12345678\"\n}"
                 },
                 "url": "{{baseUrl}}/auth/EmployeeLogin"
               },
@@ -173,7 +173,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"customer_a\",\n  \"password\": \"12345678\"\n}",
+              "raw": "{\n  \"username\": \"0908111222\",\n  \"password\": \"12345678\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -181,7 +181,7 @@
               }
             },
             "url": "{{baseUrl}}/auth/CustomerLogin",
-            "description": "Login for Customer accounts via Passport local strategy.\n\nWill reject if `user_type` is `Employee`.\n\n**Body**:\n| Field | Type | Required |\n|-------|------|----------|\n| username | string | Yes |\n| password | string | Yes |\n\n**Response 200**:\n```json\n{\n  \"message\": \"Đăng nhập thành công\",\n  \"accessToken\": \"JWT string\",\n  \"user\": { \"id\": \"...\", \"email\": \"...\", \"role\": null }\n}\n```\n+ Sets `refreshToken` httpOnly cookie (7 days)\n\n**Response 403**: `{ \"message\": \"Vui lòng đăng nhập bằng tài khoản khách hàng !\" }`\n**Response 401**: Passport authentication failed"
+            "description": "Login for Customer accounts via Passport local strategy.\n\nWill reject if `user_type` is `Employee`.\n\nCustomer seed accounts use phone number as username.\n\n**Body**:\n| Field | Type | Required |\n|-------|------|----------|\n| username | string | Yes |\n| password | string | Yes |\n\n**Response 200**:\n```json\n{\n  \"message\": \"Đăng nhập thành công\",\n  \"accessToken\": \"JWT string\",\n  \"user\": { \"id\": \"...\", \"email\": \"...\", \"role\": null }\n}\n```\n+ Sets `refreshToken` httpOnly cookie (7 days)\n\n**Response 403**: `{ \"message\": \"Vui lòng đăng nhập bằng tài khoản khách hàng !\" }`\n**Response 401**: Passport authentication failed"
           },
           "response": [
             {
@@ -196,7 +196,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"username\": \"customer_a\",\n  \"password\": \"12345678\"\n}"
+                  "raw": "{\n  \"username\": \"0908111222\",\n  \"password\": \"12345678\"\n}"
                 },
                 "url": "{{baseUrl}}/auth/CustomerLogin"
               },
@@ -208,7 +208,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"message\": \"Đăng nhập thành công\",\n  \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"user\": {\n    \"id\": \"67a8b123456789abcdef0007\",\n    \"email\": \"customer_a@example.com\",\n    \"role\": null\n  }\n}"
+              "body": "{\n  \"message\": \"Đăng nhập thành công\",\n  \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"user\": {\n    \"id\": \"67a8b123456789abcdef0007\",\n    \"email\": \"customer.a@example.com\",\n    \"role\": null\n  }\n}"
             },
             {
               "name": "403 - Wrong User Type",
@@ -348,7 +348,7 @@
                 }
               }
             },
-            "url": "{{baseUrl}}/auth/change-password",
+            "url": "{{baseUrl}}/auth/changePassword",
             "description": "Change authenticated user's password.\nRequires valid JWT token.\n\n**Headers**:\n- Authorization: Bearer {{accessToken}}\n\n**Body**:\n- oldPass: current password\n- newPass: new password (min 6 chars)\n\n**Note**: Uses req.user.id from JWT, do not send user_id."
           },
           "response": [
@@ -782,7 +782,7 @@
               }
             },
             "url": "{{baseUrl}}/employees/create",
-            "description": "Create a new employee with user account. Route has no auth middleware currently but logically requires admin.\n\nUses Zod `.strict()` validation - **no extra fields allowed**.\n\n**Body** (Zod validated):\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| username | string | Yes | min 3, max 30 |\n| password | string | Yes | min 6 |\n| store_id | string | Yes | MongoDB ObjectId as string |\n| name | string | Yes | min 2, max 100 |\n| birthday | date string | Yes | must be in the past |\n| email | string | Yes | valid email |\n| phone | string | Yes | regex `/^[0-9]{10,11}$/` |\n| station | enum | Yes | `manager`, `cashier`, `kitchen`, `delivery`, `barista` |\n| salary_type | enum | No | `hourly`, `monthly` (default: `hourly`) |\n| role | enum | No | `admin`, `manager`, `staff` (default: `staff`) |\n| address | string | No | |\n| salary | number | No | min 0 |\n\n**Response 201**:\n```json\n{\n  \"message\": \"Tạo nhân viên thành công\",\n  \"data\": {\n    \"account\": { ...user without password },\n    \"profile\": { ...employee object }\n  }\n}\n```\n\n**Response 400 (Zod)**:\n```json\n{\n  \"message\": \"Validation error\",\n  \"errors\": [\n    { \"field\": \"phone\", \"message\": \"Số điện thoại phải có 10-11 chữ số\" }\n  ]\n}\n```"
+            "description": "Create a new employee with user account. Requires JWT + admin/manager.\n\nUses Zod `.strict()` validation - **no extra fields allowed**.\n\n**Body** (Zod validated):\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| username | string | Yes | min 3, max 30 |\n| password | string | Yes | min 6 |\n| store_id | string | Yes | MongoDB ObjectId as string |\n| name | string | Yes | min 2, max 100 |\n| birthday | date string | Yes | must be in the past |\n| email | string | Yes | valid email |\n| phone | string | Yes | regex `/^[0-9]{10,11}$/` |\n| station | enum | Yes | `manager`, `cashier`, `kitchen`, `delivery`, `barista` |\n| salary_type | enum | No | `hourly`, `monthly` (default: `hourly`) |\n| role | enum | No | `admin`, `manager`, `staff` (default: `staff`) |\n| address | string | No | |\n| salary | number | No | min 0 |\n\n**Response 201**:\n```json\n{\n  \"message\": \"Tạo nhân viên thành công\",\n  \"data\": {\n    \"account\": { ...user without password },\n    \"profile\": { ...employee object }\n  }\n}\n```\n\n**Response 400 (Zod)**:\n```json\n{\n  \"message\": \"Validation error\",\n  \"errors\": [\n    { \"field\": \"phone\", \"message\": \"Số điện thoại phải có 10-11 chữ số\" }\n  ]\n}\n```"
           },
           "response": [
             {
@@ -810,6 +810,79 @@
               "body": "{\n  \"message\": \"Validation error\",\n  \"errors\": [\n    { \"field\": \"phone\", \"message\": \"Số điện thoại phải có 10-11 chữ số\" },\n    { \"field\": \"birthday\", \"message\": \"Ngày sinh phải nhỏ hơn ngày hiện tại\" }\n  ]\n}"
             }
           ]
+        },
+        {
+          "name": "Update Employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employee_id\": \"{{employeeId}}\",\n  \"name\": \"Nguyen Van A Updated\",\n  \"phone\": \"0911222333\",\n  \"address\": \"Quan 1, TP.HCM\",\n  \"station\": \"cashier\",\n  \"salary_type\": \"hourly\",\n  \"salary\": 35000,\n  \"status\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/employees/update",
+            "description": "Update employee by employee_id. Requires JWT + admin/manager."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Employee By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/employees/{{employeeId}}",
+            "description": "Get one employee by id. Requires JWT."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Employees",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/employees",
+            "description": "Get employee list. Requires JWT + admin/manager."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Employees By Role",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/employees/role={{employeeRole}}",
+            "description": "Get users by role via employee module route `/employees/role=:role`. Requires JWT.\n\nExamples: `admin`, `manager`, `staff`, `customer` (maps to null role in service)."
+          },
+          "response": []
         }
       ]
     },
@@ -1478,33 +1551,28 @@
     },
     {
       "name": "Ingredient",
-      "description": "Ingredient management.\n\nRequires JWT; most ops need admin. Uses similar patterns to Supplier.",
+      "description": "Ingredient management.\n\nPublic endpoints: GET /ingredient, GET /ingredient/category, GET /ingredient/unit.\nProtected endpoints: GET /ingredient/:ingredient_id (JWT), create/update/updateActive/deleted (JWT + admin).",
       "item": [
         {
           "name": "Get All Ingredients",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
+            "header": [],
             "url": "{{baseUrl}}/ingredient",
-            "description": "Get all ingredients (auth required)."
+            "description": "Get all ingredients with isDeleted=false. Public endpoint."
           },
           "response": [
             {
-              "name": "200 - OK",
-              "status": "OK",
-              "code": 200,
+              "name": "201 - OK",
+              "status": "Created",
+              "code": 201,
               "header": [
                 {
                   "key": "Content-Type",
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"data\": []\n}"
+              "body": "{\n  \"result\": []\n}"
             }
           ]
         },
@@ -1519,20 +1587,20 @@
               }
             ],
             "url": "{{baseUrl}}/ingredient/{{ingredientId}}",
-            "description": "Get single ingredient by ID (auth required)."
+            "description": "Get single ingredient by ID (auth required). Returns not found for soft-deleted records."
           },
           "response": [
             {
-              "name": "200 - OK",
-              "status": "OK",
-              "code": 200,
+              "name": "201 - OK",
+              "status": "Created",
+              "code": 201,
               "header": [
                 {
                   "key": "Content-Type",
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"data\": {}\n}"
+              "body": "{\n  \"result\": {}\n}"
             }
           ]
         },
@@ -1568,7 +1636,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Bột mì\",\n  \"unit\": \"kg\",\n  \"category\": \"main_ingredient\"\n}",
+              "raw": "{\n  \"name\": \"Bột mì\",\n  \"unit\": \"kg\",\n  \"category\": \"dough\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1576,13 +1644,13 @@
               }
             },
             "url": "{{baseUrl}}/ingredient/create",
-            "description": "Create new ingredient. **Yêu cầu JWT + admin.**\n\nBody: name, unit, category. Test script sets ingredientId var."
+            "description": "Create new ingredient. Requires JWT + admin.\n\nBody: name, unit, category.\nCategory slug: dough, seafood, meat, sauce, vegetable, drink, other.\nUnit slug: gram, kg, ml, lit, piece, box, can, bag.\nTest script sets ingredientId variable."
           },
           "response": [
             {
-              "name": "200 - Success",
-              "status": "OK",
-              "code": 200,
+              "name": "201 - Success",
+              "status": "Created",
+              "code": 201,
               "header": [
                 {
                   "key": "Content-Type",
@@ -1609,7 +1677,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"ingredient_id\": \"{{ingredientId}}\",\n  \"name\": \"Bột mì Updated\",\n  \"unit\": \"kg\",\n  \"category\": \"main_ingredient\"\n}",
+              "raw": "{\n  \"ingredient_id\": \"{{ingredientId}}\",\n  \"name\": \"Bột mì Updated\",\n  \"unit\": \"kg\",\n  \"category\": \"dough\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1621,9 +1689,9 @@
           },
           "response": [
             {
-              "name": "200 - Success",
-              "status": "OK",
-              "code": 200,
+              "name": "201 - Success",
+              "status": "Created",
+              "code": 201,
               "header": [
                 {
                   "key": "Content-Type",
@@ -1662,16 +1730,16 @@
           },
           "response": [
             {
-              "name": "200 - Success",
-              "status": "OK",
-              "code": 200,
+              "name": "201 - Success",
+              "status": "Created",
+              "code": 201,
               "header": [
                 {
                   "key": "Content-Type",
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"message\": \"Cập nhật trạng thái thành công!\"\n}"
+              "body": "{\n  \"message\": \"Cập nhật trạng thái nguyên liệu thành công!\",\n  \"data\": {}\n}"
             }
           ]
         },
@@ -1703,16 +1771,62 @@
           },
           "response": [
             {
-              "name": "200 - Success",
-              "status": "OK",
-              "code": 200,
+              "name": "201 - Success",
+              "status": "Created",
+              "code": 201,
               "header": [
                 {
                   "key": "Content-Type",
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"message\": \"Xóa nguyên liệu thành công!\"\n}"
+              "body": "{\n  \"message\": \"Xoá nguyên liệu thành công!\",\n  \"data\": {}\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Ingredient Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/ingredient/category",
+            "description": "Get ingredient category list from server."
+          },
+          "response": [
+            {
+              "name": "201 - OK",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"result\": [\n    { \"name\": \"Bột\", \"slug\": \"dough\" },\n    { \"name\": \"Hải sản\", \"slug\": \"seafood\" }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Ingredient Units",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/ingredient/unit",
+            "description": "Get supported ingredient units from server."
+          },
+          "response": [
+            {
+              "name": "201 - OK",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"result\": [\n    { \"name\": \"Gram\", \"slug\": \"gram\" },\n    { \"name\": \"Kí\", \"slug\": \"kg\" }\n  ]\n}"
             }
           ]
         }
@@ -1961,6 +2075,513 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Store",
+      "description": "Store management endpoints.\n\nStore model fields include: `name`, `address`, `phone`, `email`, `time_open`, `time_close`, `manager_by`, `status`, `isDeleted`.\n`manager_by` is optional.\nState values in model: `active`, `maintenance`, `close`.",
+      "item": [
+        {
+          "name": "Get All Stores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/stores",
+            "description": "Get all stores. Public endpoint in current route config."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Store By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/stores/{{storeId}}",
+            "description": "Get one store by id. Requires JWT."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Store (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pao Pizza Thu Duc\",\n  \"address\": \"01 Vo Van Ngan, Thu Duc, TP.HCM\",\n  \"phone\": \"0909777666\",\n  \"email\": \"thuduc@paopizza.com\",\n  \"time_open\": \"08:00\",\n  \"time_close\": \"22:00\",\n  \"manager_by\": \"{{employeeId}}\",\n  \"status\": \"active\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/stores/create",
+            "description": "Create store. Requires JWT + admin.\n\nRequired fields in current service: name, address, phone, email, time_open, time_close.\nmanager_by is optional but must be a valid employee ID when provided.\nTime format must be HH:mm (24h)."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Store (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"store_id\": \"{{storeId}}\",\n  \"name\": \"Pao Pizza Thu Duc Updated\",\n  \"address\": \"12 Vo Van Ngan, Thu Duc, TP.HCM\",\n  \"phone\": \"0909777555\",\n  \"email\": \"thuduc.updated@paopizza.com\",\n  \"time_open\": \"09:00\",\n  \"time_close\": \"23:00\",\n  \"manager_by\": \"{{employeeId}}\",\n  \"status\": \"maintenance\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/stores/update",
+            "description": "Update store by store_id. Requires JWT + admin.\n\nCan update any store fields including manager_by and status.\nTo unassign manager, send manager_by as empty string."
+          },
+          "response": []
+        },
+        {
+          "name": "Soft Delete Store (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/stores/deleted/{{storeId}}",
+            "description": "Soft delete store (status=\"close\", isDeleted=true). Requires JWT + admin."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Inventory",
+      "description": "Inventory management endpoints",
+      "item": [
+        {
+          "name": "Get All Inventory",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/inventory",
+            "description": "Get inventory list. Optional query: ?store_id={{storeId}}. Requires JWT."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Low Stock (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/inventory/low-stock",
+            "description": "Get low-stock items where current_stock < min_stock_level. Requires JWT + admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Or Update Inventory (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"store_id\": \"{{storeId}}\",\n  \"ingredient_id\": \"{{ingredientId}}\",\n  \"current_stock\": 120,\n  \"min_stock_level\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/inventory/update",
+            "description": "Upsert inventory record by store_id + ingredient_id. Requires JWT + admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Inventory Stock (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"store_id\": \"{{storeId}}\",\n  \"ingredient_id\": \"{{ingredientId}}\",\n  \"quantity\": 10,\n  \"type\": \"add\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/inventory/stock",
+            "description": "Adjust stock quantity. type: add | reduce. Requires JWT + admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Inventory (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/inventory/{{inventoryId}}",
+            "description": "Hard delete inventory by id. Requires JWT + admin."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "description": "Order management endpoints",
+      "item": [
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"store_id\": \"{{storeId}}\",\n  \"customer_id\": \"\",\n  \"employee_id\": \"\",\n  \"items\": [\n    {\n      \"product_id\": \"{{productId}}\",\n      \"size\": \"S\",\n      \"quantity\": 1,\n      \"note\": \"Khong hanh\"\n    }\n  ],\n  \"order_type\": \"carry_out\",\n  \"paymentMethod\": \"cash\",\n  \"promotion_code\": \"\",\n  \"contact_info\": {\n    \"full_name\": \"Khach Test\",\n    \"phone\": \"0909000999\",\n    \"address\": \"1 Nguyen Hue, TP.HCM\",\n    \"email\": \"khach.test@example.com\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/orders",
+            "description": "Create order. Price is auto-resolved from product variant by size. Requires JWT."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/orders",
+            "description": "Get order list. Supports query filters. Requires JWT."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Order By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/orders/{{orderId}}",
+            "description": "Get one order by id. Requires JWT."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Order Status (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmed\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/orders/{{orderId}}/status",
+            "description": "Update order status. Requires JWT + admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Soft Delete Order (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/orders/deleted/{{orderId}}",
+            "description": "Soft delete order (isDeleted=true, status=cancelled). Requires JWT + admin."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Promotions",
+      "description": "Promotion management endpoints",
+      "item": [
+        {
+          "name": "Get All Promotions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/promotions",
+            "description": "Get promotions list. Requires JWT."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Promotion By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/promotions/{{promotionId}}",
+            "description": "Get one promotion by id. Requires JWT."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Promotion (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"PROMO15\",\n  \"type\": \"percentage\",\n  \"value\": 15,\n  \"start_date\": \"2026-01-01T00:00:00.000Z\",\n  \"end_date\": \"2026-12-31T23:59:59.000Z\",\n  \"status\": \"active\",\n  \"applicable_store\": [\n    \"{{storeId}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/promotions",
+            "description": "Create promotion. Requires JWT + admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Promotion (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"PROMO20\",\n  \"type\": \"percentage\",\n  \"value\": 20,\n  \"start_date\": \"2026-01-01T00:00:00.000Z\",\n  \"end_date\": \"2026-12-31T23:59:59.000Z\",\n  \"status\": \"active\",\n  \"applicable_store\": [\n    \"{{storeId}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/promotions/{{promotionId}}",
+            "description": "Update promotion by id. Requires JWT + admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Promotion Status (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"inactive\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/promotions/{{promotionId}}/status",
+            "description": "Update promotion status. Requires JWT + admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Soft Delete Promotion (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/promotions/deleted/{{promotionId}}",
+            "description": "Soft delete promotion. Requires JWT + admin."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Media",
+      "description": "Cloudinary media upload/delete endpoints",
+      "item": [
+        {
+          "name": "Upload Product Images",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/img/product",
+            "description": "Upload up to 5 product images. Field name: images (file array)."
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Category Icon",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "icon",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/img/category-icon",
+            "description": "Upload category icon. Field name: icon (single file)."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Image",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/img/delete?publicId={{publicId}}",
+            "description": "Delete image by Cloudinary publicId query parameter."
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
@@ -2023,6 +2644,48 @@
       "value": "",
       "type": "string",
       "description": "Ingredient ID (auto-set by Create Ingredient test script)"
+    },
+    {
+      "key": "customerPhone",
+      "value": "0908111222",
+      "type": "string",
+      "description": "Seed customer login username (phone)"
+    },
+    {
+      "key": "employeeId",
+      "value": "",
+      "type": "string",
+      "description": "Employee ID for employee get/update requests"
+    },
+    {
+      "key": "employeeRole",
+      "value": "staff",
+      "type": "string",
+      "description": "Role value for /employees/role=:role endpoint"
+    },
+    {
+      "key": "inventoryId",
+      "value": "",
+      "type": "string",
+      "description": "Inventory document ID for delete request"
+    },
+    {
+      "key": "orderId",
+      "value": "",
+      "type": "string",
+      "description": "Order ID for order get/update/delete requests"
+    },
+    {
+      "key": "promotionId",
+      "value": "",
+      "type": "string",
+      "description": "Promotion ID for promotion get/update/delete requests"
+    },
+    {
+      "key": "publicId",
+      "value": "",
+      "type": "string",
+      "description": "Cloudinary public_id for image delete endpoint"
     }
   ]
 }

@@ -11,6 +11,11 @@ const router = express.Router();
 
 router.post('/', requireAuth, asyncHandler(orderController.createOrder));
 router.get('/', requireAuth, asyncHandler(orderController.getAllOrders));
+router.get(
+    '/history',
+    requireAuth,
+    asyncHandler(orderController.getHistoryOrder),
+);
 router.get('/:order_id', requireAuth, asyncHandler(orderController.getOrder));
 router.patch(
     '/:order_id/status',

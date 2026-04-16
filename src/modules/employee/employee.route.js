@@ -6,19 +6,32 @@ import { asyncHandler } from '../../middlewares/index.js';
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 const requireAdmin = authorize(['admin']);
+const requireManger = authorize(['admin', 'manager']);
 
 const router = express.Router();
 
+router.get(
+    '/role=:role',
+    requireAuth,
+    requireManger,
+    asyncHandler(employeeController.getListEmployeeByRole),
+);
+router.get(
+    '/',
+    requireAuth,
+    requireManger,
+    asyncHandler(employeeController.getAllEmployee),
+);
 router.post(
     '/create',
     requireAuth,
-    requireAdmin,
+    requireManger,
     asyncHandler(employeeController.create),
 );
 router.post(
     '/update',
     requireAuth,
-    requireAdmin,
+    requireManger,
     asyncHandler(employeeController.update),
 );
 router.get(
@@ -26,5 +39,5 @@ router.get(
     requireAuth,
     asyncHandler(employeeController.getEmployee),
 );
-router.get('/', requireAuth, asyncHandler(employeeController.getAllEmployee));
+
 export default router;
