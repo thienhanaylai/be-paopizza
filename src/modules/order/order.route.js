@@ -6,15 +6,22 @@ import { asyncHandler } from '../../middlewares/index.js';
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 const requireAdmin = authorize(['admin']);
+const requireManger = authorize(['admin', 'manager']);
 
 const router = express.Router();
 
 router.post('/', requireAuth, asyncHandler(orderController.createOrder));
-router.get('/', requireAuth, asyncHandler(orderController.getAllOrders));
+//router.get('/', requireAuth, asyncHandler(orderController.getAllOrders));
 router.get(
     '/history',
     requireAuth,
     asyncHandler(orderController.getHistoryOrder),
+);
+router.get(
+    '/',
+    requireAuth,
+    requireManger,
+    asyncHandler(orderController.getAllOrders),
 );
 router.get('/:order_id', requireAuth, asyncHandler(orderController.getOrder));
 router.patch(

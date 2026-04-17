@@ -188,7 +188,20 @@ export const getHistoryOrder = async (user_id) => {
         .select('-password');
     const orders = await Order.find({
         customer_id: customer.ref_id._id,
-    }).populate('items.product_id');
+    })
+        .populate('items.product_id')
+        .populate('store_id');
+
+    if (!orders) {
+        throw new Error('Chưa có đơn hàng nào!');
+    }
+    return orders;
+};
+
+export const getAllHistoryOrder = async () => {
+    const orders = await Order.find({})
+        .populate('items.product_id')
+        .populate('store_id');
 
     if (!orders) {
         throw new Error('Chưa có đơn hàng nào!');

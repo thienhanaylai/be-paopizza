@@ -6,9 +6,10 @@ const ORDER_STATUSES = [
     'preparing',
     'completed',
     'cancelled',
+    'delivering',
 ];
 const PAYMENT_METHODS = ['cash', 'card', 'bank_transfer', 'ewallet'];
-const ORDER_TYPE = ['carry_out', 'dining', 'delivery'];
+const ORDER_TYPE = ['carry_out', 'dine_in', 'delivery'];
 const itemSchema = new mongoose.Schema(
     {
         product_id: {

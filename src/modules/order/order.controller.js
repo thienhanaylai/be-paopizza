@@ -49,3 +49,10 @@ export const getHistoryOrder = async (req, res) => {
         data: result,
     });
 };
+
+export const getAllHistoryOrder = async (req, res) => {
+    const result = await orderService.getAllHistoryOrder();
+    return res.status(200).json({
+        data: result,
+    });
+};

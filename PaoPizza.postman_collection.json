@@ -2305,7 +2305,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"store_id\": \"{{storeId}}\",\n  \"customer_id\": \"\",\n  \"employee_id\": \"\",\n  \"items\": [\n    {\n      \"product_id\": \"{{productId}}\",\n      \"size\": \"S\",\n      \"quantity\": 1,\n      \"note\": \"Khong hanh\"\n    }\n  ],\n  \"order_type\": \"carry_out\",\n  \"paymentMethod\": \"cash\",\n  \"promotion_code\": \"\",\n  \"contact_info\": {\n    \"full_name\": \"Khach Test\",\n    \"phone\": \"0909000999\",\n    \"address\": \"1 Nguyen Hue, TP.HCM\",\n    \"email\": \"khach.test@example.com\"\n  }\n}",
+              "raw": "{\n  \"store_id\": \"{{storeId}}\",\n  \"customer_id\": null,\n  \"employee_id\": null,\n  \"items\": [\n    {\n      \"product_id\": \"{{productId}}\",\n      \"size\": \"S\",\n      \"quantity\": 1,\n      \"note\": \"Khong hanh\"\n    }\n  ],\n  \"order_type\": \"carry_out\",\n  \"paymentMethod\": \"cash\",\n  \"promotion_code\": \"\",\n  \"contact_info\": {\n    \"full_name\": \"Khach Test\",\n    \"phone\": \"0909000999\",\n    \"address\": \"1 Nguyen Hue, TP.HCM\",\n    \"email\": \"khach.test@example.com\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2313,7 +2313,7 @@
               }
             },
             "url": "{{baseUrl}}/orders",
-            "description": "Create order. Price is auto-resolved from product variant by size. Requires JWT."
+            "description": "Create order. Price is auto-resolved from product variant by size. customer_id/employee_id should be ObjectId or null. Requires JWT."
           },
           "response": []
         },
@@ -2328,7 +2328,22 @@
               }
             ],
             "url": "{{baseUrl}}/orders",
-            "description": "Get order list. Supports query filters. Requires JWT."
+            "description": "Get order list. Supports query filters. Requires JWT + manager/admin role."
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Order History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/orders/history",
+            "description": "Get current logged-in customer order history. Requires JWT."
           },
           "response": []
         },
@@ -2371,7 +2386,7 @@
               }
             },
             "url": "{{baseUrl}}/orders/{{orderId}}/status",
-            "description": "Update order status. Requires JWT + admin."
+            "description": "Update order status (pending|confirmed|preparing|completed|cancelled). Requires JWT + admin."
           },
           "response": []
         },

@@ -614,8 +614,9 @@ const seedSampleData = async () => {
         'preparing',
         'completed',
         'cancelled',
+        'delivering',
     ];
-    const orderTypes = ['carry_out', 'dining', 'delivery'];
+    const orderTypes = ['carry_out', 'dine_in', 'delivery'];
     const paymentMethods = ['cash', 'card', 'bank_transfer', 'ewallet'];
 
     const orders = await Order.insertMany(
