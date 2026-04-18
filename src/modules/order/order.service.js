@@ -142,6 +142,7 @@ export const create = async (data) => {
 
 export const getAll = async (query = {}) => {
     const filter = { isDeleted: false, ...query };
+
     return await Order.find(filter)
         .populate('store_id customer_id employee_id items.product_id')
         .sort({ createdAt: -1 });

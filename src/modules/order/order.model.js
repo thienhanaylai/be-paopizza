@@ -135,5 +135,10 @@ const orderSchema = new mongoose.Schema(
     { timestamps: true },
 );
 
+orderSchema.index({ store_id: 1, status: 1, createdAt: -1 });
+orderSchema.index({ store_id: 1, order_type: 1, createdAt: -1 });
+orderSchema.index({ paymentMethod: 1, createdAt: -1 });
+orderSchema.index({ createdAt: -1 });
+
 export const Order = mongoose.model('Order', orderSchema);
 export { ORDER_STATUSES, PAYMENT_METHODS };

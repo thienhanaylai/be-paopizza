@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "d4e5ca2d-2f14-47fe-a5cf-6f4e19af8642",
     "name": "PaoPizza API",
-    "description": "Backend API for PaoPizza.\n\nBase path: `/api/v1`\n\nMounted modules: auth, users, customers, cart, employees, supplier, ingredient, categories, stores, products, inventory, orders, promotions, media.\nShift/schedule/payroll currently only have models/seed data and are not mounted as API routes.\n\nAuth: Passport Local + JWT Bearer + refresh token cookie.\n\nSeed login (password `12345678`):\n- Admin: `admin_q1`\n- Staff: `manager_q1`, `cashier_hk`\n- Customer (phone as username): `0908111222`",
+    "description": "Backend API for PaoPizza.\n\nBase path: `/api/v1`\n\nMounted modules: auth, users, customers, cart, employees, supplier, ingredient, categories, stores, products, inventory, orders, promotions, revenue, media.\nShift/schedule/payroll currently only have models/seed data and are not mounted as API routes.\n\nAuth: Passport Local + JWT Bearer + refresh token cookie.\n\nSample seed login:\n- Admin: `admin` / `BAO123@az`\n- Employee: `emp_02` / `12345678`\n- Customer (phone as username): `0918000001` / `12345678`",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -75,7 +75,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"admin_q1\",\n  \"password\": \"12345678\"\n}",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"BAO123@az\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -98,7 +98,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"username\": \"admin_q1\",\n  \"password\": \"12345678\"\n}"
+                  "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"BAO123@az\"\n}"
                 },
                 "url": "{{baseUrl}}/auth/EmployeeLogin"
               },
@@ -124,7 +124,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"username\": \"0908111222\",\n  \"password\": \"12345678\"\n}"
+                  "raw": "{\n  \"username\": \"0918000001\",\n  \"password\": \"12345678\"\n}"
                 },
                 "url": "{{baseUrl}}/auth/EmployeeLogin"
               },
@@ -173,7 +173,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"0908111222\",\n  \"password\": \"12345678\"\n}",
+              "raw": "{\n  \"username\": \"0918000001\",\n  \"password\": \"12345678\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -196,7 +196,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"username\": \"0908111222\",\n  \"password\": \"12345678\"\n}"
+                  "raw": "{\n  \"username\": \"0918000001\",\n  \"password\": \"12345678\"\n}"
                 },
                 "url": "{{baseUrl}}/auth/CustomerLogin"
               },
@@ -222,7 +222,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"username\": \"admin_q1\",\n  \"password\": \"12345678\"\n}"
+                  "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"BAO123@az\"\n}"
                 },
                 "url": "{{baseUrl}}/auth/CustomerLogin"
               },
@@ -2386,7 +2386,7 @@
               }
             },
             "url": "{{baseUrl}}/orders/{{orderId}}/status",
-            "description": "Update order status (pending|confirmed|preparing|completed|cancelled). Requires JWT + admin."
+            "description": "Update order status (pending|confirmed|preparing|completed|cancelled|delivering). Requires JWT + admin."
           },
           "response": []
         },
@@ -2543,6 +2543,42 @@
       ]
     },
     {
+      "name": "Revenue",
+      "description": "Revenue analytics endpoints from completed orders only. Requires JWT with admin/manager role. Manager is always scoped to their own store.",
+      "item": [
+        {
+          "name": "Get Revenue Overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/revenue/overview?start_date={{revenueStartDate}}&end_date={{revenueEndDate}}&store_id={{storeId}}&paymentMethod={{revenuePaymentMethod}}&order_type={{revenueOrderType}}",
+            "description": "Get overview metrics from completed orders (`status=completed`, `isDeleted=false`) in a date range. Query params: start_date, end_date, optional store_id, optional paymentMethod (cash|card|bank_transfer|ewallet), optional order_type (carry_out|dine_in|delivery)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Revenue Breakdown",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/revenue/breakdown?start_date={{revenueStartDate}}&end_date={{revenueEndDate}}&dimension={{revenueDimension}}&store_id={{storeId}}&paymentMethod={{revenuePaymentMethod}}&order_type={{revenueOrderType}}",
+            "description": "Get grouped metrics from completed orders. `dimension` supports store|paymentMethod|order_type. Supports same optional filters as overview."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Media",
       "description": "Cloudinary media upload/delete endpoints",
       "item": [
@@ -2662,7 +2698,7 @@
     },
     {
       "key": "customerPhone",
-      "value": "0908111222",
+      "value": "0918000001",
       "type": "string",
       "description": "Seed customer login username (phone)"
     },
@@ -2695,6 +2731,36 @@
       "value": "",
       "type": "string",
       "description": "Promotion ID for promotion get/update/delete requests"
+    },
+    {
+      "key": "revenueStartDate",
+      "value": "2026-04-01",
+      "type": "string",
+      "description": "Revenue report start date (YYYY-MM-DD)"
+    },
+    {
+      "key": "revenueEndDate",
+      "value": "2026-04-30",
+      "type": "string",
+      "description": "Revenue report end date (YYYY-MM-DD)"
+    },
+    {
+      "key": "revenueDimension",
+      "value": "store",
+      "type": "string",
+      "description": "Breakdown dimension: store|paymentMethod|order_type"
+    },
+    {
+      "key": "revenuePaymentMethod",
+      "value": "",
+      "type": "string",
+      "description": "Optional filter: cash|card|bank_transfer|ewallet"
+    },
+    {
+      "key": "revenueOrderType",
+      "value": "",
+      "type": "string",
+      "description": "Optional filter: carry_out|dine_in|delivery"
     },
     {
       "key": "publicId",

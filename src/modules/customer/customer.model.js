@@ -26,7 +26,7 @@ const customerSchema = new mongoose.Schema(
             type: String,
             trim: true,
             lowercase: true,
-            unique: true,
+
             sparse: true,
             default: null,
         },

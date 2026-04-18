@@ -82,7 +82,7 @@ export const getAllEmployee = async (req, res) => {
 
 export const getListEmployeeByRole = async (req, res) => {
     const { role } = req.params;
-    console.log(role);
+
     const result = await employeeService.getListEmployeeByRole(role);
 
     return res.status(200).json({

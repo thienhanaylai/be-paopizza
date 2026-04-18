@@ -65,6 +65,33 @@ const dateUtc = (year, monthIndex, day) =>
 
 const pick = (arr, index) => arr[index % arr.length];
 
+const ORDER_SAMPLE_COUNT = TARGET_COUNT * 10;
+const ORDER_MONTH_OFFSET_PATTERN = [
+    0, 0, 0, 0, 1, 1, 1, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+];
+
+const createOrderTimestamp = (index, referenceDate = new Date()) => {
+    const monthOffset = pick(ORDER_MONTH_OFFSET_PATTERN, index);
+    const baseDate = new Date(
+        referenceDate.getFullYear(),
+        referenceDate.getMonth() - monthOffset,
+        1,
+    );
+    const day = ((index * 3) % 28) + 1;
+    const hour = 10 + (index % 12);
+    const minute = (index * 7) % 60;
+
+    return new Date(
+        baseDate.getFullYear(),
+        baseDate.getMonth(),
+        day,
+        hour,
+        minute,
+        0,
+        0,
+    );
+};
+
 const seedSampleData = async () => {
     const districtPool = [
         'Quan 1',
@@ -182,6 +209,7 @@ const seedSampleData = async () => {
     const ingredients = await Ingredient.insertMany(
         ingredientSeedData.map((ingredient, index) => ({
             ...ingredient,
+            cost_per_unit: 120 + index * 15,
             is_active: index % 7 !== 0,
             isDeleted: false,
         })),
@@ -609,24 +637,27 @@ const seedSampleData = async () => {
     );
 
     const orderStatuses = [
-        'pending',
+        'completed',
+        'completed',
+        'completed',
+        'completed',
         'confirmed',
         'preparing',
-        'completed',
+        'pending',
         'cancelled',
-        'delivering',
     ];
     const orderTypes = ['carry_out', 'dine_in', 'delivery'];
     const paymentMethods = ['cash', 'card', 'bank_transfer', 'ewallet'];
 
     const orders = await Order.insertMany(
-        Array.from({ length: TARGET_COUNT }, (_, index) => {
+        Array.from({ length: ORDER_SAMPLE_COUNT }, (_, index) => {
             const productA = products[index % products.length];
             const productB = products[(index + 7) % products.length];
             const variantA =
                 productA.variants[index % productA.variants.length];
             const variantB =
                 productB.variants[(index + 1) % productB.variants.length];
+            const createdAt = createOrderTimestamp(index);
 
             const items = [
                 {
@@ -686,6 +717,8 @@ const seedSampleData = async () => {
                           email: `guest${pad(index + 1)}@mail.com`,
                       },
                 isDeleted: false,
+                createdAt,
+                updatedAt: createdAt,
             };
         }),
     );

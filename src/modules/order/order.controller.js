@@ -10,6 +10,7 @@ export const createOrder = async (req, res) => {
 
 export const getAllOrders = async (req, res) => {
     const result = await orderService.getAll(req.query);
+
     return res.status(200).json({
         data: result,
     });

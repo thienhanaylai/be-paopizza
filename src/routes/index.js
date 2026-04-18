@@ -13,6 +13,7 @@ import inventoryRoutes from '../modules/inventory/inventory.route.js';
 import mediaRoute from '../modules/media/media.route.js';
 import orderRoutes from '../modules/order/order.route.js';
 import promotionRoutes from '../modules/promotion/promotion.route.js';
+import revenueRoutes from '../modules/revenue/revenue.route.js';
 const router = express.Router();
 
 router.get('/health', (_req, res) =>
@@ -36,4 +37,5 @@ router.use('/inventory', inventoryRoutes);
 router.use('/img', mediaRoute);
 router.use('/orders', orderRoutes);
 router.use('/promotions', promotionRoutes);
+router.use('/revenue', revenueRoutes);
 export default router;
