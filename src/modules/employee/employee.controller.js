@@ -5,7 +5,10 @@ const createEmployeeSchema = z
     .object({
         username: z.string().min(3).max(30),
         password: z.string().min(6),
-        store_id: z.string(),
+        store_id: z
+            .string()
+            .transform((val) => (val === '' ? undefined : val))
+            .optional(),
         name: z.string().min(2).max(100),
         birthday: z.coerce.date().refine((date) => date < new Date(), {
             message: 'Birthday must be in the past',
@@ -14,6 +17,7 @@ const createEmployeeSchema = z
         phone: z.string().regex(/^[0-9]{10,11}$/),
         station: z.enum([
             'manager',
+            'store_manager',
             'cashier',
             'kitchen',
             'delivery',
@@ -22,17 +26,17 @@ const createEmployeeSchema = z
         salary_type: z.enum(['hourly', 'monthly']).default('hourly'),
         role: z.enum(['admin', 'manager', 'staff']).default('staff'),
         address: z.string().optional(),
-        salary: z.number().min(0).optional(),
+        salary: z.coerce.number().min(0).optional(),
     })
     .strict();
 
 export const create = async (req, res) => {
     const result = createEmployeeSchema.safeParse(req.body);
-
+    console.log(result);
     if (!result.success) {
         return res.status(400).json({
             message: 'Validation error',
-            errors: result.error.errors.map((err) => ({
+            errors: result.error.errors?.map((err) => ({
                 field: err.path.join('.'),
                 message: err.message,
             })),

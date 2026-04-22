@@ -8,7 +8,8 @@ const ORDER_STATUSES = [
     'cancelled',
     'delivering',
 ];
-const PAYMENT_METHODS = ['cash', 'card', 'bank_transfer', 'ewallet'];
+const PAYMENT_METHODS = ['cash', 'card', 'qrCode', 'ewallet'];
+const PAYMENT_STATUSES = ['pending', 'success', 'failed'];
 const ORDER_TYPE = ['carry_out', 'dine_in', 'delivery'];
 const itemSchema = new mongoose.Schema(
     {
@@ -122,6 +123,12 @@ const orderSchema = new mongoose.Schema(
             enum: PAYMENT_METHODS,
             required: true,
         },
+        paymentStatus: {
+            type: String,
+            enum: PAYMENT_STATUSES,
+            required: true,
+            default: 'pending',
+        },
         contact_info: {
             type: contactInfoSchema,
             required: true,
@@ -138,7 +145,8 @@ const orderSchema = new mongoose.Schema(
 orderSchema.index({ store_id: 1, status: 1, createdAt: -1 });
 orderSchema.index({ store_id: 1, order_type: 1, createdAt: -1 });
 orderSchema.index({ paymentMethod: 1, createdAt: -1 });
+orderSchema.index({ paymentStatus: 1, createdAt: -1 });
 orderSchema.index({ createdAt: -1 });
 
 export const Order = mongoose.model('Order', orderSchema);
-export { ORDER_STATUSES, PAYMENT_METHODS };
+export { ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES };

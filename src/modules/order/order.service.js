@@ -1,8 +1,11 @@
-import { Order } from './order.model.js';
+import { Order, PAYMENT_STATUSES } from './order.model.js';
 import { Product } from '../product/product.model.js';
-import { Inventory } from '../inventory/inventory.model.js';
 import { Promotion } from '../promotion/promotion.model.js';
 import { User } from '../user/user.model.js';
+import { paymentService } from '../payment/payment.service.js';
+
+const SEPAY_QR_PAYMENT_METHODS = new Set(['qrCode', 'ewallet']);
+const CASH_PAYMENT_METHODS = new Set(['cash']);
 
 export const create = async (data) => {
     const {
@@ -120,24 +123,44 @@ export const create = async (data) => {
         status: 'pending',
         order_type,
         paymentMethod,
+        paymentStatus: 'pending',
         contact_info,
     };
 
+    // Tạo đơn hàng trong DB
     const order = await Order.create(orderData);
 
-    for (const [ingIdStr, needed] of inventoryUpdates.entries()) {
-        await Inventory.findOneAndUpdate(
-            { store_id, ingredient_id: ingIdStr },
-            { $inc: { current_stock: -needed } },
-            { new: true },
-        );
-    }
+    // // Cập nhật tồn kho
+    // for (const [ingIdStr, needed] of inventoryUpdates.entries()) {
+    //     await Inventory.findOneAndUpdate(
+    //         { store_id, ingredient_id: ingIdStr },
+    //         { $inc: { current_stock: -needed } },
+    //         { new: true },
+    //     );
+    // }
 
     const populatedOrder = await Order.findOne({
         _id: order._id,
         isDeleted: false,
     }).populate('store_id customer_id employee_id items.product_id');
-    return populatedOrder;
+
+    // 2. KÍCH HOẠT THANH TOÁN NẾU KHÁC TIỀN MẶT
+    let payment_info = null;
+
+    // Lưu ý: Nếu ewallet/card dùng cổng khác (như VNPAY/MoMo), bạn sẽ if/else cụ thể ở đây.
+    // Tạm thời nếu khác 'cash', ta gọi SePay.
+
+    if (SEPAY_QR_PAYMENT_METHODS.has(paymentMethod)) {
+        payment_info = await paymentService.createPaymentRequest({
+            orderId: populatedOrder._id.toString(), // Truyền ID thật của đơn hàng
+        });
+    }
+    console.log(payment_info);
+    // 3. Trả về cả dữ liệu order và thông tin thanh toán (nếu có)
+    return {
+        order: populatedOrder,
+        payment_info,
+    };
 };
 
 export const getAll = async (query = {}) => {
@@ -159,16 +182,86 @@ export const getById = async (order_id) => {
     return order;
 };
 
-export const updateStatus = async (order_id, status) => {
-    const order = await Order.findByIdAndUpdate(
-        order_id,
-        { status },
-        { new: true, runValidators: true },
-    ).populate('store_id customer_id employee_id items.product_id');
+export const checkPaymentSuccess = async (order_id) => {
+    const order = await Order.findOne({
+        _id: order_id,
+        isDeleted: false,
+    }).select('_id status paymentMethod paymentStatus total');
+
     if (!order) {
+        throw new Error('ORDER_NOT_FOUND');
+    }
+
+    return {
+        orderId: order._id,
+        orderStatus: order.status,
+        paymentMethod: order.paymentMethod,
+        paymentStatus: order.paymentStatus,
+        isPaymentSuccess: order.paymentStatus === 'success',
+        total: order.total,
+    };
+};
+
+export const updateStatus = async (order_id, status) => {
+    const payload = { status };
+    const currentOrder = await Order.findById(order_id).select(
+        'paymentMethod paymentStatus',
+    );
+
+    if (!currentOrder) {
         throw new Error('Không tìm thấy đơn hàng!');
     }
+
+    if (
+        CASH_PAYMENT_METHODS.has(currentOrder.paymentMethod) &&
+        status === 'completed' &&
+        currentOrder.paymentStatus === 'pending'
+    ) {
+        payload.paymentStatus = 'success';
+    }
+
+    const order = await Order.findByIdAndUpdate(order_id, payload, {
+        new: true,
+        runValidators: true,
+    }).populate('store_id customer_id employee_id items.product_id');
+
     return order;
+};
+
+export const updatePaymentStatus = async (order_id, paymentStatus) => {
+    if (!PAYMENT_STATUSES.includes(paymentStatus)) {
+        throw new Error('INVALID_PAYMENT_STATUS');
+    }
+
+    const order = await Order.findOne({
+        _id: order_id,
+        isDeleted: false,
+    });
+
+    if (!order) {
+        throw new Error('ORDER_NOT_FOUND');
+    }
+
+    if (!CASH_PAYMENT_METHODS.has(order.paymentMethod)) {
+        throw new Error('MANUAL_PAYMENT_STATUS_ONLY_FOR_CASH');
+    }
+
+    if (order.status === 'cancelled' && paymentStatus === 'success') {
+        throw new Error('CANNOT_MARK_PAID_CANCELLED_ORDER');
+    }
+
+    order.paymentStatus = paymentStatus;
+
+    if (paymentStatus === 'success' && order.status === 'pending') {
+        order.status = 'confirmed';
+    }
+
+    await order.save();
+
+    return await Order.findOne({
+        _id: order._id,
+        isDeleted: false,
+    }).populate('store_id customer_id employee_id items.product_id');
 };
 
 export const deleted = async (order_id) => {

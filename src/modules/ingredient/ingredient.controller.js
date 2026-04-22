@@ -21,7 +21,7 @@ export const createIngredient = async (req, res, next) => {
 };
 export const updateIngredient = async (req, res, next) => {
     try {
-        const { ingredient_id, name, unit, category } = req.body;
+        const { ingredient_id, name, unit, category, is_active } = req.body;
         if (!ingredient_id || !name || !unit || !category) {
             throw new Error('Thiếu thông tin!');
         }
@@ -30,6 +30,7 @@ export const updateIngredient = async (req, res, next) => {
             name,
             unit,
             category,
+            is_active,
         });
         return res.status(201).json({
             message: 'Cập nhật nguyên liệu thành công!',

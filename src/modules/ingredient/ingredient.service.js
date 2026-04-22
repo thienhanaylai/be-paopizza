@@ -15,7 +15,7 @@ export const create = async (data) => {
 };
 
 export const update = async (data) => {
-    const { ingredient_id, name, unit, category } = data;
+    const { ingredient_id, name, unit, category, is_active } = data;
     const ingredient = await Ingredient.findOne({
         _id: ingredient_id,
         isDeleted: false,
@@ -31,6 +31,7 @@ export const update = async (data) => {
             name,
             unit,
             category,
+            is_active,
         },
         { new: true, runValidators: true },
     ).lean();

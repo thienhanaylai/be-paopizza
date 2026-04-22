@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "d4e5ca2d-2f14-47fe-a5cf-6f4e19af8642",
     "name": "PaoPizza API",
-    "description": "Backend API for PaoPizza.\n\nBase path: `/api/v1`\n\nMounted modules: auth, users, customers, cart, employees, supplier, ingredient, categories, stores, products, inventory, orders, promotions, revenue, media.\nShift/schedule/payroll currently only have models/seed data and are not mounted as API routes.\n\nAuth: Passport Local + JWT Bearer + refresh token cookie.\n\nSample seed login:\n- Admin: `admin` / `BAO123@az`\n- Employee: `emp_02` / `12345678`\n- Customer (phone as username): `0918000001` / `12345678`",
+    "description": "Backend API for PaoPizza.\n\nBase path: `/api/v1`\n\nMounted modules: auth, users, customers, cart, employees, supplier, ingredient, categories, stores, products, inventory, orders, payments, promotions, revenue, media.\nShift/schedule/payroll currently only have models/seed data and are not mounted as API routes.\n\nAuth: Passport Local + JWT Bearer + refresh token cookie.\n\nSample seed login:\n- Admin: `admin` / `BAO123@az`\n- Employee: `emp_02` / `12345678`\n- Customer (phone as username): `0918000001` / `12345678`",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -2363,7 +2363,22 @@
           "response": []
         },
         {
-          "name": "Update Order Status (Admin)",
+          "name": "Check Order Payment Success",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/orders/{{orderId}}/payment-success",
+            "description": "Check whether the order payment is successful. Requires JWT."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Order Status (Admin/Manager/Staff)",
           "request": {
             "method": "PATCH",
             "header": [
@@ -2386,7 +2401,35 @@
               }
             },
             "url": "{{baseUrl}}/orders/{{orderId}}/status",
-            "description": "Update order status (pending|confirmed|preparing|completed|cancelled|delivering). Requires JWT + admin."
+            "description": "Update order status (pending|confirmed|preparing|completed|cancelled|delivering). Requires JWT + admin|manager|staff."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Payment Status For Cash (Admin/Staff)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentStatus\": \"{{orderPaymentStatus}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/orders/{{orderId}}/payment-status",
+            "description": "Manual payment status update for cash orders at counter. paymentStatus: pending|success|failed. Requires JWT + admin|staff."
           },
           "response": []
         },
@@ -2402,6 +2445,98 @@
             ],
             "url": "{{baseUrl}}/orders/deleted/{{orderId}}",
             "description": "Soft delete order (isDeleted=true, status=cancelled). Requires JWT + admin."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "description": "Payment endpoints for QR and webhook flow",
+      "item": [
+        {
+          "name": "Create Payment QR",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{orderId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/payments/create",
+            "description": "Create QR payment info for an order. Works for qrCode/ewallet payment method."
+          },
+          "response": []
+        },
+        {
+          "name": "Check Payment Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/payments/status/{{orderId}}",
+            "description": "Get payment status of an order, including paymentState and paymentStatus."
+          },
+          "response": []
+        },
+        {
+          "name": "SePay Webhook (Manual Test)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sepayApiToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transferAmount\": {{mockTransferAmount}},\n  \"transactionContent\": \"DH{{orderId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/payments/sepay-webhook",
+            "description": "Manual webhook test with real auth header token."
+          },
+          "response": []
+        },
+        {
+          "name": "Mock SePay Webhook Success (Local)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"transferAmount\": 120000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/payments/sepay-webhook/mock-success",
+            "description": "Local/dev only endpoint to simulate SePay callback success. Payload: orderId, optional transferAmount (default uses order total)."
           },
           "response": []
         }
@@ -2557,7 +2692,7 @@
               }
             ],
             "url": "{{baseUrl}}/revenue/overview?start_date={{revenueStartDate}}&end_date={{revenueEndDate}}&store_id={{storeId}}&paymentMethod={{revenuePaymentMethod}}&order_type={{revenueOrderType}}",
-            "description": "Get overview metrics from completed orders (`status=completed`, `isDeleted=false`) in a date range. Query params: start_date, end_date, optional store_id, optional paymentMethod (cash|card|bank_transfer|ewallet), optional order_type (carry_out|dine_in|delivery)."
+            "description": "Get overview metrics from completed orders (`status=completed`, `isDeleted=false`) in a date range. Query params: start_date, end_date, optional store_id, optional paymentMethod (cash|card|qrCode|ewallet), optional order_type (carry_out|dine_in|delivery)."
           },
           "response": []
         },
@@ -2727,6 +2862,24 @@
       "description": "Order ID for order get/update/delete requests"
     },
     {
+      "key": "orderPaymentStatus",
+      "value": "success",
+      "type": "string",
+      "description": "Manual cash payment status: pending|success|failed"
+    },
+    {
+      "key": "sepayApiToken",
+      "value": "",
+      "type": "string",
+      "description": "SEPAY_API_TOKEN used for /payments/sepay-webhook manual test"
+    },
+    {
+      "key": "mockTransferAmount",
+      "value": "120000",
+      "type": "string",
+      "description": "Transfer amount for manual SePay webhook request"
+    },
+    {
       "key": "promotionId",
       "value": "",
       "type": "string",
@@ -2754,7 +2907,7 @@
       "key": "revenuePaymentMethod",
       "value": "",
       "type": "string",
-      "description": "Optional filter: cash|card|bank_transfer|ewallet"
+      "description": "Optional filter: cash|card|qrCode|ewallet"
     },
     {
       "key": "revenueOrderType",
