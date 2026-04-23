@@ -127,7 +127,6 @@ export const create = async (data) => {
         contact_info,
     };
 
-    // Tạo đơn hàng trong DB
     const order = await Order.create(orderData);
 
     // // Cập nhật tồn kho
@@ -144,11 +143,7 @@ export const create = async (data) => {
         isDeleted: false,
     }).populate('store_id customer_id employee_id items.product_id');
 
-    // 2. KÍCH HOẠT THANH TOÁN NẾU KHÁC TIỀN MẶT
     let payment_info = null;
-
-    // Lưu ý: Nếu ewallet/card dùng cổng khác (như VNPAY/MoMo), bạn sẽ if/else cụ thể ở đây.
-    // Tạm thời nếu khác 'cash', ta gọi SePay.
 
     if (SEPAY_QR_PAYMENT_METHODS.has(paymentMethod)) {
         payment_info = await paymentService.createPaymentRequest({
@@ -156,7 +151,7 @@ export const create = async (data) => {
         });
     }
     console.log(payment_info);
-    // 3. Trả về cả dữ liệu order và thông tin thanh toán (nếu có)
+
     return {
         order: populatedOrder,
         payment_info,
@@ -262,6 +257,46 @@ export const updatePaymentStatus = async (order_id, paymentStatus) => {
         _id: order._id,
         isDeleted: false,
     }).populate('store_id customer_id employee_id items.product_id');
+};
+
+export const cancelOrder = async (order_id) => {
+    const order = await Order.findById(order_id);
+
+    if (!order) {
+        throw new Error('Không tìm thấy đơn hàng!');
+    }
+
+    if (order.status === 'completed') {
+        throw new Error('Đơn hàng đã hoàn thành không thể huỷ!');
+    }
+
+    return await Order.findByIdAndUpdate(
+        order_id,
+        {
+            status: 'cancelled',
+        },
+        { new: true },
+    );
+};
+
+export const updatePaymentStatusOrder = async (order_id) => {
+    const order = await Order.findById(order_id);
+
+    if (!order) {
+        throw new Error('Không tìm thấy đơn hàng!');
+    }
+
+    if (order.paymentStatus === 'success') {
+        throw new Error('Đơn hàng đã thanh toán!');
+    }
+
+    return await Order.findByIdAndUpdate(
+        order_id,
+        {
+            paymentStatus: 'success',
+        },
+        { new: true },
+    );
 };
 
 export const deleted = async (order_id) => {

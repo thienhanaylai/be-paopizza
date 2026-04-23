@@ -103,6 +103,24 @@ export const deletedOrder = async (req, res) => {
         data: result,
     });
 };
+
+export const cancelOrder = async (req, res) => {
+    const { order_id } = req.params;
+    const result = await orderService.cancelOrder(order_id);
+    return res.status(200).json({
+        message: 'Huỷ đơn hàng thành công',
+        data: result,
+    });
+};
+
+export const updatePaymentStatusOrder = async (req, res) => {
+    const { order_id } = req.params;
+    const result = await orderService.updatePaymentStatusOrder(order_id);
+    return res.status(200).json({
+        message: 'Thanh toán đơn hàng thành công',
+        data: result,
+    });
+};
 export const getHistoryOrder = async (req, res) => {
     const userId = req.user._id;
 

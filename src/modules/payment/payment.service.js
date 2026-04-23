@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { Order } from '../order/order.model.js'; // Import model Order thật
+import { Order } from '../order/order.model.js';
 
 dotenv.config();
 
@@ -47,9 +47,6 @@ const getPaymentStateFromOrder = (order) => {
 };
 
 export const paymentService = {
-    /**
-     * Chỉ tạo thông tin mã QR, không cần lưu DB vì OrderService đã lưu
-     */
     async createPaymentRequest({ orderId }) {
         if (!BANK_ACCOUNT || !BANK_BIN) {
             throw new Error('SEPAY_CONFIG_MISSING');
@@ -77,7 +74,6 @@ export const paymentService = {
 
         const transferContent = buildTransferContent(order._id.toString());
 
-        // Tạo URL mã QR chuẩn VietQR qua SePay
         const qrUrl = buildQrUrl({ amount: order.total, transferContent });
 
         return {
@@ -177,12 +173,8 @@ export const paymentService = {
             return false;
         }
 
-        // Kiểm tra hợp lệ: Có đơn hàng và tiền chuyển >= tổng tiền đơn hàng
         if (transferAmount >= order.total) {
             order.paymentStatus = 'success';
-
-            // Nếu bạn có field lưu mã giao dịch ngân hàng trong DB, có thể gán vào đây
-            // order.transaction_ref = payload.referenceCode;
 
             await order.save();
             console.log(

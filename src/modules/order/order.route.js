@@ -31,6 +31,18 @@ router.patch(
     asyncHandler(orderController.updateOrderStatus),
 );
 router.patch(
+    '/cancel/:order_id',
+    requireAuth,
+    requireStaff,
+    asyncHandler(orderController.cancelOrder),
+);
+router.patch(
+    '/updatePaymentStatus/:order_id',
+    requireAuth,
+    requireStaff,
+    asyncHandler(orderController.updatePaymentStatusOrder),
+);
+router.patch(
     '/:order_id/payment-status',
     requireAuth,
     requireAdminOrStaff,

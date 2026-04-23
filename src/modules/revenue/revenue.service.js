@@ -105,6 +105,7 @@ const buildMatchStage = ({
     const match = {
         isDeleted: false,
         status: 'completed',
+        paymentStatus: 'success',
         createdAt: {
             $gte: startDate,
             $lte: endDate,
