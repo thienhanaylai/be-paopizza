@@ -1,8 +1,8 @@
 import * as orderService from './order.service.js';
 
 export const createOrder = async (req, res) => {
+    console.log(req.body);
     const result = await orderService.create(req.body);
-
     return res.status(201).json({
         message: 'Tạo đơn hàng thành công!',
         data: result.order, // Thông tin chi tiết đơn hàng

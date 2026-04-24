@@ -65,31 +65,29 @@ const dateUtc = (year, monthIndex, day) =>
 
 const pick = (arr, index) => arr[index % arr.length];
 
-const ORDER_SAMPLE_COUNT = TARGET_COUNT * 10;
-const ORDER_MONTH_OFFSET_PATTERN = [
-    0, 0, 0, 0, 1, 1, 1, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-];
+const ORDER_SAMPLE_COUNT = 5000;
+const ORDER_MONTH_COUNT = 12;
+const ORDER_YEAR_MIN = 2023;
+const ORDER_YEAR_MAX = 2026;
 
-const createOrderTimestamp = (index, referenceDate = new Date()) => {
-    const monthOffset = pick(ORDER_MONTH_OFFSET_PATTERN, index);
-    const baseDate = new Date(
-        referenceDate.getFullYear(),
-        referenceDate.getMonth() - monthOffset,
-        1,
-    );
-    const day = ((index * 3) % 28) + 1;
-    const hour = 10 + (index % 12);
-    const minute = (index * 7) % 60;
+const seededRandom = (seed) => {
+    const value = Math.sin(seed) * 10000;
+    return value - Math.floor(value);
+};
 
-    return new Date(
-        baseDate.getFullYear(),
-        baseDate.getMonth(),
-        day,
-        hour,
-        minute,
-        0,
-        0,
-    );
+const createOrderTimestamp = (index, storeCount) => {
+    const seedBase = index + storeCount * 37;
+    const yearRange = ORDER_YEAR_MAX - ORDER_YEAR_MIN + 1;
+    const year =
+        ORDER_YEAR_MIN + Math.floor(seededRandom(seedBase * 0.61) * yearRange);
+    const month = Math.floor(seededRandom(seedBase * 0.89) * ORDER_MONTH_COUNT);
+
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const day = Math.floor(seededRandom(seedBase * 1.17) * daysInMonth) + 1;
+    const hour = 8 + Math.floor(seededRandom(seedBase * 2.31) * 14);
+    const minute = Math.floor(seededRandom(seedBase * 3.73) * 12) * 5;
+
+    return new Date(year, month, day, hour, minute, 0, 0);
 };
 
 const seedSampleData = async () => {
@@ -647,7 +645,7 @@ const seedSampleData = async () => {
         'cancelled',
     ];
     const orderTypes = ['carry_out', 'dine_in', 'delivery'];
-    const paymentMethods = ['cash', 'card', 'bank_transfer', 'ewallet'];
+    const paymentMethods = ['cash', 'card', 'qrCode', 'ewallet'];
 
     const orders = await Order.insertMany(
         Array.from({ length: ORDER_SAMPLE_COUNT }, (_, index) => {
@@ -657,7 +655,7 @@ const seedSampleData = async () => {
                 productA.variants[index % productA.variants.length];
             const variantB =
                 productB.variants[(index + 1) % productB.variants.length];
-            const createdAt = createOrderTimestamp(index);
+            const createdAt = createOrderTimestamp(index, stores.length);
 
             const items = [
                 {
@@ -692,6 +690,15 @@ const seedSampleData = async () => {
             const customer =
                 index % 4 === 0 ? null : customers[index % customers.length];
 
+            const status = pick(orderStatuses, index);
+            const paymentMethod = pick(paymentMethods, index);
+            const paymentStatus =
+                status === 'completed'
+                    ? 'success'
+                    : status === 'cancelled' && paymentMethod !== 'cash'
+                      ? 'failed'
+                      : 'pending';
+
             return {
                 store_id: stores[index % stores.length]._id,
                 customer_id: customer?._id || null,
@@ -700,9 +707,10 @@ const seedSampleData = async () => {
                 sub_total: subTotal,
                 discount_amount: discountAmount,
                 total: subTotal - discountAmount,
-                status: pick(orderStatuses, index),
+                status,
                 order_type: pick(orderTypes, index),
-                paymentMethod: pick(paymentMethods, index),
+                paymentMethod,
+                paymentStatus,
                 contact_info: customer
                     ? {
                           full_name: customer.name,
@@ -721,6 +729,7 @@ const seedSampleData = async () => {
                 updatedAt: createdAt,
             };
         }),
+        { timestamps: false },
     );
 
     return {

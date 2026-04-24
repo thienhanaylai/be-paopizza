@@ -14,8 +14,8 @@ export const create = async (data) => {
         order_type,
         paymentMethod,
         contact_info,
-        customer_id = null,
-        employee_id = null,
+        customer_id,
+        employee_id,
         promotion_code,
     } = data;
 
@@ -150,7 +150,7 @@ export const create = async (data) => {
             orderId: populatedOrder._id.toString(), // Truyền ID thật của đơn hàng
         });
     }
-    console.log(payment_info);
+    console.log(orderData);
 
     return {
         order: populatedOrder,

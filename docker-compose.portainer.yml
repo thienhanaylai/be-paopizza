@@ -1,0 +1,21 @@
+services:
+  api:
+    image: your-dockerhub-user/paopizza-api:latest
+    container_name: paopizza-api
+    restart: unless-stopped
+    ports:
+      - '${PORT:-4000}:${PORT:-4000}'
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: ${PORT:-4000}
+      MONGODB_URI: ${MONGODB_URI}
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      SEPAY_API_TOKEN: ${SEPAY_API_TOKEN}
+      BANK_BIN: ${BANK_BIN}
+      BANK_ACCOUNT: ${BANK_ACCOUNT}
+      CLIENT_URL: ${CLIENT_URL}
