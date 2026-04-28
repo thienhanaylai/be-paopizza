@@ -25,6 +25,17 @@ const extractBearerToken = (rawValue = '') => {
     return value;
 };
 
+const extractApikeyToken = (rawValue = '') => {
+    const value = String(rawValue).trim();
+    if (!value) return '';
+
+    if (/^Apikey\s+/i.test(value)) {
+        return value.replace(/^Apikey\s+/i, '').trim();
+    }
+
+    return value;
+};
+
 const resolveTransferAmount = (value, fallbackAmount) => {
     const amount = Number(value ?? fallbackAmount);
     if (!Number.isFinite(amount) || amount <= 0) {
@@ -133,7 +144,7 @@ export const paymentService = {
         if (!skipAuth) {
             const authValue =
                 headers.authorization || headers['x-api-key'] || headers.apikey;
-            const incomingToken = extractBearerToken(authValue);
+            const incomingToken = extractApikeyToken(authValue);
 
             if (!incomingToken || incomingToken !== SEPAY_API_TOKEN) {
                 throw new Error('UNAUTHORIZED_WEBHOOK');
@@ -151,6 +162,11 @@ export const paymentService = {
                 '',
         );
 
+        if (payload.transferType === 'in' && transferAmount > 0) {
+            console.log(
+                `[SePay] Nhận ${transferAmount} VND từ ${payload.gateway}. Mã Code: ${payload.code}`,
+            );
+        }
         const orderIdMatch = transactionContent.match(/DH([a-fA-F0-9]{24})/);
 
         if (!orderIdMatch) return false;

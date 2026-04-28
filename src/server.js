@@ -8,7 +8,7 @@ dotenv.config();
 
 await connectDatabase();
 
-const server = app.listen(environment.port, () => {
+const server = app.listen(environment.port, '0.0.0.0', () => {
     logger.info(
         `🚀 Server running at http://${environment.host}:${environment.port}`,
     );
