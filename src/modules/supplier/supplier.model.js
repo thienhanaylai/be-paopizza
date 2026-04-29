@@ -7,17 +7,6 @@ export const CATEGORY_LIST = [
     'vegetable',
 ];
 
-const supplierIngredientSchema = new mongoose.Schema(
-    {
-        ingredient: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Ingredient',
-            required: true,
-        },
-    },
-    { _id: false },
-);
-
 const supplierSchema = new mongoose.Schema(
     {
         name: {
@@ -43,10 +32,6 @@ const supplierSchema = new mongoose.Schema(
             type: String,
             enum: CATEGORY_LIST,
             required: true,
-        },
-        ingredients: {
-            type: [supplierIngredientSchema],
-            default: [],
         },
         isDeleted: {
             type: Boolean,

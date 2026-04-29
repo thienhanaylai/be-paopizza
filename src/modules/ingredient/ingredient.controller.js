@@ -2,14 +2,16 @@ import * as ingredientService from './ingredient.service.js';
 
 export const createIngredient = async (req, res, next) => {
     try {
-        const { name, unit, category } = req.body;
-        if (!name || !unit || !category) {
+        const { name, unit, category, cost_per_unit, is_active } = req.body;
+        if (!name || !unit) {
             throw new Error('Thiếu thông tin!');
         }
         const result = await ingredientService.create({
             name,
             unit,
             category,
+            cost_per_unit,
+            is_active,
         });
         return res.status(201).json({
             message: 'Thêm nguyên liệu thành công!',
@@ -21,8 +23,15 @@ export const createIngredient = async (req, res, next) => {
 };
 export const updateIngredient = async (req, res, next) => {
     try {
-        const { ingredient_id, name, unit, category, is_active } = req.body;
-        if (!ingredient_id || !name || !unit || !category) {
+        const {
+            ingredient_id,
+            name,
+            unit,
+            category,
+            cost_per_unit,
+            is_active,
+        } = req.body;
+        if (!ingredient_id || !name || !unit) {
             throw new Error('Thiếu thông tin!');
         }
         const result = await ingredientService.update({
@@ -30,6 +39,7 @@ export const updateIngredient = async (req, res, next) => {
             name,
             unit,
             category,
+            cost_per_unit,
             is_active,
         });
         return res.status(201).json({
@@ -43,7 +53,7 @@ export const updateIngredient = async (req, res, next) => {
 export const updateActive = async (req, res, next) => {
     try {
         const { ingredient_id, is_active } = req.body;
-        if (!ingredient_id) {
+        if (!ingredient_id || typeof is_active === 'undefined') {
             throw new Error('Thiếu thông tin!');
         }
         const result = await ingredientService.updateActive({

@@ -13,7 +13,6 @@ export const create = async (data) => {
         throw new Error('Thiếu thông tin sản phẩm hoặc variants!');
     }
 
-     
     const existing = await Product.findOne({ name, isDeleted: false });
     if (existing) {
         throw new Error('Sản phẩm với tên này đã tồn tại!');
@@ -69,6 +68,16 @@ export const update = async (data) => {
 };
 
 export const getAll = async () => {
+    return await Product.find({ isDeleted: false })
+        .populate('category', 'name slug')
+        .populate({
+            path: 'variants.recipe.ingredient',
+            select: 'name unit',
+        })
+        .lean();
+};
+
+export const getAllProductsActive = async () => {
     return await Product.find({ isDeleted: false, is_active: true })
         .populate('category', 'name slug')
         .populate({
@@ -116,4 +125,13 @@ export const getByCategory = async (category_id) => {
             select: 'name unit',
         })
         .lean();
+};
+
+export const updateStatusProduct = async (product_id) => {
+    const product = await Product.findById(product_id);
+    if (!product) throw new Error('Không tìm thấy sản phẩm!');
+    product.is_active = !product.is_active;
+
+    await product.save();
+    return product;
 };

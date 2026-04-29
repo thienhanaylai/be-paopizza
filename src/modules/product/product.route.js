@@ -12,6 +12,7 @@ const uploadProductImage = createUploader('products');
 const router = express.Router();
 
 router.get('/', asyncHandler(productController.getAllProducts));
+router.get('/active', asyncHandler(productController.getAllProductsActive));
 router.get(
     '/:product_id',
     requireAuth,
@@ -41,6 +42,12 @@ router.patch(
     requireAuth,
     requireAdmin,
     asyncHandler(productController.deletedProduct),
+);
+router.patch(
+    '/updateStatus/:product_id',
+    requireAuth,
+    requireAdmin,
+    asyncHandler(productController.updateStatusProduct),
 );
 
 export default router;

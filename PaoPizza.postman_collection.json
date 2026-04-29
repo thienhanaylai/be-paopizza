@@ -1397,7 +1397,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Nhà cung cấp ABC\",\n  \"email\": \"abc@supplier.com\",\n  \"phone\": \"0987654321\",\n  \"supplier_category\": \"main_ingredient\",\n  \"ingredients\": [\n    {\n      \"ingredient\": \"67a8b123456789abcdef0123\"\n    }\n  ]\n}",
+              "raw": "{\n  \"name\": \"Nhà cung cấp ABC\",\n  \"email\": \"abc@supplier.com\",\n  \"phone\": \"0987654321\",\n  \"supplier_category\": \"main_ingredient\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1405,7 +1405,7 @@
               }
             },
             "url": "{{baseUrl}}/supplier/create",
-            "description": "Tạo nhà cung cấp mới. **Yêu cầu JWT + admin.**\n\nBody fields: name, email, phone, supplier_category, ingredients (array of {ingredient: ObjectId})\n\nTest script auto-sets supplierId variable from response.data._id"
+            "description": "Tạo nhà cung cấp mới. **Yêu cầu JWT + admin.**\n\nBody fields: name, email, phone, supplier_category.\n\nTest script auto-sets supplierId variable from response.data._id"
           },
           "response": [
             {
@@ -1438,7 +1438,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"supplier_id\": \"{{supplierId}}\",\n  \"name\": \"Nhà cung cấp ABC Updated\",\n  \"phone\": \"0987654322\",\n  \"ingredients\": [\n    {\n      \"ingredient\": \"67a8b123456789abcdef0123\"\n    }\n  ]\n}",
+              "raw": "{\n  \"supplier_id\": \"{{supplierId}}\",\n  \"name\": \"Nhà cung cấp ABC Updated\",\n  \"email\": \"abc@supplier.com\",\n  \"phone\": \"0987654322\",\n  \"supplier_category\": \"main_ingredient\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1446,7 +1446,7 @@
               }
             },
             "url": "{{baseUrl}}/supplier/update",
-            "description": "Cập nhật thông tin nhà cung cấp (supplier_id trong body). **Yêu cầu admin.** Có thể cập nhật ingredients array (now {ingredient: ObjectId})."
+            "description": "Cập nhật thông tin nhà cung cấp (supplier_id trong body). **Yêu cầu admin.** Có thể cập nhật name, email, phone, supplier_category."
           },
           "response": [
             {
@@ -1636,7 +1636,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Bột mì\",\n  \"unit\": \"kg\",\n  \"category\": \"dough\"\n}",
+              "raw": "{\n  \"name\": \"Bột mì\",\n  \"unit\": \"kg\",\n  \"category\": \"dough\",\n  \"cost_per_unit\": 12000,\n  \"is_active\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1644,7 +1644,7 @@
               }
             },
             "url": "{{baseUrl}}/ingredient/create",
-            "description": "Create new ingredient. Requires JWT + admin.\n\nBody: name, unit, category.\nCategory slug: dough, seafood, meat, sauce, vegetable, drink, other.\nUnit slug: gram, kg, ml, lit, piece, box, can, bag.\nTest script sets ingredientId variable."
+            "description": "Create new ingredient. Requires JWT + admin.\n\nBody: name, unit (required). Optional: category, cost_per_unit, is_active.\nCategory slug: dough, seafood, meat, sauce, vegetable, drink, other.\nUnit slug: gram, kg, ml, lit, piece, box, can, bag.\nTest script sets ingredientId variable."
           },
           "response": [
             {
@@ -1677,7 +1677,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"ingredient_id\": \"{{ingredientId}}\",\n  \"name\": \"Bột mì Updated\",\n  \"unit\": \"kg\",\n  \"category\": \"dough\"\n}",
+              "raw": "{\n  \"ingredient_id\": \"{{ingredientId}}\",\n  \"name\": \"Bột mì Updated\",\n  \"unit\": \"kg\",\n  \"category\": \"dough\",\n  \"cost_per_unit\": 15000,\n  \"is_active\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1685,7 +1685,7 @@
               }
             },
             "url": "{{baseUrl}}/ingredient/update",
-            "description": "Update ingredient (ingredient_id in body). **Yêu cầu admin.**"
+            "description": "Update ingredient (ingredient_id in body). **Yêu cầu admin.** Required: ingredient_id, name, unit. Optional: category, cost_per_unit, is_active."
           },
           "response": [
             {
@@ -2499,12 +2499,12 @@
               },
               {
                 "key": "Authorization",
-                "value": "Bearer {{sepayApiToken}}"
+                "value": "Apikey {{sepayApiToken}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"transferAmount\": {{mockTransferAmount}},\n  \"transactionContent\": \"DH{{orderId}}\"\n}",
+              "raw": "{\n  \"id\": 92704,\n  \"gateway\": \"Vietcombank\",\n  \"transactionDate\": \"2023-03-25 14:02:37\",\n  \"accountNumber\": \"0123499999\",\n  \"code\": null,\n  \"content\": \"DH{{orderId}}\",\n  \"transferType\": \"in\",\n  \"transferAmount\": {{mockTransferAmount}},\n  \"accumulated\": 190770000,\n  \"subAccount\": null,\n  \"referenceCode\": \"MBVCB.3278907687\",\n  \"description\": \"\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2512,7 +2512,7 @@
               }
             },
             "url": "{{baseUrl}}/payments/sepay-webhook",
-            "description": "Manual webhook test with real auth header token."
+            "description": "Manual webhook test with SePay payload format. Authorization header must be `Apikey <token>` (SEPAY_API_TOKEN). Content should include `DH{orderId}` to match order."
           },
           "response": []
         },
@@ -2871,7 +2871,7 @@
       "key": "sepayApiToken",
       "value": "",
       "type": "string",
-      "description": "SEPAY_API_TOKEN used for /payments/sepay-webhook manual test"
+      "description": "SEPAY_API_TOKEN used for /payments/sepay-webhook manual test (Authorization: Apikey <token>)"
     },
     {
       "key": "mockTransferAmount",

@@ -5,17 +5,35 @@ import {
 } from './ingredient.model.js';
 
 export const create = async (data) => {
-    const { name, unit, category } = data;
+    const { name, unit, category, cost_per_unit, is_active } = data;
     const ingredient = await Ingredient.findOne({ name });
     if (ingredient) {
         throw new Error(`Đã có nguyên liệu: ${name} trong danh sách!`);
     }
 
-    return Ingredient.create({ name, unit, category });
+    const createData = {
+        name,
+        unit,
+    };
+
+    if (category !== undefined) {
+        createData.category = category;
+    }
+
+    if (cost_per_unit !== undefined) {
+        createData.cost_per_unit = cost_per_unit;
+    }
+
+    if (is_active !== undefined) {
+        createData.is_active = is_active;
+    }
+
+    return Ingredient.create(createData);
 };
 
 export const update = async (data) => {
-    const { ingredient_id, name, unit, category, is_active } = data;
+    const { ingredient_id, name, unit, category, cost_per_unit, is_active } =
+        data;
     const ingredient = await Ingredient.findOne({
         _id: ingredient_id,
         isDeleted: false,
@@ -25,16 +43,27 @@ export const update = async (data) => {
         throw new Error(`Không tìm thấy nguyên liệu!`);
     }
 
-    return Ingredient.findByIdAndUpdate(
-        ingredient_id,
-        {
-            name,
-            unit,
-            category,
-            is_active,
-        },
-        { new: true, runValidators: true },
-    ).lean();
+    const updateData = {
+        name,
+        unit,
+    };
+
+    if (category !== undefined) {
+        updateData.category = category;
+    }
+
+    if (cost_per_unit !== undefined) {
+        updateData.cost_per_unit = cost_per_unit;
+    }
+
+    if (is_active !== undefined) {
+        updateData.is_active = is_active;
+    }
+
+    return Ingredient.findByIdAndUpdate(ingredient_id, updateData, {
+        new: true,
+        runValidators: true,
+    }).lean();
 };
 
 export const updateActive = async (data) => {

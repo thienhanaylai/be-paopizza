@@ -154,6 +154,13 @@ export const getAllProducts = async (req, res) => {
     });
 };
 
+export const getAllProductsActive = async (req, res) => {
+    const result = await productService.getAllProductsActive();
+    return res.status(200).json({
+        data: result,
+    });
+};
+
 export const getProduct = async (req, res) => {
     const { product_id } = req.params;
     const result = await productService.getById(product_id);
@@ -174,6 +181,15 @@ export const deletedProduct = async (req, res) => {
 export const getProductsByCategory = async (req, res) => {
     const { category_id } = req.params;
     const result = await productService.getByCategory(category_id);
+    return res.status(200).json({
+        data: result,
+    });
+};
+
+export const updateStatusProduct = async (req, res) => {
+    const { product_id } = req.params;
+    const result = await productService.updateStatusProduct(product_id);
+
     return res.status(200).json({
         data: result,
     });
