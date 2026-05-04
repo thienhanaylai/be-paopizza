@@ -17,6 +17,12 @@ router.get(
     asyncHandler(employeeController.getListEmployeeByRole),
 );
 router.get(
+    '/store/:store_id',
+    requireAuth,
+    requireManger,
+    asyncHandler(employeeController.getEmployeeByStore),
+);
+router.get(
     '/',
     requireAuth,
     requireManger,
@@ -39,5 +45,10 @@ router.get(
     requireAuth,
     asyncHandler(employeeController.getEmployee),
 );
-
+router.post(
+    '/delete/:employee_id',
+    requireAuth,
+    requireManger,
+    asyncHandler(employeeController.deleteEmployee),
+);
 export default router;

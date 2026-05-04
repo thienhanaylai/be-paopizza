@@ -12,6 +12,7 @@ export const createEmployee = async (data) => {
         phone,
         station,
         salary_type,
+        salary,
         role,
     } = data;
 
@@ -29,6 +30,7 @@ export const createEmployee = async (data) => {
             email,
             phone,
             station,
+            salary,
             salary_type,
         });
 
@@ -94,4 +96,21 @@ export const getListEmployeeByRole = async (role) => {
         .select(['-password']);
     if (!listEmployee) throw new Error('Không có nhân viên thuộc role này!');
     return listEmployee;
+};
+
+export const getEmployeeOfStore = async (store_id) => {
+    if (!store_id) {
+        throw new Error('Thiếu store_id!');
+    }
+
+    return await Employee.find({ store_id, isDeleted: false });
+};
+
+export const deleteEmployee = async (employee_id) => {
+    console.log(employee_id);
+    const emp = Employee.findById(employee_id);
+    if (!emp) {
+        throw new Error('Không tìm thấy nhân viên!');
+    }
+    return await Employee.findByIdAndUpdate(employee_id, { isDeleted: true });
 };

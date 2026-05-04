@@ -65,7 +65,7 @@ const dateUtc = (year, monthIndex, day) =>
 
 const pick = (arr, index) => arr[index % arr.length];
 
-const ORDER_SAMPLE_COUNT = 5000;
+const ORDER_SAMPLE_COUNT = 1000;
 const ORDER_MONTH_COUNT = 12;
 const ORDER_YEAR_MIN = 2023;
 const ORDER_YEAR_MAX = 2026;
@@ -226,13 +226,6 @@ const seedSampleData = async () => {
             email: `supplier${pad(index + 1)}@vendor.com`,
             phone: `0287${pad(index + 1, 6)}`,
             supplier_category: pick(supplierCategories, index),
-            ingredients: [
-                { ingredient: ingredients[index % ingredients.length]._id },
-                {
-                    ingredient:
-                        ingredients[(index + 5) % ingredients.length]._id,
-                },
-            ],
             isActive: index % 8 !== 0,
             isDeleted: false,
         })),

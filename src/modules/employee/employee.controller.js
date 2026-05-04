@@ -93,3 +93,21 @@ export const getListEmployeeByRole = async (req, res) => {
         data: result,
     });
 };
+
+export const getEmployeeByStore = async (req, res) => {
+    const store_id = req.params.store_id || req.body.store_id;
+    const result = await employeeService.getEmployeeOfStore(store_id);
+
+    return res.status(200).json({
+        data: result,
+    });
+};
+
+export const deleteEmployee = async (req, res) => {
+    const { employee_id } = req.params;
+    const result = await employeeService.deleteEmployee(employee_id);
+    console.log(result);
+    return res.status(200).json({
+        data: result,
+    });
+};

@@ -138,10 +138,24 @@ export const getStore = async (store_id) => {
 };
 
 export const getAllStore = async () => {
-    return await Store.find(getActiveStoreFilter()).populate(
-        'manager_by',
-        'name email phone station status',
+    const stores = await Store.find(getActiveStoreFilter())
+        .populate('manager_by', 'name email phone station status')
+        .lean();
+
+    const storesFinal = await Promise.all(
+        stores.map(async (store) => {
+            const employee_count = await Employee.countDocuments({
+                store_id: store._id,
+                isDeleted: false,
+            });
+            return {
+                ...store,
+                employee_count,
+            };
+        }),
     );
+
+    return storesFinal;
 };
 
 export const deletedStore = async (store_id) => {

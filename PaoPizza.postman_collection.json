@@ -782,7 +782,7 @@
               }
             },
             "url": "{{baseUrl}}/employees/create",
-            "description": "Create a new employee with user account. Requires JWT + admin/manager.\n\nUses Zod `.strict()` validation - **no extra fields allowed**.\n\n**Body** (Zod validated):\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| username | string | Yes | min 3, max 30 |\n| password | string | Yes | min 6 |\n| store_id | string | Yes | MongoDB ObjectId as string |\n| name | string | Yes | min 2, max 100 |\n| birthday | date string | Yes | must be in the past |\n| email | string | Yes | valid email |\n| phone | string | Yes | regex `/^[0-9]{10,11}$/` |\n| station | enum | Yes | `manager`, `cashier`, `kitchen`, `delivery`, `barista` |\n| salary_type | enum | No | `hourly`, `monthly` (default: `hourly`) |\n| role | enum | No | `admin`, `manager`, `staff` (default: `staff`) |\n| address | string | No | |\n| salary | number | No | min 0 |\n\n**Response 201**:\n```json\n{\n  \"message\": \"Tạo nhân viên thành công\",\n  \"data\": {\n    \"account\": { ...user without password },\n    \"profile\": { ...employee object }\n  }\n}\n```\n\n**Response 400 (Zod)**:\n```json\n{\n  \"message\": \"Validation error\",\n  \"errors\": [\n    { \"field\": \"phone\", \"message\": \"Số điện thoại phải có 10-11 chữ số\" }\n  ]\n}\n```"
+            "description": "Create a new employee with user account. Requires JWT + admin/manager.\n\nUses Zod `.strict()` validation - **no extra fields allowed**.\n\n**Body** (Zod validated):\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| username | string | Yes | min 3, max 30 |\n| password | string | Yes | min 6 |\n| store_id | string | No | MongoDB ObjectId as string (optional) |\n| name | string | Yes | min 2, max 100 |\n| birthday | date string | Yes | must be in the past |\n| email | string | Yes | valid email |\n| phone | string | Yes | regex `/^[0-9]{10,11}$/` |\n| station | enum | Yes | `manager`, `store_manager`, `cashier`, `kitchen`, `delivery`, `barista` |\n| salary_type | enum | No | `hourly`, `monthly` (default: `hourly`) |\n| role | enum | No | `admin`, `manager`, `staff` (default: `staff`) |\n| address | string | No | |\n| salary | number | No | min 0 |\n\n**Response 201**:\n```json\n{\n  \"message\": \"Tạo nhân viên thành công\",\n  \"data\": {\n    \"account\": { ...user without password },\n    \"profile\": { ...employee object }\n  }\n}\n```\n\n**Response 400 (Zod)**:\n```json\n{\n  \"message\": \"Validation error\",\n  \"errors\": [\n    { \"field\": \"phone\", \"message\": \"Số điện thoại phải có 10-11 chữ số\" }\n  ]\n}\n```"
           },
           "response": [
             {
@@ -855,6 +855,21 @@
           "response": []
         },
         {
+          "name": "Delete Employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/employees/delete/{{employeeId}}",
+            "description": "Soft delete employee (set isDeleted=true). Requires JWT + admin/manager."
+          },
+          "response": []
+        },
+        {
           "name": "Get All Employees",
           "request": {
             "method": "GET",
@@ -870,6 +885,21 @@
           "response": []
         },
         {
+          "name": "Get Employees By Store",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/employees/store/{{storeId}}",
+            "description": "Get employees by store_id via route `/employees/store/:store_id`. Requires JWT + admin/manager."
+          },
+          "response": []
+        },
+        {
           "name": "Get Employees By Role",
           "request": {
             "method": "GET",
@@ -880,7 +910,7 @@
               }
             ],
             "url": "{{baseUrl}}/employees/role={{employeeRole}}",
-            "description": "Get users by role via employee module route `/employees/role=:role`. Requires JWT.\n\nExamples: `admin`, `manager`, `staff`, `customer` (maps to null role in service)."
+            "description": "Get users by role via employee module route `/employees/role=:role`. Requires JWT + admin/manager.\n\nExamples: `admin`, `manager`, `staff`, `customer` (maps to null role in service)."
           },
           "response": []
         }
@@ -1340,7 +1370,7 @@
     },
     {
       "name": "Supplier",
-      "description": "Supplier management.\n\nFull CRUD + category enums.\nRequires JWT + admin for most ops (categories only needs auth).",
+      "description": "Supplier management.\n\nFull CRUD + category enums.\nRequires JWT + admin for most ops (categories is public).",
       "item": [
         {
           "name": "Get Supplier Categories",
@@ -1348,7 +1378,7 @@
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}/supplier/categories",
-            "description": "Get list of supplier categories/enums.\n\n**Response 200**:\n```json\n{\n  \"supplier_category\": [\"main_ingredient\", \"drink\", \"seafood\", \"vegetable\"]\n}\n```"
+            "description": "Get list of supplier categories/enums. Public endpoint.\n\n**Response 200**:\n```json\n{\n  \"supplier_category\": [\"main_ingredient\", \"drink\", \"seafood\", \"vegetable\"]\n}\n```"
           },
           "response": [
             {
@@ -1405,7 +1435,7 @@
               }
             },
             "url": "{{baseUrl}}/supplier/create",
-            "description": "Tạo nhà cung cấp mới. **Yêu cầu JWT + admin.**\n\nBody fields: name, email, phone, supplier_category.\n\nTest script auto-sets supplierId variable from response.data._id"
+            "description": "Tạo nhà cung cấp mới. **Yêu cầu JWT + admin.**\n\nBody fields: name, email, phone, supplier_category, isActive (optional).\n\nTest script auto-sets supplierId variable from response.data._id"
           },
           "response": [
             {
@@ -1446,7 +1476,7 @@
               }
             },
             "url": "{{baseUrl}}/supplier/update",
-            "description": "Cập nhật thông tin nhà cung cấp (supplier_id trong body). **Yêu cầu admin.** Có thể cập nhật name, email, phone, supplier_category."
+            "description": "Cập nhật thông tin nhà cung cấp (supplier_id trong body). **Yêu cầu admin.** Có thể cập nhật name, email, phone, supplier_category, isActive."
           },
           "response": [
             {

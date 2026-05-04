@@ -16,6 +16,7 @@ export const create = async (data) => {
         contact_info,
         customer_id,
         employee_id,
+        note,
         promotion_code,
     } = data;
 
@@ -120,6 +121,7 @@ export const create = async (data) => {
         sub_total,
         discount_amount,
         total,
+        note,
         status: 'pending',
         order_type,
         paymentMethod,
@@ -150,7 +152,6 @@ export const create = async (data) => {
             orderId: populatedOrder._id.toString(), // Truyền ID thật của đơn hàng
         });
     }
-    console.log(orderData);
 
     return {
         order: populatedOrder,

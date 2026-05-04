@@ -1,12 +1,12 @@
 import * as orderService from './order.service.js';
 
 export const createOrder = async (req, res) => {
-    console.log(req.body);
     const result = await orderService.create(req.body);
+    console.log(req.body);
     return res.status(201).json({
         message: 'Tạo đơn hàng thành công!',
-        data: result.order, // Thông tin chi tiết đơn hàng
-        payment: result.payment_info, // Thông tin QR code (sẽ null nếu là 'cash')
+        data: result.order,
+        payment: result.payment_info, //nếu là qr code sẽ trả về qr để thanh toán
     });
 };
 

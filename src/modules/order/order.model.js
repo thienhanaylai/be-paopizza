@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { string } from 'zod';
 
 const ORDER_STATUSES = [
     'pending',
@@ -128,6 +129,10 @@ const orderSchema = new mongoose.Schema(
             enum: PAYMENT_STATUSES,
             required: true,
             default: 'pending',
+        },
+        note: {
+            type: String,
+            default: '',
         },
         contact_info: {
             type: contactInfoSchema,
