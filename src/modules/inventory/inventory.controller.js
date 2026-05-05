@@ -17,7 +17,7 @@ export const updateStock = async (req, res) => {
 };
 
 export const getAllInventory = async (req, res) => {
-    const { store_id } = req.query;
+    const { store_id } = req.params;
     const result = await inventoryService.getAll(store_id);
     return res.status(200).json({
         data: result,

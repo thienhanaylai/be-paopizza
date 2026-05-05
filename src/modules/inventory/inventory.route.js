@@ -6,10 +6,15 @@ import { asyncHandler } from '../../middlewares/asyncHandler.js';
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 const requireAdmin = authorize(['admin']);
-
+const requireManager = authorize(['admin', 'manager']);
 const router = express.Router();
 
-router.get('/', requireAuth, asyncHandler(inventoryController.getAllInventory));
+router.get(
+    '/:store_id',
+    requireAuth,
+    requireManager,
+    asyncHandler(inventoryController.getAllInventory),
+);
 router.get(
     '/low-stock',
     requireAuth,

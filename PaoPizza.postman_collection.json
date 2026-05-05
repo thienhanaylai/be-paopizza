@@ -2210,7 +2210,7 @@
     },
     {
       "name": "Inventory",
-      "description": "Inventory management endpoints",
+      "description": "Inventory management endpoints. One inventory document per store with an ingredients array.",
       "item": [
         {
           "name": "Get All Inventory",
@@ -2223,7 +2223,7 @@
               }
             ],
             "url": "{{baseUrl}}/inventory",
-            "description": "Get inventory list. Optional query: ?store_id={{storeId}}. Requires JWT."
+            "description": "Get inventory list (one document per store). Optional query: ?store_id={{storeId}}. Requires JWT."
           },
           "response": []
         },
@@ -2238,7 +2238,7 @@
               }
             ],
             "url": "{{baseUrl}}/inventory/low-stock",
-            "description": "Get low-stock items where current_stock < min_stock_level. Requires JWT + admin."
+            "description": "Get low-stock ingredient items where current_stock < min_stock_level. Requires JWT + admin."
           },
           "response": []
         },
@@ -2266,7 +2266,7 @@
               }
             },
             "url": "{{baseUrl}}/inventory/update",
-            "description": "Upsert inventory record by store_id + ingredient_id. Requires JWT + admin."
+            "description": "Upsert ingredient entry inside a store inventory (one doc per store). Requires JWT + admin."
           },
           "response": []
         },
@@ -2294,7 +2294,7 @@
               }
             },
             "url": "{{baseUrl}}/inventory/stock",
-            "description": "Adjust stock quantity. type: add | reduce. Requires JWT + admin."
+            "description": "Adjust stock quantity for one ingredient inside a store inventory. type: add | reduce. Requires JWT + admin."
           },
           "response": []
         },

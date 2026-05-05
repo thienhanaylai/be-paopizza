@@ -65,9 +65,9 @@ const dateUtc = (year, monthIndex, day) =>
 
 const pick = (arr, index) => arr[index % arr.length];
 
-const ORDER_SAMPLE_COUNT = 1000;
+const ORDER_SAMPLE_COUNT = 500;
 const ORDER_MONTH_COUNT = 12;
-const ORDER_YEAR_MIN = 2023;
+const ORDER_YEAR_MIN = 2024;
 const ORDER_YEAR_MAX = 2026;
 
 const seededRandom = (seed) => {
@@ -313,12 +313,25 @@ const seedSampleData = async () => {
         }),
     );
 
-    const inventoryData = Array.from({ length: TARGET_COUNT }, (_, index) => ({
-        store_id: stores[index % stores.length]._id,
-        ingredient_id: ingredients[(index * 3) % ingredients.length]._id,
-        current_stock: 4500 + index * 320,
-        min_stock_level: 850 + index * 35,
-    }));
+    const ingredientsPerStore = Math.min(6, ingredients.length);
+    const inventoryData = stores.map((store, storeIndex) => {
+        const startIndex = (storeIndex * 3) % ingredients.length;
+        const items = Array.from({ length: ingredientsPerStore }, (_, idx) => {
+            const ingredient =
+                ingredients[(startIndex + idx) % ingredients.length];
+
+            return {
+                ingredient_id: ingredient._id,
+                current_stock: 4500 + storeIndex * 320 + idx * 55,
+                min_stock_level: 850 + storeIndex * 35 + idx * 10,
+            };
+        });
+
+        return {
+            store_id: store._id,
+            ingredients: items,
+        };
+    });
     await Inventory.insertMany(inventoryData);
 
     const firstNames = [

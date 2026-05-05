@@ -267,14 +267,17 @@ export const cancelOrder = async (order_id) => {
         throw new Error('Không tìm thấy đơn hàng!');
     }
 
-    if (order.status === 'completed') {
-        throw new Error('Đơn hàng đã hoàn thành không thể huỷ!');
+    if (order.status === 'completed' || order.paymentStatus === 'success') {
+        throw new Error(
+            'Đơn hàng đã hoàn thành hoặc đã thanh toán không thể huỷ!',
+        );
     }
 
     return await Order.findByIdAndUpdate(
         order_id,
         {
             status: 'cancelled',
+            paymentStatus: 'failed',
         },
         { new: true },
     );

@@ -7,7 +7,7 @@ import { asyncHandler } from '../../middlewares/index.js';
 const requireAuth = passport.authenticate('jwt', { session: false });
 const requireAdmin = authorize(['admin']);
 const requireStaff = authorize(['admin', 'manager', 'staff']);
-const requireAdminOrStaff = authorize(['admin', 'staff']);
+
 const router = express.Router();
 
 router.post('/', requireAuth, asyncHandler(orderController.createOrder));
@@ -45,7 +45,7 @@ router.patch(
 router.patch(
     '/:order_id/payment-status',
     requireAuth,
-    requireAdminOrStaff,
+    requireStaff,
     asyncHandler(orderController.updateOrderPaymentStatus),
 );
 router.patch(

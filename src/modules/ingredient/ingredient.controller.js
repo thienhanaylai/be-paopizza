@@ -3,6 +3,7 @@ import * as ingredientService from './ingredient.service.js';
 export const createIngredient = async (req, res, next) => {
     try {
         const { name, unit, category, cost_per_unit, is_active } = req.body;
+        console.log({ name, unit, category, cost_per_unit, is_active });
         if (!name || !unit) {
             throw new Error('Thiếu thông tin!');
         }
