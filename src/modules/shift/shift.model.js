@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { required } from 'zod/mini';
 
 const staffInvolvedSchema = new mongoose.Schema(
     {
@@ -16,6 +17,15 @@ const staffInvolvedSchema = new mongoose.Schema(
 
 const shiftSchema = new mongoose.Schema(
     {
+        store_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Store',
+            required: true,
+        },
+        date: {
+            type: Date,
+            required: true,
+        },
         start_time: {
             type: String,
             required: true,
@@ -24,24 +34,43 @@ const shiftSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
-        staff_involved: {
-            type: staffInvolvedSchema,
-            default: {},
-        },
-        employee_id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Employee',
-            required: true,
-        },
-        station: {
+        shift_status: {
             type: String,
-            enum: ['maker', 'drink', 'cashier', 'delivery'],
-            required: true,
+            enum: ['pending', 'open', 'close'],
+            default: 'pending',
         },
-        status: {
-            type: String,
-            enum: ['PENDING', 'APPROVED', 'WORKING', 'DONE'],
-            default: 'PENDING',
+        list_employee: {
+            type: [
+                {
+                    staff_involved: {
+                        type: staffInvolvedSchema,
+                        default: {},
+                    },
+                    employee_id: {
+                        type: mongoose.Schema.Types.ObjectId,
+                        ref: 'Employee',
+                        required: true,
+                    },
+                    station: {
+                        type: String,
+                        enum: [
+                            'manager',
+                            'store_manager',
+                            'cashier',
+                            'kitchen',
+                            'delivery',
+                            'barista',
+                        ],
+                        required: true,
+                    },
+                    status: {
+                        type: String,
+                        enum: ['PENDING', 'APPROVED', 'WORKING', 'DONE'],
+                        default: 'PENDING',
+                    },
+                },
+            ],
+            default: [],
         },
     },
     { timestamps: true },

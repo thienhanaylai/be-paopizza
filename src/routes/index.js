@@ -15,6 +15,8 @@ import orderRoutes from '../modules/order/order.route.js';
 import paymentRoutes from '../modules/payment/payment.route.js';
 import promotionRoutes from '../modules/promotion/promotion.route.js';
 import revenueRoutes from '../modules/revenue/revenue.route.js';
+import activityLogRoutes from '../modules/activity-log/activity-log.route.js';
+import shiftRoutes from '../modules/shift/shift.route.js';
 const router = express.Router();
 
 router.get('/health', (_req, res) =>
@@ -40,4 +42,6 @@ router.use('/orders', orderRoutes);
 router.use('/payments', paymentRoutes);
 router.use('/promotions', promotionRoutes);
 router.use('/revenue', revenueRoutes);
+router.use('/activity-logs', activityLogRoutes);
+router.use('/shifts', shiftRoutes);
 export default router;

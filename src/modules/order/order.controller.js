@@ -1,7 +1,37 @@
 import * as orderService from './order.service.js';
+import * as activityLogService from '../activity-log/activity-log.service.js';
+
+const buildActorInfo = (user) => ({
+    actor_id: user?.ref_id || user?._id || null,
+    actor_type: user?.user_type || 'User',
+    actor_role: user?.role || '',
+});
+
+const safeLog = async (payload) => {
+    try {
+        await activityLogService.createLog(payload);
+    } catch (error) {
+        console.error('Activity log error:', error);
+    }
+};
 
 export const createOrder = async (req, res) => {
     const result = await orderService.create(req.body);
+    const actorInfo = buildActorInfo(req.user);
+    await safeLog({
+        store_id: req.body?.store_id,
+        module_source: 'order',
+        action: 'order_create',
+        target_model: 'Order',
+        target_id: result?.order?._id || null,
+        payload: {
+            order_type: req.body?.order_type,
+            paymentMethod: req.body?.paymentMethod,
+            total: result?.order?.total,
+            items_count: req.body?.items?.length || 0,
+        },
+        ...actorInfo,
+    });
     console.log(req.body);
     return res.status(201).json({
         message: 'Tạo đơn hàng thành công!',
