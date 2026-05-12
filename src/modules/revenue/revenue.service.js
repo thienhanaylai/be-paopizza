@@ -69,9 +69,9 @@ const resolveStoreScope = async (user, queryStoreId) => {
         throw new Error('Vui lòng đăng nhập để tiếp tục');
     }
 
-    if (user.role === 'manager') {
+    if (user.role === 'manager' || user.role === 'staff') {
         if (!user.ref_id) {
-            throw new Error('Không tìm thấy thông tin nhân viên của manager');
+            throw new Error('Không tìm thấy thông tin nhân viên');
         }
 
         const employee = await Employee.findOne({
@@ -82,7 +82,7 @@ const resolveStoreScope = async (user, queryStoreId) => {
             .lean();
 
         if (!employee?.store_id) {
-            throw new Error('Manager chưa được gán cửa hàng');
+            throw new Error('Nhân viên chưa được gán cửa hàng');
         }
 
         return employee.store_id;
@@ -153,7 +153,6 @@ const parseCommonFilters = async (user, query = {}) => {
 export const getOverview = async ({ user, query = {} }) => {
     const filters = await parseCommonFilters(user, query);
     const match = buildMatchStage(filters);
-
     const [overview = null] = await Order.aggregate([
         { $match: match },
         {

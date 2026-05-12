@@ -7,6 +7,7 @@ import { asyncHandler } from '../../middlewares/index.js';
 const requireAuth = passport.authenticate('jwt', { session: false });
 const requireAdmin = authorize(['admin']);
 const requireManger = authorize(['admin', 'manager']);
+const requireStaff = authorize(['admin', 'manager', 'staff']);
 
 const router = express.Router();
 
@@ -19,7 +20,7 @@ router.get(
 router.get(
     '/store/:store_id',
     requireAuth,
-    requireManger,
+    requireStaff,
     asyncHandler(employeeController.getEmployeeByStore),
 );
 router.get(

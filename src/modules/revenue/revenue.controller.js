@@ -5,7 +5,6 @@ export const getRevenueOverview = async (req, res) => {
         user: req.user,
         query: req.query,
     });
-
     return res.status(200).json({
         data: result,
     });
