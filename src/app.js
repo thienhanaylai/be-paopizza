@@ -21,7 +21,13 @@ app.use(helmet());
 app.use(compression());
 
 // CORS
-app.use(cors({ origin: '*', credentials: true }));
+app.use(
+    cors({
+        origin: 'https://paopizza.ngb.id.vn',
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        credentials: true,
+    }),
+);
 
 // Body Parsing
 app.use(express.json({ limit: '10mb' }));
