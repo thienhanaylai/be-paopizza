@@ -8,13 +8,13 @@ const requireAuth = passport.authenticate('jwt', { session: false });
 const requireAdmin = authorize(['admin']);
 const router = express.Router();
 
+router.get('/me', requireAuth, asyncHandler(userController.getMe));
 router.post(
     '/create',
     requireAuth,
     requireAdmin,
     asyncHandler(userController.create),
 );
-router.get('/me', requireAuth, asyncHandler(userController.getMe));
 router.get('/', requireAuth, requireAdmin, asyncHandler(userController.getAll));
 
 router.patch(
