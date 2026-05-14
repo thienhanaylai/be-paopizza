@@ -24,13 +24,13 @@ router.get(
 router.post(
     '/update',
     requireAuth,
-    requireAdmin,
+    requireManager,
     asyncHandler(inventoryController.createOrUpdateInventory),
 );
 router.post(
     '/stock',
     requireAuth,
-    requireAdmin,
+    requireManager,
     asyncHandler(inventoryController.updateStock),
 );
 router.post(
