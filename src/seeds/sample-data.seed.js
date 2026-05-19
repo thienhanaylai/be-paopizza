@@ -580,7 +580,7 @@ const seedSampleData = async () => {
         { start: '12:00', end: '20:00' },
         { start: '14:00', end: '22:00' },
     ];
-    const shiftStations = ['maker', 'drink', 'cashier', 'delivery'];
+    const shiftStations = ['kitchen', 'barista', 'cashier', 'delivery'];
     const shiftEmployeeStatuses = ['PENDING', 'APPROVED', 'WORKING', 'DONE'];
     const shiftStatusPool = ['pending', 'open', 'close'];
 
@@ -596,8 +596,8 @@ const seedSampleData = async () => {
 
     const mapShiftStation = (station) => {
         const mapping = {
-            kitchen: 'maker',
-            barista: 'drink',
+            kitchen: 'kitchen',
+            barista: 'barista',
             cashier: 'cashier',
             delivery: 'delivery',
         };
