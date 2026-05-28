@@ -3,10 +3,12 @@ import bcrypt from 'bcrypt';
 import environment from '../config/environment.js';
 import { Cart } from '../modules/cart/cart.model.js';
 import { Category } from '../modules/category/category.model.js';
+import { Combo } from '../modules/combo/combo.model.js';
 import { Customer } from '../modules/customer/customer.model.js';
 import { Employee } from '../modules/employee/employee.model.js';
 import { Ingredient } from '../modules/ingredient/ingredient.model.js';
 import { Inventory } from '../modules/inventory/inventory.model.js';
+import { Menu } from '../modules/menu/menu.model.js';
 import { ActivityLog } from '../modules/activity-log/activity-log.model.js';
 import { Order } from '../modules/order/order.model.js';
 import { Payroll } from '../modules/payroll/payroll.model.js';
@@ -35,6 +37,8 @@ const clearSampleData = async () => {
         Shift.deleteMany({}),
         Order.deleteMany({}),
         Promotion.deleteMany({}),
+        Menu.deleteMany({}),
+        Combo.deleteMany({}),
         Inventory.deleteMany({}),
         ActivityLog.deleteMany({}),
         Supplier.deleteMany({}),
@@ -56,6 +60,8 @@ const syncModelIndexes = async () => {
         ActivityLog.syncIndexes(),
         Payroll.syncIndexes(),
         Category.syncIndexes(),
+        Combo.syncIndexes(),
+        Menu.syncIndexes(),
         Promotion.syncIndexes(),
         Schedule.syncIndexes(),
     ]);
@@ -265,6 +271,11 @@ const seedSampleData = async () => {
                 variants: [
                     {
                         sku: `PRD-${pad(index + 1, 3)}-${firstSize}`,
+                        disscountType: index % 2 === 0 ? 'percent' : 'amount',
+                        discount:
+                            index % 2 === 0
+                                ? 5 + (index % 3) * 2
+                                : 10000 + index * 500,
                         price: basePrice,
                         size: firstSize,
                         image: {
@@ -291,6 +302,11 @@ const seedSampleData = async () => {
                     },
                     {
                         sku: `PRD-${pad(index + 1, 3)}-${secondSize}`,
+                        disscountType: index % 2 === 0 ? 'percent' : 'amount',
+                        discount:
+                            index % 2 === 0
+                                ? 8 + (index % 4) * 2
+                                : 12000 + index * 700,
                         price: basePrice + 20000,
                         size: secondSize,
                         image: {
@@ -317,6 +333,103 @@ const seedSampleData = async () => {
                     },
                 ],
                 isDeleted: false,
+            };
+        }),
+    );
+
+    const categoryBySlug = new Map(
+        categories.map((category) => [category.slug, category]),
+    );
+    const pizzaCategory = categoryBySlug.get('pizza') || categories[0];
+    const drinkCategory = categoryBySlug.get('drink') || categories[1];
+
+    const comboCount = Math.min(8, Math.max(3, Math.floor(TARGET_COUNT / 2)));
+    const combos = await Combo.insertMany(
+        Array.from({ length: comboCount }, (_, index) => {
+            const type = index % 2 === 0 ? 'percent' : 'amount';
+            const disscount =
+                type === 'percent'
+                    ? 10 + (index % 3) * 5
+                    : 15000 + index * 1000;
+            const productA = products[index % products.length];
+            const productB = products[(index + 3) % products.length];
+            const basePrice = productA?.variants?.[0]?.price || 90000;
+            const price =
+                type === 'percent'
+                    ? Math.max(0, Math.round(basePrice * (1 - disscount / 100)))
+                    : Math.max(0, basePrice - disscount);
+
+            const rules = [];
+            if (pizzaCategory) {
+                rules.push({
+                    groupName: 'Pizza',
+                    applicableCategories: [pizzaCategory._id],
+                    requiredQuantity: 1,
+                });
+            }
+            if (drinkCategory) {
+                rules.push({
+                    groupName: 'Drink',
+                    applicableCategories: [drinkCategory._id],
+                    requiredQuantity: 1,
+                });
+            }
+            if (rules.length === 0) {
+                rules.push({
+                    groupName: 'Combo Items',
+                    applicableProducts: [productA._id, productB._id],
+                    requiredQuantity: 2,
+                });
+            } else if (rules.length === 1) {
+                rules.push({
+                    groupName: 'Combo Item',
+                    applicableProducts: [productA._id],
+                    requiredQuantity: 1,
+                });
+            }
+
+            return {
+                name: `Combo ${pad(index + 1)}`,
+                description: `Combo deal ${pad(index + 1)}`,
+                dateStart: dateUtc(2026, 4, 1 + index),
+                dateEnd: dateUtc(2026, 5, 15 + index),
+                image: `https://picsum.photos/seed/combo-${index + 1}/1200/800`,
+                rules,
+                disscountType: type,
+                disscount,
+                price,
+                is_active: index % 3 !== 0,
+                isDeleted: false,
+            };
+        }),
+    );
+
+    const menus = await Menu.insertMany(
+        stores.map((store, index) => {
+            const startIndex = (index * 2) % products.length;
+            const productItems = Array.from({ length: 3 }, (_, pIndex) => {
+                const product =
+                    products[(startIndex + pIndex) % products.length];
+                const basePrice = product?.variants?.[0]?.price || 0;
+                const overwirtePrice =
+                    index % 2 === 0 ? Math.max(0, basePrice - 5000) : 0;
+
+                return {
+                    product: product._id,
+                    overwirtePrice,
+                };
+            });
+
+            const comboItems =
+                combos.length > 0
+                    ? [{ combo: combos[index % combos.length]._id }]
+                    : [];
+
+            return {
+                store: store._id,
+                products: productItems,
+                combos: comboItems,
+                status: index % 6 !== 0,
             };
         }),
     );
@@ -922,6 +1035,8 @@ const seedSampleData = async () => {
         ingredients: ingredients.length,
         suppliers: suppliers.length,
         products: products.length,
+        combos: combos.length,
+        menus: menus.length,
         inventory: inventoryData.length,
         activityLogs: activityLogs.length,
         customers: customers.length,

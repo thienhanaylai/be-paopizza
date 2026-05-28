@@ -28,10 +28,23 @@ const itemSchema = new mongoose.Schema(
             required: true,
             trim: true,
         },
+        crust: {
+            type: [String],
+            enum: ['thick', 'medium', 'thin'],
+        },
         quantity: {
             type: Number,
             required: true,
             min: 1,
+        },
+        comboId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Combo',
+            default: null,
+        },
+        comboInstanceId: {
+            type: String,
+            default: '',
         },
         note: {
             type: String,

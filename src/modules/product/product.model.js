@@ -29,10 +29,24 @@ const variantSchema = new mongoose.Schema(
             trim: true,
             unique: true,
         },
+        disscountType: {
+            type: String,
+            enum: ['percent', 'amount'],
+            require: true,
+        },
+        discount: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
         price: {
             type: Number,
             required: true,
             min: 0,
+        },
+        crust: {
+            type: [String],
+            enum: ['thick', 'medium', 'thin'],
         },
         size: {
             type: String,
@@ -72,7 +86,10 @@ const productSchema = new mongoose.Schema(
             trim: true,
             default: '',
         },
-
+        launchDate: {
+            type: Date,
+            default: null,
+        },
         is_active: {
             type: Boolean,
             default: true,

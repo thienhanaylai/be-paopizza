@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "d4e5ca2d-2f14-47fe-a5cf-6f4e19af8642",
     "name": "PaoPizza API",
-    "description": "Backend API for PaoPizza.\n\nBase path: `/api/v1`\n\nMounted modules: auth, users, customers, cart, employees, supplier, ingredient, categories, stores, products, inventory, orders, payments, promotions, revenue, media, shifts.\nSchedule/payroll currently only have models/seed data.\n\nAuth: Passport Local + JWT Bearer + refresh token cookie.\n\nSample seed login:\n- Admin: `admin` / `BAO123@az`\n- Employee: `emp_02` / `12345678`\n- Customer (phone as username): `0918000001` / `12345678`",
+    "description": "Backend API for PaoPizza.\n\nBase path: `/api/v1`\n\nMounted modules: auth, users, customers, cart, employees, supplier, ingredient, categories, stores, products, combos, menus, inventory, orders, payments, promotions, revenue, media, shifts.\nSchedule/payroll currently only have models/seed data.\n\nAuth: Passport Local + JWT Bearer + refresh token cookie.\n\nSample seed login:\n- Admin: `admin` / `BAO123@az`\n- Employee: `emp_02` / `12345678`\n- Customer (phone as username): `0918000001` / `12345678`",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -2326,6 +2326,323 @@
       ]
     },
     {
+      "name": "Combos",
+      "description": "Combo management endpoints",
+      "item": [
+        {
+          "name": "Get All Combos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/combos",
+            "description": "Get all combos (isDeleted=false). Public endpoint."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Active Combos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/combos/active",
+            "description": "Get active combos (is_active=true). Public endpoint."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Combo By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/combos/{{comboId}}",
+            "description": "Get combo detail by id. Public endpoint."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Combo (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let jsonData = {};",
+                  "try { jsonData = pm.response.json(); } catch (e) {}",
+                  "if (jsonData.data && jsonData.data._id) {",
+                  "    pm.collectionVariables.set('comboId', jsonData.data._id);",
+                  "    console.log('comboId saved:', jsonData.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Combo Pizza + Nuoc\",\n  \"description\": \"Combo tiet kiem\",\n  \"dateStart\": \"2026-06-01T00:00:00.000Z\",\n  \"dateEnd\": \"2026-06-30T23:59:59.000Z\",\n  \"image\": \"https://img.example.com/combo.png\",\n  \"disscountType\": \"percent\",\n  \"disscount\": 10,\n  \"price\": 120000,\n  \"rules\": [\n    {\n      \"groupName\": \"Pizza\",\n      \"applicableCategories\": [\"{{categoryId}}\"],\n      \"requiredQuantity\": 1\n    },\n    {\n      \"groupName\": \"Drink\",\n      \"applicableProducts\": [\"{{productId}}\"],\n      \"requiredQuantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/combos/create",
+            "description": "Create combo. Requires JWT + admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Combo (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"combo_id\": \"{{comboId}}\",\n  \"name\": \"Combo Pizza + Nuoc Updated\",\n  \"disscountType\": \"amount\",\n  \"disscount\": 15000,\n  \"price\": 130000,\n  \"rules\": [\n    {\n      \"groupName\": \"Pizza\",\n      \"applicableCategories\": [\"{{categoryId}}\"],\n      \"requiredQuantity\": 1\n    },\n    {\n      \"groupName\": \"Drink\",\n      \"applicableProducts\": [\"{{productId}}\"],\n      \"requiredQuantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/combos/update",
+            "description": "Update combo by combo_id. Requires JWT + admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Combo Image (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/combos/{{comboId}}/image",
+            "description": "Upload combo image (field: image). Requires JWT + admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Combo Status (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/combos/updateStatus/{{comboId}}",
+            "description": "Toggle or set combo active status. Requires JWT + admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Soft Delete Combo (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/combos/deleted/{{comboId}}",
+            "description": "Soft delete combo (isDeleted=true, is_active=false). Requires JWT + admin."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Menus",
+      "description": "Menu management endpoints",
+      "item": [
+        {
+          "name": "Get All Menus",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/menus",
+            "description": "Get all menus. Public endpoint."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Menu By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/menus/{{menuId}}",
+            "description": "Get menu detail by id. Public endpoint."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Menu (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let jsonData = {};",
+                  "try { jsonData = pm.response.json(); } catch (e) {}",
+                  "if (jsonData.data && jsonData.data._id) {",
+                  "    pm.collectionVariables.set('menuId', jsonData.data._id);",
+                  "    console.log('menuId saved:', jsonData.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"store\": \"{{storeId}}\",\n  \"products\": [\n    {\n      \"product\": \"{{productId}}\",\n      \"overwirtePrice\": 90000\n    }\n  ],\n  \"combos\": [\n    {\n      \"combo\": \"{{comboId}}\"\n    }\n  ],\n  \"status\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/menus/create",
+            "description": "Create menu. Requires JWT + admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Menu (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"menu_id\": \"{{menuId}}\",\n  \"status\": false,\n  \"products\": [\n    {\n      \"product\": \"{{productId}}\",\n      \"overwirtePrice\": 85000\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/menus/update",
+            "description": "Update menu by menu_id. Requires JWT + admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Menu Status (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/menus/updateStatus/{{menuId}}",
+            "description": "Toggle or set menu status. Requires JWT + admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Menu (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/menus/deleted/{{menuId}}",
+            "description": "Delete menu (hard delete). Requires JWT + admin."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Store",
       "description": "Store management endpoints.\n\nStore model fields include: `name`, `address`, `phone`, `email`, `time_open`, `time_close`, `manager_by`, `status`, `isDeleted`.\n`manager_by` is optional.\nState values in model: `active`, `maintenance`, `close`.",
       "item": [
@@ -3132,6 +3449,18 @@
       "value": "",
       "type": "string",
       "description": "Product ID (used in product and cart requests)"
+    },
+    {
+      "key": "comboId",
+      "value": "",
+      "type": "string",
+      "description": "Combo ID for combo requests"
+    },
+    {
+      "key": "menuId",
+      "value": "",
+      "type": "string",
+      "description": "Menu ID for menu requests"
     },
     {
       "key": "categoryId",

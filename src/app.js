@@ -23,8 +23,7 @@ app.use(compression());
 // CORS
 app.use(
     cors({
-        origin: 'https://paopizza.ngb.id.vn',
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        origin: '*',
         credentials: true,
     }),
 );

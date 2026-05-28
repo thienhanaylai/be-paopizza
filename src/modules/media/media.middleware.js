@@ -25,7 +25,9 @@ const createUploader = (folderName, customTransform = []) => {
             const customName =
                 req.body.name ||
                 req.params.id ||
+                req.params.combo_id ||
                 req.body.product_id ||
+                req.body.combo_id ||
                 `upload-${Date.now()}`;
             const folderPath = `${folderName}/${customName}`;
             const fileName = `${slugify(customName)}-${Date.now()}`;
