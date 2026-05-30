@@ -125,6 +125,10 @@ const seedSampleData = async () => {
         Array.from({ length: TARGET_COUNT }, (_, index) => ({
             name: `Pao Pizza Store ${pad(index + 1)}`,
             address: `${100 + index} Street ${pad(index + 1)}, ${pick(districtPool, index)}, ${pick(cityPool, index)}`,
+            location: {
+                type: 'Point',
+                coordinates: [106.6 + index * 0.01, 10.7 + index * 0.005],
+            },
             phone: `0909${pad(index + 1, 6)}`,
             email: `store${pad(index + 1)}@paopizza.com`,
             time_open: pick(['07:00', '08:00', '09:00'], index),
@@ -481,14 +485,22 @@ const seedSampleData = async () => {
     ];
 
     const customers = await Customer.insertMany(
-        Array.from({ length: TARGET_COUNT }, (_, index) => ({
-            point: 30 + index * 20,
-            name: `${pick(lastNames, index)} ${pick(firstNames, index + 2)} ${pad(index + 1)}`,
-            address: `${20 + index} Residence ${pick(districtPool, index)}, ${pick(cityPool, index)}`,
-            phone: `0918${pad(index + 1, 6)}`,
-            email: `customer${pad(index + 1)}@mail.com`,
-            isDeleted: false,
-        })),
+        Array.from({ length: TARGET_COUNT }, (_, index) => {
+            const currentPoint = 30 + index * 20;
+            const totalPoint = currentPoint + 120 + (index % 4) * 40;
+            const tierPool = ['member', 'silver', 'gold', 'diamond'];
+
+            return {
+                currentPoint,
+                totalPoint,
+                tier: tierPool[index % tierPool.length],
+                name: `${pick(lastNames, index)} ${pick(firstNames, index + 2)} ${pad(index + 1)}`,
+                address: `${20 + index} Residence ${pick(districtPool, index)}, ${pick(cityPool, index)}`,
+                phone: `0918${pad(index + 1, 6)}`,
+                email: `customer${pad(index + 1)}@mail.com`,
+                isDeleted: false,
+            };
+        }),
     );
 
     const employeeStations = [

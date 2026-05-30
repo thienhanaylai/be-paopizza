@@ -4,6 +4,8 @@ export const createStore = async (req, res) => {
     const {
         name,
         address,
+        location,
+        coordinates,
         phone,
         email,
         time_open,
@@ -14,6 +16,8 @@ export const createStore = async (req, res) => {
     const result = await storeService.create({
         name,
         address,
+        location,
+        coordinates,
         phone,
         email,
         time_open,

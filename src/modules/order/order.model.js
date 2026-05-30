@@ -11,6 +11,22 @@ const ORDER_STATUSES = [
 const PAYMENT_METHODS = ['cash', 'card', 'qrCode', 'ewallet'];
 const PAYMENT_STATUSES = ['pending', 'success', 'failed'];
 const ORDER_TYPE = ['carry_out', 'dine_in', 'delivery'];
+const pointSchema = new mongoose.Schema(
+    {
+        type: {
+            type: String,
+            enum: ['Point'],
+            default: 'Point',
+            required: true,
+        },
+        coordinates: {
+            type: [Number],
+            required: true,
+        },
+    },
+    { _id: false },
+);
+
 const itemSchema = new mongoose.Schema(
     {
         product_id: {
@@ -70,6 +86,10 @@ const contactInfoSchema = new mongoose.Schema(
         address: {
             type: String,
             trim: true,
+        },
+        location: {
+            type: pointSchema,
+            index: '2dsphere',
         },
         email: {
             type: String,

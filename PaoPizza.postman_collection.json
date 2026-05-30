@@ -654,7 +654,7 @@
     },
     {
       "name": "Customers",
-      "description": "Customer registration and update.\n\n**Updated**: register creates Customer first then linked User (username = phone for login, rollback on User failure by deleting Customer). Update uses user_id to find ref_id in Customer. Public register, auth for update. Matches service logic (phone as username for customers).",
+      "description": "Customer registration and update.\n\n**Updated**: register creates Customer first then linked User (username = phone for login, rollback on User failure by deleting Customer). Update uses user_id to find ref_id in Customer. Public register, auth for update. Matches service logic (phone as username for customers).\n\nCustomer fields include `currentPoint`, `totalPoint`, `tier` (member/silver/gold/diamond), and `listAddress` (delivery addresses managed via Add Address).",
       "item": [
         {
           "name": "Register Customer",
@@ -668,7 +668,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"password\": \"12345678\",\n  \"name\": \"Nguyen Van A\",\n  \"phone\": \"0900000001\",\n  \"address\": \"123 Le Loi, Q1, HCM\",\n  \"email\": \"newcustomer@example.com\"\n}",
+              "raw": "{\n  \"password\": \"12345678\",\n  \"name\": \"Nguyen Van A\",\n  \"phone\": \"0900000001\",\n  \"email\": \"newcustomer@example.com\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -676,7 +676,7 @@
               }
             },
             "url": "{{baseUrl}}/customers/register",
-            "description": "Register new customer (updated). **Public.** Validates phone/password/name. Username internally = phone for login. Creates Customer first, then linked User (ref_id). Rollback deletes Customer on failure. Matches current controller/service.\n\n**Body**:\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| password | string | Yes | min 6 |\n| name | string | Yes | display name |\n| phone | string | Yes | used as username, unique |\n| address | string | No | |\n| email | string | No | unique, lowercase |\n\n**Response 201**:\n```json\n{\n  \"message\": \"Đăng ký tài khoản khách hàng thành công\",\n  \"data\": {\n    \"account\": { ...user without password, username=phone },\n    \"profile\": { ...customer }\n  }\n}\n```\n\n**Response 400**: `{ \"message\": \"Vui lòng điền đầy đủ Số điện thoại, Mật khẩu và Tên \" }` (updated validation)."
+            "description": "Register new customer (updated). **Public.** Validates phone/password/name. Username internally = phone for login. Creates Customer first, then linked User (ref_id). Rollback deletes Customer on failure. Matches current controller/service.\n\n**Body**:\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| password | string | Yes | min 6 |\n| name | string | Yes | display name |\n| phone | string | Yes | used as username, unique |\n| email | string | No | unique, lowercase |\n\n**Note**: Manage delivery addresses via `Add Customer Address`.\n\n**Response 201**:\n```json\n{\n  \"message\": \"Đăng ký tài khoản khách hàng thành công\",\n  \"data\": {\n    \"account\": { ...user without password, username=phone },\n    \"profile\": { ...customer }\n  }\n}\n```\n\n**Response 400**: `{ \"message\": \"Vui lòng điền đầy đủ Số điện thoại, Mật khẩu và Tên \" }` (updated validation)."
           },
           "response": [
             {
@@ -689,7 +689,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"message\": \"Đăng ký tài khoản khách hàng thành công\",\n  \"data\": {\n    \"account\": {\n      \"_id\": \"67a8b123456789abcdef0030\",\n      \"username\": \"0900000001\",\n      \"user_type\": \"Customer\",\n      \"role\": null,\n      \"ref_id\": \"67a8b123456789abcdef0031\",\n      \"status\": true\n    },\n    \"profile\": {\n      \"_id\": \"67a8b123456789abcdef0031\",\n      \"name\": \"Nguyen Van A\",\n      \"phone\": \"0900000001\",\n      \"address\": \"123 Le Loi, Q1, HCM\",\n      \"email\": \"newcustomer@example.com\",\n      \"point\": 0\n    }\n  }\n}"
+              "body": "{\n  \"message\": \"Đăng ký tài khoản khách hàng thành công\",\n  \"data\": {\n    \"account\": {\n      \"_id\": \"67a8b123456789abcdef0030\",\n      \"username\": \"0900000001\",\n      \"user_type\": \"Customer\",\n      \"role\": null,\n      \"ref_id\": \"67a8b123456789abcdef0031\",\n      \"status\": true\n    },\n    \"profile\": {\n      \"_id\": \"67a8b123456789abcdef0031\",\n      \"name\": \"Nguyen Van A\",\n      \"phone\": \"0900000001\",\n      \"email\": \"newcustomer@example.com\",\n      \"listAddress\": [],\n      \"currentPoint\": 0,\n      \"totalPoint\": 0,\n      \"tier\": \"member\"\n    }\n  }\n}"
             },
             {
               "name": "400 - Missing Fields",
@@ -721,7 +721,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"user_id\": \"{{userId}}\",\n  \"name\": \"Updated Name\",\n  \"phone\": \"0900000002\",\n  \"address\": \"New Address\",\n  \"email\": \"updated@example.com\"\n}",
+              "raw": "{\n  \"user_id\": \"{{userId}}\",\n  \"name\": \"Updated Name\",\n  \"phone\": \"0900000002\",\n  \"email\": \"updated@example.com\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -729,7 +729,7 @@
               }
             },
             "url": "{{baseUrl}}/customers/update",
-            "description": "Update customer profile via user_id (finds ref_id). **Requires auth.** Matches updated service."
+            "description": "Update customer profile via user_id (finds ref_id). **Requires auth.** Supports updating name/phone/email. Use `Add Customer Address` to manage delivery addresses. Matches updated service."
           },
           "response": [
             {
@@ -743,6 +743,211 @@
                 }
               ],
               "body": "{\n  \"profile\": { ...updated customer }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Add Customer Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{userId}}\",\n  \"name\": \"Nguyen Van A\",\n  \"phone\": \"0900000001\",\n  \"address\": \"123 Le Loi, Q1, HCM\",\n  \"isDefault\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/customers/add-address",
+            "description": "Add a delivery address to customer's listAddress. **Requires auth.** If `isDefault` is true, existing default addresses are cleared."
+          },
+          "response": [
+            {
+              "name": "201 - Added",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Thêm địa chỉ giao hàng thành công\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Customer Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{userId}}\",\n  \"address_id\": \"{{customerAddressId}}\",\n  \"name\": \"Nguyen Van A\",\n  \"phone\": \"0900000001\",\n  \"address\": \"12 Nguyen Hue, Q1, HCM\",\n  \"isDefault\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/customers/update-address",
+            "description": "Update a delivery address in customer's listAddress. **Requires auth.** Use `address_id` from the customer profile listAddress array."
+          },
+          "response": [
+            {
+              "name": "201 - Updated",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Cập nhật địa chỉ giao hàng thành công\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Set Default Customer Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{userId}}\",\n  \"address_id\": \"{{customerAddressId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/customers/set-default-address",
+            "description": "Set a delivery address as default. **Requires auth.** Use `address_id` from the customer profile listAddress array."
+          },
+          "response": [
+            {
+              "name": "201 - Updated",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Đặt địa chỉ mặc định thành công\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Customer Addresses",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/customers/list-address",
+            "description": "Get all delivery addresses for the customer. **Requires auth.**"
+          },
+          "response": [
+            {
+              "name": "200 - OK",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": [\n    {\n      \"_id\": \"67a8b123456789abcdef1001\",\n      \"name\": \"Nguyen Van A\",\n      \"phone\": \"0900000001\",\n      \"address\": \"123 Le Loi, Q1, HCM\",\n      \"isDefault\": true\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Customer Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{userId}}\",\n  \"address_id\": \"{{customerAddressId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/customers/delete-address",
+            "description": "Delete a delivery address from customer's listAddress. **Requires auth.** Use `address_id` from the customer profile listAddress array."
+          },
+          "response": [
+            {
+              "name": "200 - Deleted",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Xoá địa chỉ giao hàng thành công\"\n}"
             }
           ]
         }
@@ -2644,7 +2849,7 @@
     },
     {
       "name": "Store",
-      "description": "Store management endpoints.\n\nStore model fields include: `name`, `address`, `phone`, `email`, `time_open`, `time_close`, `manager_by`, `status`, `isDeleted`.\n`manager_by` is optional.\nState values in model: `active`, `maintenance`, `close`.",
+      "description": "Store management endpoints.\n\nStore model fields include: `name`, `address`, `location`, `phone`, `email`, `time_open`, `time_close`, `manager_by`, `status`, `isDeleted`.\n`location` is a GeoJSON Point: { type: \"Point\", coordinates: [lng, lat] }.\n`manager_by` is optional.\nState values in model: `active`, `maintenance`, `close`.",
       "item": [
         {
           "name": "Get All Stores",
@@ -2687,7 +2892,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Pao Pizza Thu Duc\",\n  \"address\": \"01 Vo Van Ngan, Thu Duc, TP.HCM\",\n  \"phone\": \"0909777666\",\n  \"email\": \"thuduc@paopizza.com\",\n  \"time_open\": \"08:00\",\n  \"time_close\": \"22:00\",\n  \"manager_by\": \"{{employeeId}}\",\n  \"status\": \"active\"\n}",
+              "raw": "{\n  \"name\": \"Pao Pizza Thu Duc\",\n  \"address\": \"01 Vo Van Ngan, Thu Duc, TP.HCM\",\n  \"location\": {\n    \"type\": \"Point\",\n    \"coordinates\": [106.7615, 10.8506]\n  },\n  \"phone\": \"0909777666\",\n  \"email\": \"thuduc@paopizza.com\",\n  \"time_open\": \"08:00\",\n  \"time_close\": \"22:00\",\n  \"manager_by\": \"{{employeeId}}\",\n  \"status\": \"active\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2715,7 +2920,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"store_id\": \"{{storeId}}\",\n  \"name\": \"Pao Pizza Thu Duc Updated\",\n  \"address\": \"12 Vo Van Ngan, Thu Duc, TP.HCM\",\n  \"phone\": \"0909777555\",\n  \"email\": \"thuduc.updated@paopizza.com\",\n  \"time_open\": \"09:00\",\n  \"time_close\": \"23:00\",\n  \"manager_by\": \"{{employeeId}}\",\n  \"status\": \"maintenance\"\n}",
+              "raw": "{\n  \"store_id\": \"{{storeId}}\",\n  \"name\": \"Pao Pizza Thu Duc Updated\",\n  \"address\": \"12 Vo Van Ngan, Thu Duc, TP.HCM\",\n  \"location\": {\n    \"type\": \"Point\",\n    \"coordinates\": [106.7642, 10.8472]\n  },\n  \"phone\": \"0909777555\",\n  \"email\": \"thuduc.updated@paopizza.com\",\n  \"time_open\": \"09:00\",\n  \"time_close\": \"23:00\",\n  \"manager_by\": \"{{employeeId}}\",\n  \"status\": \"maintenance\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

@@ -7,6 +7,42 @@ const getActiveStoreFilter = () => ({
     isDeleted: false,
 });
 
+const parseCoordinates = (coordinates) => {
+    if (!Array.isArray(coordinates) || coordinates.length !== 2) {
+        throw new Error('coordinates phải là mảng [lng, lat]!');
+    }
+
+    const [lng, lat] = coordinates;
+    const lngNum = Number(lng);
+    const latNum = Number(lat);
+
+    if (Number.isNaN(lngNum) || Number.isNaN(latNum)) {
+        throw new Error('coordinates phải là số!');
+    }
+
+    return [lngNum, latNum];
+};
+
+const normalizeLocation = (data) => {
+    if (data.location === undefined && data.coordinates === undefined) {
+        return undefined;
+    }
+
+    if (data.location === null || data.coordinates === null) {
+        return null;
+    }
+
+    const coordinates = data.coordinates ?? data.location?.coordinates;
+    if (!coordinates) {
+        throw new Error('Thiếu coordinates!');
+    }
+
+    return {
+        type: 'Point',
+        coordinates: parseCoordinates(coordinates),
+    };
+};
+
 const validateManager = async (manager_by) => {
     if (manager_by === undefined || manager_by === null || manager_by === '') {
         return;
@@ -53,7 +89,9 @@ export const create = async (data) => {
         );
     }
 
-    const result = await Store.create({
+    const location = normalizeLocation(data);
+
+    const payload = {
         name,
         address,
         phone,
@@ -63,7 +101,13 @@ export const create = async (data) => {
         manager_by,
         status,
         isDeleted: false,
-    });
+    };
+
+    if (location !== undefined) {
+        payload.location = location;
+    }
+
+    const result = await Store.create(payload);
     return result;
 };
 
@@ -119,6 +163,17 @@ export const update = async (data) => {
 
     if (updateData.isDeleted === true) {
         updateData.status = CLOSED_STORE_STATE;
+    }
+
+    if (updateData.location === null || updateData.coordinates === null) {
+        updateData.location = null;
+        delete updateData.coordinates;
+    } else {
+        const normalizedLocation = normalizeLocation(updateData);
+        if (normalizedLocation !== undefined) {
+            updateData.location = normalizedLocation;
+            delete updateData.coordinates;
+        }
     }
 
     const result = await Store.findByIdAndUpdate(store_id, updateData, {

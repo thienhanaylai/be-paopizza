@@ -2,6 +2,22 @@ import mongoose from 'mongoose';
 
 export const status = ['active', 'maintenance', 'close'];
 
+const pointSchema = new mongoose.Schema(
+    {
+        type: {
+            type: String,
+            enum: ['Point'],
+            default: 'Point',
+            required: true,
+        },
+        coordinates: {
+            type: [Number],
+            required: true,
+        },
+    },
+    { _id: false },
+);
+
 const storeSchema = new mongoose.Schema(
     {
         name: {
@@ -13,6 +29,10 @@ const storeSchema = new mongoose.Schema(
             type: String,
             required: true,
             trim: true,
+        },
+        location: {
+            type: pointSchema,
+            index: '2dsphere',
         },
         phone: {
             type: String,
