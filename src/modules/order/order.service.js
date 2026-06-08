@@ -341,3 +341,28 @@ export const getAllHistoryOrder = async () => {
     }
     return orders;
 };
+
+export const customerCancelOrder = async (data) => {
+    const { order_id, customer_id } = data;
+    const order = await Order.findById(order_id);
+
+    if (!order) {
+        throw new Error('Không tìm thấy!');
+    }
+    if (order.customer_id.toString() !== customer_id.toString()) {
+        throw new Error('Người dùng không có đơn hàng này');
+    }
+    if (order.status === 'completed' || order.paymentStatus === 'success') {
+        throw new Error(
+            'Đơn hàng đã hoàn thành hoặc đã thanh toán không thể huỷ!',
+        );
+    }
+    return await Order.findByIdAndUpdate(
+        order_id,
+        {
+            status: 'cancelled',
+            paymentStatus: 'failed',
+        },
+        { new: true },
+    );
+};

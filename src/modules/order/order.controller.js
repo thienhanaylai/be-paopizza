@@ -151,6 +151,33 @@ export const updatePaymentStatusOrder = async (req, res) => {
         data: result,
     });
 };
+
+export const customerCancelOrder = async (req, res) => {
+    const { order_id } = req.params;
+    const user = req.user;
+
+    if (!user || user.user_type !== 'Customer') {
+        return res.status(403).json({
+            message: 'Chỉ khách hàng mới được huỷ đơn hàng',
+        });
+    }
+
+    if (!user.ref_id) {
+        return res.status(400).json({
+            message: 'Không tìm thấy thông tin khách hàng',
+        });
+    }
+
+    const result = await orderService.customerCancelOrder({
+        order_id,
+        customer_id: user.ref_id,
+    });
+
+    return res.status(200).json({
+        message: 'Huỷ đơn hàng thành công',
+        data: result,
+    });
+};
 export const getHistoryOrder = async (req, res) => {
     const userId = req.user._id;
 

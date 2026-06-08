@@ -34,7 +34,6 @@ export const update = async (data) => {
     if (slug !== undefined) updateData.slug = slug;
     if (icon !== undefined) updateData.icon = icon;
 
-
     if (name || slug) {
         const duplicateQuery = {
             _id: { $ne: category_id },

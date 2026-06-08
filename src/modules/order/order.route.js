@@ -11,7 +11,11 @@ const requireStaff = authorize(['admin', 'manager', 'staff']);
 const router = express.Router();
 
 router.post('/', requireAuth, asyncHandler(orderController.createOrder));
-
+router.patch(
+    '/customer/cancel/:order_id',
+    requireAuth,
+    asyncHandler(orderController.customerCancelOrder),
+);
 router.get(
     '/history',
     requireAuth,
@@ -36,6 +40,7 @@ router.patch(
     requireStaff,
     asyncHandler(orderController.cancelOrder),
 );
+
 router.patch(
     '/updatePaymentStatus/:order_id',
     requireAuth,

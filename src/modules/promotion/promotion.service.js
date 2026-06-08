@@ -85,7 +85,6 @@ export const update = async (data) => {
     if (applicable_store !== undefined)
         updateData.applicable_store = applicable_store;
 
-    
     if (code) {
         const existing = await Promotion.findOne({
             code: code.toUpperCase().trim(),

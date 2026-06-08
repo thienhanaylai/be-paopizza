@@ -1,4 +1,3 @@
-
 import express from 'express';
 import passport from 'passport';
 import * as authController from './auth.controller.js';
