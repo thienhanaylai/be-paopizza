@@ -11,6 +11,7 @@ const router = express.Router();
 
 router.get('/', asyncHandler(menuController.getAllMenus));
 router.get('/:menu_id', asyncHandler(menuController.getMenu));
+router.get('/store/:store_id', asyncHandler(menuController.getMenuByStore));
 
 router.post(
     '/create',

@@ -25,6 +25,14 @@ router.post(
     asyncHandler(mediaController.uploadImage),
 );
 
+// upload ảnh ingredient
+const uploadIngredientImage = createUploader('ingredients');
+router.post(
+    '/ingredient',
+    uploadIngredientImage.single('image'),
+    asyncHandler(mediaController.uploadImage),
+);
+
 router.patch('/delete', asyncHandler(mediaController.deleteImage));
 
 export default router;

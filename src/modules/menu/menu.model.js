@@ -10,16 +10,9 @@ const menuSchema = new mongoose.Schema(
         products: {
             type: [
                 {
-                    product: {
-                        type: mongoose.Schema.Types.ObjectId,
-                        ref: 'Product',
-                        required: true,
-                    },
-                    overwirtePrice: {
-                        type: Number,
-                        default: 0,
-                        min: 0,
-                    },
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'Product',
+                    required: true,
                 },
             ],
             default: [],

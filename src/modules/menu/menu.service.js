@@ -1,15 +1,19 @@
+import mongoose from 'mongoose';
 import { Menu } from './menu.model.js';
 import '../store/store.model.js';
 import '../product/product.model.js';
 import '../combo/combo.model.js';
 
-const parseNumber = (value, fieldName) => {
-    if (value === undefined || value === null || value === '') return undefined;
-    const num = Number(value);
-    if (Number.isNaN(num)) {
-        throw new Error(`${fieldName} phải là số!`);
-    }
-    return num;
+const productPopulate = {
+    path: 'products',
+    populate: [
+        {
+            path: 'category',
+        },
+        {
+            path: 'variants.recipe.ingredient',
+        },
+    ],
 };
 
 const parseBoolean = (value, fieldName) => {
@@ -29,37 +33,22 @@ const normalizeProducts = (products) => {
     }
 
     return products.map((item, index) => {
-        if (!item || typeof item !== 'object') {
+        if (!item) {
             throw new Error(`Product #${index + 1} không hợp lệ!`);
         }
 
-        const product = item.product || item.product_id;
+        let product;
+        if (typeof item === 'string' || mongoose.Types.ObjectId.isValid(item)) {
+            product = item;
+        } else if (typeof item === 'object') {
+            product = item.product || item.product_id || item._id || item.id;
+        }
+
         if (!product) {
             throw new Error(`Thiếu product ở product #${index + 1}!`);
         }
 
-        const rawPrice =
-            item.overwirtePrice !== undefined
-                ? item.overwirtePrice
-                : item.overwritePrice;
-        const overwirtePrice =
-            rawPrice === undefined || rawPrice === null || rawPrice === ''
-                ? 0
-                : parseNumber(
-                      rawPrice,
-                      `overwirtePrice ở product #${index + 1}`,
-                  );
-
-        if (overwirtePrice < 0) {
-            throw new Error(
-                `overwirtePrice ở product #${index + 1} không hợp lệ!`,
-            );
-        }
-
-        return {
-            product,
-            overwirtePrice,
-        };
+        return product;
     });
 };
 
@@ -150,7 +139,7 @@ export const update = async (data) => {
         runValidators: true,
     })
         .populate('store', 'name')
-        .populate('products.product', 'name variants')
+        .populate(productPopulate)
         .populate('combos.combo', 'name price disscount disscountType');
     return result;
 };
@@ -158,7 +147,7 @@ export const update = async (data) => {
 export const getAll = async (query = {}) => {
     return await Menu.find(query)
         .populate('store', 'name')
-        .populate('products.product', 'name variants')
+        .populate(productPopulate)
         .populate('combos.combo', 'name price disscount disscountType')
         .sort({ createdAt: -1 })
         .lean();
@@ -167,7 +156,7 @@ export const getAll = async (query = {}) => {
 export const getById = async (menu_id) => {
     const menu = await Menu.findById(menu_id)
         .populate('store', 'name')
-        .populate('products.product', 'name variants')
+        .populate(productPopulate)
         .populate('combos.combo', 'name price disscount disscountType')
         .lean();
     if (!menu) {
@@ -202,5 +191,17 @@ export const updateStatus = async (menu_id, status) => {
     menu.status = nextStatus === undefined ? !menu.status : nextStatus;
 
     await menu.save();
+    return menu;
+};
+export const getByStore = async (store_id) => {
+    const menu = await Menu.findOne({ store: store_id })
+        .populate('store')
+        .select('-combos._id')
+        .populate(productPopulate)
+        .populate('combos.combo')
+        .lean();
+    if (!menu) {
+        throw new Error('Không tìm thấy menu!');
+    }
     return menu;
 };

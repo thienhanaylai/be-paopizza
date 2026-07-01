@@ -1,61 +1,12 @@
+import mongoose from 'mongoose';
 import { Employee } from '../employee/employee.model.js';
 import { Store, status as STORE_STATES } from './store.model.js';
 
 const CLOSED_STORE_STATE = 'close';
 
 const getActiveStoreFilter = () => ({
-    isDeleted: false,
+    status: { $ne: CLOSED_STORE_STATE },
 });
-
-const parseCoordinates = (coordinates) => {
-    if (!Array.isArray(coordinates) || coordinates.length !== 2) {
-        throw new Error('coordinates phải là mảng [lng, lat]!');
-    }
-
-    const [lng, lat] = coordinates;
-    const lngNum = Number(lng);
-    const latNum = Number(lat);
-
-    if (Number.isNaN(lngNum) || Number.isNaN(latNum)) {
-        throw new Error('coordinates phải là số!');
-    }
-
-    return [lngNum, latNum];
-};
-
-const normalizeLocation = (data) => {
-    if (data.location === undefined && data.coordinates === undefined) {
-        return undefined;
-    }
-
-    if (data.location === null || data.coordinates === null) {
-        return null;
-    }
-
-    const coordinates = data.coordinates ?? data.location?.coordinates;
-    if (!coordinates) {
-        throw new Error('Thiếu coordinates!');
-    }
-
-    return {
-        type: 'Point',
-        coordinates: parseCoordinates(coordinates),
-    };
-};
-
-const validateManager = async (manager_by) => {
-    if (manager_by === undefined || manager_by === null || manager_by === '') {
-        return;
-    }
-
-    const manager = await Employee.findOne({
-        _id: manager_by,
-        isDeleted: false,
-    });
-    if (!manager) {
-        throw new Error('Không tìm thấy nhân viên quản lý!');
-    }
-};
 
 export const create = async (data) => {
     const {
@@ -65,19 +16,58 @@ export const create = async (data) => {
         email,
         time_open,
         time_close,
-        manager_by,
         status = 'active',
+        location,
+        manager_by,
     } = data;
 
     if (!name || !address || !phone || !email || !time_open || !time_close) {
         throw new Error('Thiếu thông tin cửa hàng!');
     }
 
+    if (
+        typeof address !== 'object' ||
+        !address.streetNumber ||
+        !address.district ||
+        !address.city
+    ) {
+        throw new Error(
+            'Địa chỉ cửa hàng phải đầy đủ số nhà/đường, quận/huyện, tỉnh/thành phố!',
+        );
+    }
+
     if (!STORE_STATES.includes(status)) {
         throw new Error('Trạng thái cửa hàng không hợp lệ!');
     }
 
-    await validateManager(manager_by);
+    if (manager_by) {
+        if (!mongoose.Types.ObjectId.isValid(manager_by)) {
+            throw new Error('ID người quản lý không hợp lệ!');
+        }
+        const managerExists = await Employee.findOne({
+            _id: manager_by,
+            isDeleted: false,
+        });
+        if (!managerExists) {
+            throw new Error(
+                'Người quản lý (nhân viên) không tồn tại hoặc đã bị xóa!',
+            );
+        }
+    }
+
+    let locationPayload;
+    if (location) {
+        const { coordinates } = location;
+        if (!Array.isArray(coordinates) || coordinates.length !== 2) {
+            throw new Error(
+                'Tọa độ cửa hàng không hợp lệ! Phải gồm 2 số [kinh độ, vĩ độ]',
+            );
+        }
+        locationPayload = {
+            type: 'Point',
+            coordinates: coordinates.map(Number),
+        };
+    }
 
     const existing = await Store.findOne({
         ...getActiveStoreFilter(),
@@ -89,8 +79,6 @@ export const create = async (data) => {
         );
     }
 
-    const location = normalizeLocation(data);
-
     const payload = {
         name,
         address,
@@ -98,14 +86,10 @@ export const create = async (data) => {
         email,
         time_open,
         time_close,
-        manager_by,
         status,
-        isDeleted: false,
+        ...(locationPayload && { location: locationPayload }),
+        ...(manager_by && { manager_by }),
     };
-
-    if (location !== undefined) {
-        payload.location = location;
-    }
 
     const result = await Store.create(payload);
     return result;
@@ -118,15 +102,8 @@ export const update = async (data) => {
     }
 
     const store = await Store.findById(store_id);
-    if (!store || store.isDeleted) {
+    if (!store || store.status === CLOSED_STORE_STATE) {
         throw new Error('Không tìm thấy cửa hàng!');
-    }
-
-    if (updateData.manager_by !== undefined) {
-        await validateManager(updateData.manager_by);
-        if (updateData.manager_by === '') {
-            updateData.manager_by = null;
-        }
     }
 
     if (
@@ -136,11 +113,43 @@ export const update = async (data) => {
         throw new Error('Trạng thái cửa hàng không hợp lệ!');
     }
 
-    if (
-        updateData.isDeleted !== undefined &&
-        typeof updateData.isDeleted !== 'boolean'
-    ) {
-        throw new Error('isDeleted phải là boolean!');
+    if (updateData.address) {
+        const { streetNumber, district, city } = updateData.address;
+        if (!streetNumber || !district || !city) {
+            throw new Error(
+                'Địa chỉ cửa hàng phải đầy đủ số nhà/đường, quận/huyện, tỉnh/thành phố!',
+            );
+        }
+    }
+
+    if (updateData.manager_by) {
+        if (!mongoose.Types.ObjectId.isValid(updateData.manager_by)) {
+            throw new Error('ID người quản lý không hợp lệ!');
+        }
+        const managerExists = await Employee.findOne({
+            _id: updateData.manager_by,
+            isDeleted: false,
+        });
+        if (!managerExists) {
+            throw new Error(
+                'Người quản lý (nhân viên) không tồn tại hoặc đã bị xóa!',
+            );
+        }
+    } else if (updateData.manager_by === null || updateData.manager_by === '') {
+        updateData.manager_by = null;
+    }
+
+    if (updateData.location) {
+        const { coordinates } = updateData.location;
+        if (!Array.isArray(coordinates) || coordinates.length !== 2) {
+            throw new Error(
+                'Tọa độ cửa hàng không hợp lệ! Phải gồm 2 số [kinh độ, vĩ độ]',
+            );
+        }
+        updateData.location = {
+            type: 'Point',
+            coordinates: coordinates.map(Number),
+        };
     }
 
     const duplicateOrConditions = [];
@@ -161,19 +170,8 @@ export const update = async (data) => {
         }
     }
 
-    if (updateData.isDeleted === true) {
+    if (updateData.status === CLOSED_STORE_STATE) {
         updateData.status = CLOSED_STORE_STATE;
-    }
-
-    if (updateData.location === null || updateData.coordinates === null) {
-        updateData.location = null;
-        delete updateData.coordinates;
-    } else {
-        const normalizedLocation = normalizeLocation(updateData);
-        if (normalizedLocation !== undefined) {
-            updateData.location = normalizedLocation;
-            delete updateData.coordinates;
-        }
     }
 
     const result = await Store.findByIdAndUpdate(store_id, updateData, {
@@ -184,18 +182,32 @@ export const update = async (data) => {
 };
 
 export const getStore = async (store_id) => {
-    const store = await Store.findById(store_id).populate(
-        'manager_by',
-        'name email phone station status',
-    );
-    if (!store || store.isDeleted) throw new Error('Không tìm thấy cửa hàng!');
+    const store = await Store.findOne({
+        _id: store_id,
+        ...getActiveStoreFilter(),
+    }).populate('manager_by');
+    if (!store) throw new Error('Không tìm thấy cửa hàng!');
     return store;
 };
 
-export const getAllStore = async () => {
-    const stores = await Store.find(getActiveStoreFilter())
-        .populate('manager_by', 'name email phone station status')
-        .lean();
+export const getAllStore = async (query = {}) => {
+    const filter = {
+        ...getActiveStoreFilter(),
+    };
+
+    if (query.city) {
+        filter['address.city'] = { $regex: new RegExp(query.city, 'i') };
+    }
+    if (query.district) {
+        filter['address.district'] = {
+            $regex: new RegExp(query.district, 'i'),
+        };
+    }
+    if (query.status) {
+        filter.status = query.status;
+    }
+
+    const stores = await Store.find(filter).populate('manager_by').lean();
 
     const storesFinal = await Promise.all(
         stores.map(async (store) => {
@@ -225,7 +237,6 @@ export const deletedStore = async (store_id) => {
         store_id,
         {
             status: CLOSED_STORE_STATE,
-            isDeleted: true,
         },
         { new: true },
     );

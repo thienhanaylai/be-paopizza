@@ -53,3 +53,10 @@ export const updateMenuStatus = async (req, res) => {
         data: result,
     });
 };
+export const getMenuByStore = async (req, res) => {
+    const { store_id } = req.params;
+    const result = await menuService.getByStore(store_id);
+    return res.status(200).json({
+        data: result,
+    });
+};

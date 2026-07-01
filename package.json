@@ -10,6 +10,7 @@
     "start": "node src/server.js",
     "test:api": "node scripts/run-api-tests.js",
     "seed:sample": "node src/seeds/sample-data.seed.js",
+    "seed:product": "node src/seeds/product-from-csv.seed.js",
     "lint": "eslint . --ext .js",
     "lint:fix": "eslint . --ext .js --fix",
     "format": "prettier --write .",

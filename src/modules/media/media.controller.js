@@ -2,19 +2,30 @@ import cloudinary from './cloudinary.config.js';
 
 export const uploadImage = (req, res) => {
     try {
-        console.log(req.files);
-        if (!req.files) {
+        console.log(req.files || req.file);
+        if (!req.files && !req.file) {
             return res.status(400).json({
                 message: 'Không tìm thấy file tải lên. Vui lòng kiểm tra lại.',
             });
         }
 
-        const uploadedImages = req.files.map((file) => {
-            return {
-                url: file.path,
-                public_id: file.filename,
-            };
-        });
+        let uploadedImages = [];
+        if (req.files) {
+            uploadedImages = req.files.map((file) => {
+                return {
+                    url: file.path,
+                    public_id: file.filename,
+                };
+            });
+        } else if (req.file) {
+            uploadedImages = [
+                {
+                    url: req.file.path,
+                    public_id: req.file.filename,
+                },
+            ];
+        }
+
         return res.status(200).json({
             message: 'Tải ảnh lên thành công',
             data: uploadedImages,

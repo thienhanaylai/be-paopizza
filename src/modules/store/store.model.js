@@ -18,6 +18,21 @@ const pointSchema = new mongoose.Schema(
     { _id: false },
 );
 
+const detailAddress = new mongoose.Schema({
+    streetNumber: {
+        type: String,
+        required: true,
+    },
+    district: {
+        type: String,
+        required: true,
+    },
+    city: {
+        type: String,
+        required: true,
+    },
+});
+
 const storeSchema = new mongoose.Schema(
     {
         name: {
@@ -26,9 +41,8 @@ const storeSchema = new mongoose.Schema(
             trim: true,
         },
         address: {
-            type: String,
+            type: detailAddress,
             required: true,
-            trim: true,
         },
         location: {
             type: pointSchema,

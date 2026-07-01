@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
+import fs from 'fs';
+import path from 'path';
 import environment from '../config/environment.js';
 import { Cart } from '../modules/cart/cart.model.js';
 import { Category } from '../modules/category/category.model.js';
@@ -19,6 +21,8 @@ import { Shift } from '../modules/shift/shift.model.js';
 import { Store } from '../modules/store/store.model.js';
 import { Supplier } from '../modules/supplier/supplier.model.js';
 import { User } from '../modules/user/user.model.js';
+import { ingredientSeedCatalog } from './ingredient-catalog.js';
+import { buildSeedVariants } from './product-variant-builder.js';
 
 const TARGET_COUNT = 20;
 
@@ -26,6 +30,151 @@ const connectDatabase = async () => {
     await mongoose.connect(environment.mongoUri, {
         dbName: 'express_app',
     });
+};
+
+const slugify = (text) => {
+    return text
+        .toString()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+};
+
+const generateRecipe = (productName, categorySlug, ingMap) => {
+    const recipe = [];
+    const lowerName = productName.toLowerCase();
+
+    // Helper to add ingredient
+    const addIng = (name, quantity) => {
+        const ing = ingMap[name];
+        if (ing) {
+            recipe.push({
+                ingredient: ing._id,
+                quantity: quantity,
+                unit: ing.unit,
+            });
+        }
+    };
+
+    if (categorySlug === 'pizza') {
+        // Base ingredients for all pizzas
+        addIng('Bot Mi So 00', 0.25);
+        addIng('Pho Mai Mozzarella', 0.15);
+        addIng('Sot Ca Chua Napoli', 0.08);
+        addIng('Muoi Bien', 0.005);
+
+        // Specific pizza toppings
+        if (lowerName.includes('pepperoni')) {
+            addIng('Pepperoni Cat Lat', 0.1);
+        }
+        if (lowerName.includes('chicken') || lowerName.includes('ranch')) {
+            addIng('Uc Ga Phi Le', 0.12);
+        }
+        if (lowerName.includes('bbq')) {
+            addIng('Sot BBQ', 0.05);
+        }
+        if (lowerName.includes('shrimp')) {
+            addIng('Tom Tuoi', 0.08);
+        }
+        if (lowerName.includes('mushroom')) {
+            addIng('Nam Mo', 0.06);
+        }
+        if (lowerName.includes('garlic')) {
+            addIng('Toi Bam', 0.01);
+        }
+        if (lowerName.includes('pesto')) {
+            addIng('Dau Olive', 0.02);
+            addIng('La Que Kho', 1);
+        }
+        if (lowerName.includes('onion')) {
+            addIng('Hanh Tay', 0.04);
+        }
+        if (
+            lowerName.includes('cheese') &&
+            !lowerName.includes('ham & cheese')
+        ) {
+            const cheese = recipe.find(
+                (item) =>
+                    item.ingredient.toString() ===
+                    ingMap['Pho Mai Mozzarella']?._id?.toString(),
+            );
+            if (cheese) cheese.quantity += 0.1;
+        }
+    } else if (categorySlug === 'pasta') {
+        addIng('Dau Olive', 0.02);
+        addIng('Muoi Bien', 0.005);
+        addIng('Tieu Den Xay', 0.002);
+
+        if (lowerName.includes('carbonara')) {
+            addIng('Pho Mai Mozzarella', 0.05);
+        }
+        if (lowerName.includes('meat')) {
+            addIng('Thit Bo Xay', 0.1);
+            addIng('Sot Ca Chua Napoli', 0.1);
+        }
+        if (lowerName.includes('shrimp')) {
+            addIng('Tom Tuoi', 0.08);
+        }
+        if (lowerName.includes('pesto')) {
+            addIng('La Que Kho', 1);
+        }
+    } else if (categorySlug === 'salad') {
+        addIng('Dau Olive', 0.015);
+        addIng('Muoi Bien', 0.002);
+
+        if (lowerName.includes('caesar')) {
+            addIng('Uc Ga Phi Le', 0.08);
+            addIng('Sot Mayonnaise', 0.03);
+        }
+        if (lowerName.includes('shrimp')) {
+            addIng('Tom Tuoi', 0.06);
+        }
+    } else if (categorySlug === 'dessert') {
+        addIng('Duong Nau', 0.05);
+    } else if (categorySlug === 'appetizer') {
+        if (lowerName.includes('dodster')) {
+            addIng('Pho Mai Mozzarella', 0.05);
+            if (lowerName.includes('masala')) {
+                addIng('Toi Bam', 0.005);
+            }
+            if (lowerName.includes('spicy')) {
+                addIng('Tieu Den Xay', 0.003);
+            }
+            if (lowerName.includes('ham')) {
+                addIng('Pepperoni Cat Lat', 0.04);
+            }
+        }
+        if (lowerName.includes('nugget') || lowerName.includes('bite')) {
+            addIng('Uc Ga Phi Le', 0.15);
+        }
+        if (lowerName.includes('potato')) {
+            addIng('Muoi Bien', 0.005);
+            if (lowerName.includes('cheese')) {
+                addIng('Pho Mai Mozzarella', 0.06);
+            }
+        }
+        if (lowerName.includes('omelette')) {
+            addIng('Muoi Bien', 0.002);
+            if (lowerName.includes('ham')) {
+                addIng('Pepperoni Cat Lat', 0.03);
+            }
+            if (lowerName.includes('cheese')) {
+                addIng('Pho Mai Mozzarella', 0.05);
+            }
+            if (lowerName.includes('mushroom')) {
+                addIng('Nam Mo', 0.03);
+            }
+        }
+        if (lowerName.includes('shrimp')) {
+            addIng('Tom Tuoi', 0.1);
+        }
+    }
+
+    return recipe;
 };
 
 const clearSampleData = async () => {
@@ -89,6 +238,19 @@ const seededRandom = (seed) => {
     return value - Math.floor(value);
 };
 
+const sampleSeededItems = (items, count, seed) => {
+    const pool = [...items];
+
+    for (let index = pool.length - 1; index > 0; index -= 1) {
+        const swapIndex = Math.floor(
+            seededRandom(seed + index * 1.37) * (index + 1),
+        );
+        [pool[index], pool[swapIndex]] = [pool[swapIndex], pool[index]];
+    }
+
+    return pool.slice(0, Math.min(count, pool.length));
+};
+
 const createOrderTimestamp = (index, storeCount) => {
     const seedBase = index + storeCount * 37;
     const yearRange = ORDER_YEAR_MAX - ORDER_YEAR_MIN + 1;
@@ -124,7 +286,11 @@ const seedSampleData = async () => {
     const stores = await Store.insertMany(
         Array.from({ length: TARGET_COUNT }, (_, index) => ({
             name: `Pao Pizza Store ${pad(index + 1)}`,
-            address: `${100 + index} Street ${pad(index + 1)}, ${pick(districtPool, index)}, ${pick(cityPool, index)}`,
+            address: {
+                streetNumber: `${100 + index} Street ${pad(index + 1)}`,
+                district: pick(districtPool, index),
+                city: pick(cityPool, index),
+            },
             location: {
                 type: 'Point',
                 coordinates: [106.6 + index * 0.01, 10.7 + index * 0.005],
@@ -199,37 +365,7 @@ const seedSampleData = async () => {
         },
     ]);
 
-    const ingredientSeedData = [
-        { name: 'Bot Mi So 00', unit: 'kg', category: 'dough' },
-        { name: 'Pho Mai Mozzarella', unit: 'kg', category: 'other' },
-        { name: 'Sot Ca Chua Napoli', unit: 'lit', category: 'sauce' },
-        { name: 'Pepperoni Cat Lat', unit: 'kg', category: 'meat' },
-        { name: 'Uc Ga Phi Le', unit: 'kg', category: 'meat' },
-        { name: 'Thit Bo Xay', unit: 'kg', category: 'meat' },
-        { name: 'Tom Tuoi', unit: 'kg', category: 'seafood' },
-        { name: 'Muc Ong Cat Khoanh', unit: 'kg', category: 'seafood' },
-        { name: 'Nam Mo', unit: 'kg', category: 'vegetable' },
-        { name: 'Ot Chuong Do', unit: 'kg', category: 'vegetable' },
-        { name: 'Ot Chuong Vang', unit: 'kg', category: 'vegetable' },
-        { name: 'Hanh Tay', unit: 'kg', category: 'vegetable' },
-        { name: 'Toi Bam', unit: 'kg', category: 'vegetable' },
-        { name: 'La Que Kho', unit: 'package', category: 'other' },
-        { name: 'Dau Olive', unit: 'lit', category: 'other' },
-        { name: 'Duong Nau', unit: 'kg', category: 'other' },
-        { name: 'Muoi Bien', unit: 'kg', category: 'other' },
-        { name: 'Tieu Den Xay', unit: 'kg', category: 'other' },
-        { name: 'Sot Mayonnaise', unit: 'lit', category: 'sauce' },
-        { name: 'Sot BBQ', unit: 'lit', category: 'sauce' },
-    ];
-
-    const ingredients = await Ingredient.insertMany(
-        ingredientSeedData.map((ingredient, index) => ({
-            ...ingredient,
-            cost_per_unit: 120 + index * 15,
-            is_active: index % 7 !== 0,
-            isDeleted: false,
-        })),
-    );
+    const ingredients = await Ingredient.insertMany(ingredientSeedCatalog);
 
     const supplierCategories = [
         'main_ingredient',
@@ -249,97 +385,127 @@ const seedSampleData = async () => {
         })),
     );
 
-    const productStyle = [
-        'Classic',
-        'Premium',
-        'Family',
-        'Hot Deal',
-        'Chef Special',
-    ];
-    const variantSizes = ['S', 'M', 'L', 'Regular'];
+    const categoriesMap = {};
+    for (const cat of categories) {
+        categoriesMap[cat.slug] = cat._id;
+    }
 
-    const products = await Product.insertMany(
-        Array.from({ length: TARGET_COUNT }, (_, index) => {
-            const ingredientA = ingredients[index % ingredients.length];
-            const ingredientB = ingredients[(index + 4) % ingredients.length];
-            const ingredientC = ingredients[(index + 9) % ingredients.length];
-            const basePrice = 59000 + index * 3000;
-            const firstSize = pick(variantSizes, index);
-            const secondSize = pick(variantSizes, index + 1);
+    const ingMap = {};
+    for (const ing of ingredients) {
+        ingMap[ing.name] = ing;
+    }
 
-            return {
-                category: categories[index % categories.length]._id,
-                name: `${pick(productStyle, index)} Item ${pad(index + 1)}`,
-                description: `Menu item ${pad(index + 1)} with balanced flavors and flexible size.`,
-                is_active: index % 9 !== 0,
-                variants: [
-                    {
-                        sku: `PRD-${pad(index + 1, 3)}-${firstSize}`,
-                        disscountType: index % 2 === 0 ? 'percent' : 'amount',
-                        discount:
-                            index % 2 === 0
-                                ? 5 + (index % 3) * 2
-                                : 10000 + index * 500,
-                        price: basePrice,
-                        size: firstSize,
-                        image: {
-                            url: `https://picsum.photos/seed/product-${index + 1}-a/1200/800`,
-                            public_id: `seed-product-${index + 1}-a`,
-                        },
-                        recipe: [
-                            {
-                                ingredient: ingredientA._id,
-                                quantity: 120 + index,
-                                unit: ingredientA.unit,
-                            },
-                            {
-                                ingredient: ingredientB._id,
-                                quantity: 80 + (index % 15),
-                                unit: ingredientB.unit,
-                            },
-                            {
-                                ingredient: ingredientC._id,
-                                quantity: 30 + (index % 12),
-                                unit: ingredientC.unit,
-                            },
-                        ],
-                    },
-                    {
-                        sku: `PRD-${pad(index + 1, 3)}-${secondSize}`,
-                        disscountType: index % 2 === 0 ? 'percent' : 'amount',
-                        discount:
-                            index % 2 === 0
-                                ? 8 + (index % 4) * 2
-                                : 12000 + index * 700,
-                        price: basePrice + 20000,
-                        size: secondSize,
-                        image: {
-                            url: `https://picsum.photos/seed/product-${index + 1}-b/1200/800`,
-                            public_id: `seed-product-${index + 1}-b`,
-                        },
-                        recipe: [
-                            {
-                                ingredient: ingredientA._id,
-                                quantity: 170 + index,
-                                unit: ingredientA.unit,
-                            },
-                            {
-                                ingredient: ingredientB._id,
-                                quantity: 110 + (index % 20),
-                                unit: ingredientB.unit,
-                            },
-                            {
-                                ingredient: ingredientC._id,
-                                quantity: 45 + (index % 16),
-                                unit: ingredientC.unit,
-                            },
-                        ],
-                    },
-                ],
+    const csvFiles = ['pizza.csv', 'pasta_deset_salad_.csv', 'drink.csv'];
+    const productsData = [];
+    const seenNames = new Set();
+
+    for (const fileName of csvFiles) {
+        const csvPath = path.join(import.meta.dirname, fileName);
+        if (!fs.existsSync(csvPath)) {
+            console.warn(`CSV file not found at ${csvPath}, skipping...`);
+            continue;
+        }
+
+        const fileContent = fs.readFileSync(csvPath, 'utf8');
+        const lines = fileContent
+            .split(/\r?\n/)
+            .filter((line) => line.trim() !== '');
+        if (lines.length <= 1) continue;
+
+        const headers = lines[0].split(',').map((h) => h.trim());
+        const nameIndex =
+            headers.indexOf('@name') !== -1
+                ? headers.indexOf('@name')
+                : headers.indexOf('name');
+        const priceIndex = headers.indexOf('price');
+        const imageIndex = headers.indexOf('image');
+
+        if (nameIndex === -1 || priceIndex === -1 || imageIndex === -1) {
+            console.error(`Invalid CSV headers in ${fileName}. Skipping.`);
+            continue;
+        }
+
+        for (let i = 1; i < lines.length; i++) {
+            const row = lines[i].split(',');
+            if (row.length < 3) continue;
+
+            const rawName = row[nameIndex].trim();
+            const rawPrice = parseFloat(
+                row[priceIndex].trim().replace(/[^\d.]/g, ''),
+            );
+            const rawImage = row[imageIndex].trim();
+
+            if (!rawName || Number.isNaN(rawPrice)) {
+                console.warn(
+                    `Skipping invalid row in ${fileName} at line ${i + 1}: ${lines[i]}`,
+                );
+                continue;
+            }
+
+            if (seenNames.has(rawName)) {
+                console.log(
+                    `Duplicate product found: "${rawName}". Keeping first occurrence.`,
+                );
+                continue;
+            }
+            seenNames.add(rawName);
+
+            let categoryId;
+            let categorySlug;
+            const lowerFileName = fileName.toLowerCase();
+            if (lowerFileName.includes('pizza')) {
+                categoryId = categoriesMap['pizza'];
+                categorySlug = 'pizza';
+            } else if (lowerFileName.includes('drink')) {
+                categoryId = categoriesMap['drink'];
+                categorySlug = 'drink';
+            } else {
+                const lowerName = rawName.toLowerCase();
+                if (
+                    lowerName.includes('pasta') ||
+                    lowerName.includes('carbonara')
+                ) {
+                    categoryId = categoriesMap['pasta'];
+                    categorySlug = 'pasta';
+                } else if (lowerName.includes('salad')) {
+                    categoryId = categoriesMap['salad'];
+                    categorySlug = 'salad';
+                } else if (
+                    lowerName.includes('dessert') ||
+                    lowerName.includes('cake') ||
+                    lowerName.includes('cookie') ||
+                    lowerName.includes('deset')
+                ) {
+                    categoryId = categoriesMap['dessert'];
+                    categorySlug = 'dessert';
+                } else {
+                    categoryId = categoriesMap['appetizer'];
+                    categorySlug = 'appetizer';
+                }
+            }
+
+            const finalPrice = rawPrice * 1000;
+            const slug = slugify(rawName);
+            const recipe = generateRecipe(rawName, categorySlug, ingMap);
+
+            productsData.push({
+                category: categoryId,
+                name: rawName,
+                description: `${rawName} made with premium fresh ingredients.`,
+                is_active: true,
                 isDeleted: false,
-            };
-        }),
-    );
+                variants: buildSeedVariants({
+                    slug,
+                    basePrice: finalPrice,
+                    categorySlug,
+                    imageUrl: rawImage,
+                    recipe,
+                }),
+            });
+        }
+    }
+
+    const products = await Product.insertMany(productsData);
 
     const categoryBySlug = new Map(
         categories.map((category) => [category.slug, category]),
@@ -410,24 +576,28 @@ const seedSampleData = async () => {
 
     const menus = await Menu.insertMany(
         stores.map((store, index) => {
-            const startIndex = (index * 2) % products.length;
-            const productItems = Array.from({ length: 3 }, (_, pIndex) => {
-                const product =
-                    products[(startIndex + pIndex) % products.length];
-                const basePrice = product?.variants?.[0]?.price || 0;
-                const overwirtePrice =
-                    index % 2 === 0 ? Math.max(0, basePrice - 5000) : 0;
+            const maxMenuProductCount = Math.min(30, products.length);
+            const minMenuProductCount = Math.min(12, maxMenuProductCount);
+            const productCount =
+                maxMenuProductCount === 0
+                    ? 0
+                    : minMenuProductCount +
+                      Math.floor(
+                          seededRandom((index + 1) * 41.41) *
+                              (maxMenuProductCount - minMenuProductCount + 1),
+                      );
 
-                return {
-                    product: product._id,
-                    overwirtePrice,
-                };
-            });
+            const productItems = sampleSeededItems(
+                products,
+                productCount,
+                (index + 1) * 17.17,
+            ).map((product) => product._id);
 
-            const comboItems =
-                combos.length > 0
-                    ? [{ combo: combos[index % combos.length]._id }]
-                    : [];
+            const comboItems = sampleSeededItems(
+                combos,
+                3,
+                (index + 1) * 29.29,
+            ).map((combo) => ({ combo: combo._id }));
 
             return {
                 store: store._id,

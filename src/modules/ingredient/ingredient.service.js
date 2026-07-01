@@ -5,7 +5,7 @@ import {
 } from './ingredient.model.js';
 
 export const create = async (data) => {
-    const { name, unit, category, cost_per_unit, is_active } = data;
+    const { name, unit, category, cost_per_unit, is_active, image } = data;
     const ingredient = await Ingredient.findOne({ name });
     if (ingredient) {
         throw new Error(`Đã có nguyên liệu: ${name} trong danh sách!`);
@@ -28,12 +28,23 @@ export const create = async (data) => {
         createData.is_active = is_active;
     }
 
+    if (image !== undefined) {
+        createData.image = image;
+    }
+
     return Ingredient.create(createData);
 };
 
 export const update = async (data) => {
-    const { ingredient_id, name, unit, category, cost_per_unit, is_active } =
-        data;
+    const {
+        ingredient_id,
+        name,
+        unit,
+        category,
+        cost_per_unit,
+        is_active,
+        image,
+    } = data;
     const ingredient = await Ingredient.findOne({
         _id: ingredient_id,
         isDeleted: false,
@@ -58,6 +69,10 @@ export const update = async (data) => {
 
     if (is_active !== undefined) {
         updateData.is_active = is_active;
+    }
+
+    if (image !== undefined) {
+        updateData.image = image;
     }
 
     return Ingredient.findByIdAndUpdate(ingredient_id, updateData, {

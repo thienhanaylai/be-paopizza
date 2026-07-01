@@ -4,26 +4,24 @@ export const createStore = async (req, res) => {
     const {
         name,
         address,
-        location,
-        coordinates,
         phone,
         email,
         time_open,
         time_close,
-        manager_by,
         status,
+        location,
+        manager_by,
     } = req.body;
     const result = await storeService.create({
         name,
         address,
-        location,
-        coordinates,
         phone,
         email,
         time_open,
         time_close,
-        manager_by,
         status,
+        location,
+        manager_by,
     });
     return res.status(201).json({
         message: 'Tạo cửa hàng mới thành công!',
@@ -45,7 +43,7 @@ export const updateStore = async (req, res) => {
 };
 
 export const getAllStore = async (req, res) => {
-    const result = await storeService.getAllStore();
+    const result = await storeService.getAllStore(req.query);
     return res.status(200).json({
         data: result,
     });

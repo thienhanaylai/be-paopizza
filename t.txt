@@ -1,0 +1,17 @@
+Module Auth: Quản lý việc bảo mật cho tài khoản, đăng nhập của khách hàng, đăng nhập của nhân viên.
+Module Category: Quản lý các nhóm sản phẩm (Ví dụ: Pizza, Đồ uống, Món khai vị).
+Module Order: Xử lý đơn đặt hàng Pizza.
+Module Combo: Quản lý các nhóm sản phẩm bán kèm với giá ưu đãi.
+Module Cart: Lưu trữ tạm thời các sản phẩm mà khách hàng muốn mua trước khi tiến hành thanh toán.
+Module Product: Quản lý chi tiết các món ăn, đồ uống có trong menu nhà hàng.
+Module Ingredient: Quản lý danh mục nguyên vật liệu thô (flour, cheese, meat, sausage,...).
+Module Inventory: Kiểm soát số lượng nguyên vật liệu trong kho của mỗi chi nhánh cửa hàng.
+Module Customer: Quản lý thông tin hồ sơ cá nhân của khách hàng mua pizza, hỗ trợ các khách hàng thân thiết.
+Module Media: Xử lý upload, lưu trữ và xóa các tệp tin đa phương tiện (ảnh sản phẩm, ảnh combo, logo cửa hàng).
+Module Promotion: Quản lý các mã giảm giá và chiến dịch kích cầu.
+Module Supplier: Quản lý thông tin các nhà cung cấp nguyên liệu.
+Module Menu: Thiết lập thực đơn riêng biệt cho từng chi nhánh cửa hàng.
+Module Employee: Quản lý hồ sơ nhân viên trong toàn hệ thống chuỗi cửa hàng.
+Module User: Quản lý thông tin tài khoản đăng nhập (Username, Password, Role) cho cả Khách hàng và Nhân viên.
+Module Payment: Tích hợp cổng thanh toán trực tuyến.
+Module Store: Quản lý các chi nhánh/điểm bán của PaoPizza.
