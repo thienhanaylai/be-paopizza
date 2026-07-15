@@ -66,6 +66,8 @@ const normalizeRules = (rules) => {
             rule.applicableProducts === undefined
                 ? []
                 : rule.applicableProducts;
+        const applicableSizes =
+            rule.applicableSizes === undefined ? [] : rule.applicableSizes;
 
         if (!Array.isArray(applicableCategories)) {
             throw new Error(
@@ -75,6 +77,11 @@ const normalizeRules = (rules) => {
         if (!Array.isArray(applicableProducts)) {
             throw new Error(
                 `applicableProducts ở rule #${index + 1} phải là mảng!`,
+            );
+        }
+        if (!Array.isArray(applicableSizes)) {
+            throw new Error(
+                `applicableSizes ở rule #${index + 1} phải là mảng!`,
             );
         }
         if (
@@ -90,19 +97,18 @@ const normalizeRules = (rules) => {
             groupName,
             applicableCategories,
             applicableProducts,
+            applicableSizes,
             requiredQuantity,
         };
     });
 };
 
 const getDiscountValue = (data) => {
-    if (data.disscount !== undefined) return data.disscount;
     if (data.discount !== undefined) return data.discount;
     return undefined;
 };
 
 const getDiscountType = (data) => {
-    if (data.disscountType !== undefined) return data.disscountType;
     if (data.discountType !== undefined) return data.discountType;
     return undefined;
 };
@@ -111,12 +117,12 @@ const parseDiscountType = (value) => {
     if (value === undefined || value === null || value === '') return undefined;
     const normalized = String(value).trim().toLowerCase();
     if (!DISCOUNT_TYPES.has(normalized)) {
-        throw new Error('disscountType phải là percent hoặc amount!');
+        throw new Error('discountType phải là percent hoặc amount!');
     }
     return normalized;
 };
 
-export const create = async (data) => {
+export const create = async (data, file) => {
     const {
         name,
         description = '',
@@ -127,15 +133,15 @@ export const create = async (data) => {
         is_active,
     } = data;
 
-    const disscountType = parseDiscountType(getDiscountType(data));
+    const discountType = parseDiscountType(getDiscountType(data));
 
-    if (!name || !dateStart || !dateEnd || !disscountType) {
+    if (!name || !dateStart || !dateEnd || !discountType) {
         throw new Error(
-            'Thiếu thông tin name, disscountType hoặc ngày bắt đầu/kết thúc!',
+            'Thiếu thông tin name, discountType hoặc ngày bắt đầu/kết thúc!',
         );
     }
 
-    const discountValue = parseNumber(getDiscountValue(data) ?? 0, 'disscount');
+    const discountValue = parseNumber(getDiscountValue(data) ?? 0, 'discount');
     const price = parseNumber(data.price, 'price');
     if (price === undefined) {
         throw new Error('Thiếu price combo!');
@@ -157,15 +163,18 @@ export const create = async (data) => {
         throw new Error('Combo với tên này đã tồn tại!');
     }
 
+    // Ưu tiên ảnh upload qua file, nếu không có thì dùng image từ body
+    const imageUrl = file?.path || image || '';
+
     const payload = {
         name,
         description,
         dateStart: startDate,
         dateEnd: endDate,
-        image,
+        image: imageUrl,
         rules: normalizedRules,
-        disscountType,
-        disscount: discountValue ?? 0,
+        discountType,
+        discount: discountValue ?? 0,
         price,
     };
 
@@ -176,7 +185,7 @@ export const create = async (data) => {
     return await Combo.create(payload);
 };
 
-export const update = async (data) => {
+export const update = async (data, file) => {
     const { combo_id, ...updateData } = data;
     if (!combo_id) {
         throw new Error('Thiếu combo_id!');
@@ -198,26 +207,21 @@ export const update = async (data) => {
         }
     }
 
-    if (
-        updateData.disscount === undefined &&
-        updateData.discount !== undefined
-    ) {
-        updateData.disscount = updateData.discount;
+    // Ưu tiên ảnh upload qua file, nếu không có thì giữ nguyên ảnh cũ
+    if (file?.path) {
+        updateData.image = file.path;
     }
-    delete updateData.discount;
 
-    if (getDiscountType(updateData) !== undefined) {
-        updateData.disscountType = parseDiscountType(
-            getDiscountType(updateData),
-        );
+    if (updateData.discount !== undefined) {
+        updateData.discount = parseNumber(updateData.discount, 'discount');
     }
-    delete updateData.discountType;
+
+    if (updateData.discountType !== undefined) {
+        updateData.discountType = parseDiscountType(updateData.discountType);
+    }
 
     if (updateData.price !== undefined) {
         updateData.price = parseNumber(updateData.price, 'price');
-    }
-    if (updateData.disscount !== undefined) {
-        updateData.disscount = parseNumber(updateData.disscount, 'disscount');
     }
     if (updateData.is_active !== undefined) {
         updateData.is_active = parseBoolean(updateData.is_active, 'is_active');

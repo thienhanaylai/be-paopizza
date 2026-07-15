@@ -56,3 +56,15 @@ export const deletedPromotion = async (req, res) => {
         data: result,
     });
 };
+
+export const applyPromoCode = async (req, res) => {
+    const { code, orderTotal, storeId } = req.body;
+    const result = await promotionService.applyPromotion(
+        code,
+        orderTotal,
+        storeId,
+    );
+    return res.status(200).json({
+        data: result,
+    });
+};

@@ -135,3 +135,107 @@ export const deleted = async (promotion_id) => {
     }
     return promotion;
 };
+
+/**
+ * Kiểm tra và áp dụng mã khuyến mãi
+ * @param {string} code - Mã khuyến mãi
+ * @param {number} orderTotal - Tổng giá trị đơn hàng
+ * @param {string} storeId - ID cửa hàng
+ * @returns {Object} Kết quả áp dụng mã
+ */
+export const applyPromotion = async (code, orderTotal, storeId) => {
+    if (!code || orderTotal === undefined || orderTotal === null) {
+        throw new Error('Thiếu mã khuyến mãi hoặc tổng đơn hàng!');
+    }
+
+    const parsedTotal = Number(orderTotal);
+    if (Number.isNaN(parsedTotal) || parsedTotal < 0) {
+        throw new Error('Tổng đơn hàng không hợp lệ!');
+    }
+
+    // Tìm mã khuyến mãi
+    const promotion = await Promotion.findOne({
+        code: code.toUpperCase().trim(),
+        isDeleted: false,
+    });
+
+    if (!promotion) {
+        return {
+            valid: false,
+            code: code.toUpperCase().trim(),
+            discountType: 'fixed',
+            discountValue: 0,
+            discountAmount: 0,
+            message: 'Mã khuyến mãi không tồn tại!',
+        };
+    }
+
+    // Kiểm tra trạng thái
+    if (promotion.status !== 'active') {
+        return {
+            valid: false,
+            code: promotion.code,
+            discountType: promotion.type === 'percentage' ? 'percent' : 'fixed',
+            discountValue: promotion.value,
+            discountAmount: 0,
+            message: 'Mã khuyến mãi không còn hiệu lực!',
+        };
+    }
+
+    // Kiểm tra thời hạn
+    const now = new Date();
+    if (now < promotion.start_date) {
+        return {
+            valid: false,
+            code: promotion.code,
+            discountType: promotion.type === 'percentage' ? 'percent' : 'fixed',
+            discountValue: promotion.value,
+            discountAmount: 0,
+            message: 'Mã khuyến mãi chưa đến thời gian áp dụng!',
+        };
+    }
+    if (now > promotion.end_date) {
+        return {
+            valid: false,
+            code: promotion.code,
+            discountType: promotion.type === 'percentage' ? 'percent' : 'fixed',
+            discountValue: promotion.value,
+            discountAmount: 0,
+            message: 'Mã khuyến mãi đã hết hạn!',
+        };
+    }
+
+    // Kiểm tra cửa hàng áp dụng
+    if (promotion.applicable_store && promotion.applicable_store.length > 0) {
+        const storeIds = promotion.applicable_store.map((id) => id.toString());
+
+        if (storeId && !storeIds.includes(storeId.toString())) {
+            return {
+                valid: false,
+                code: promotion.code,
+                discountType:
+                    promotion.type === 'percentage' ? 'percent' : 'fixed',
+                discountValue: promotion.value,
+                discountAmount: 0,
+                message: 'Mã khuyến mãi không áp dụng cho cửa hàng này!',
+            };
+        }
+    }
+
+    // Tính số tiền giảm
+    let discountAmount = 0;
+    if (promotion.type === 'percentage') {
+        discountAmount = Math.round((parsedTotal * promotion.value) / 100);
+    } else {
+        discountAmount = Math.min(promotion.value, parsedTotal);
+    }
+
+    return {
+        valid: true,
+        code: promotion.code,
+        discountType: promotion.type === 'percentage' ? 'percent' : 'fixed',
+        discountValue: promotion.value,
+        discountAmount,
+        message: 'Áp dụng mã khuyến mãi thành công!',
+    };
+};

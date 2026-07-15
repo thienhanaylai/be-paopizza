@@ -47,4 +47,6 @@ router.patch(
     asyncHandler(promotionController.deletedPromotion),
 );
 
+router.post('/apply', asyncHandler(promotionController.applyPromoCode));
+
 export default router;

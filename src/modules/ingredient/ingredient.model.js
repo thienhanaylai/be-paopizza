@@ -51,6 +51,11 @@ const ingredientSchema = new mongoose.Schema(
             default: 0,
             min: 0,
         },
+        price: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
         image: {
             type: String,
             default: '',

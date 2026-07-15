@@ -19,6 +19,10 @@ const ruleSchema = new mongoose.Schema(
                 ref: 'Product',
             },
         ],
+        applicableSizes: {
+            type: [String],
+            default: [],
+        },
         requiredQuantity: {
             type: Number,
             required: true,
@@ -56,12 +60,12 @@ const comboSchema = new mongoose.Schema(
             type: [ruleSchema],
             default: [],
         },
-        disscountType: {
+        discountType: {
             type: String,
             enum: ['percent', 'amount'],
             require: true,
         },
-        disscount: {
+        discount: {
             type: Number,
             default: 0,
             min: 0,

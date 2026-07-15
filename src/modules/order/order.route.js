@@ -1,7 +1,7 @@
 import express from 'express';
 import passport from 'passport';
 import * as orderController from './order.controller.js';
-import { authorize } from '../auth/auth.middleware.js';
+import { authorize, optionalAuth } from '../auth/auth.middleware.js';
 import { asyncHandler } from '../../middlewares/index.js';
 
 const requireAuth = passport.authenticate('jwt', { session: false });
@@ -10,7 +10,8 @@ const requireStaff = authorize(['admin', 'manager', 'staff']);
 
 const router = express.Router();
 
-router.post('/', requireAuth, asyncHandler(orderController.createOrder));
+// Khách vãng lai (không cần đăng nhập) cũng có thể tạo đơn hàng
+router.post('/', optionalAuth, asyncHandler(orderController.createOrder));
 router.patch(
     '/customer/cancel/:order_id',
     requireAuth,

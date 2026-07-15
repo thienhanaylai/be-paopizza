@@ -1,11 +1,42 @@
 import { Order, PAYMENT_STATUSES } from './order.model.js';
 import { Product } from '../product/product.model.js';
+import { Combo } from '../combo/combo.model.js';
 import { Promotion } from '../promotion/promotion.model.js';
 import { User } from '../user/user.model.js';
 import { paymentService } from '../payment/payment.service.js';
 
 const SEPAY_QR_PAYMENT_METHODS = new Set(['qrCode', 'ewallet']);
 const CASH_PAYMENT_METHODS = new Set(['cash']);
+
+/**
+ * Chuẩn hoá added_topping: frontend có thể gửi mảng string (chỉ chứa ingredient ID)
+ * hoặc mảng object { ingredient, quantity }. Luôn trả về mảng object.
+ */
+const normalizeAddedTopping = (added_topping = []) => {
+    return added_topping.map((item) => {
+        if (typeof item === 'string') {
+            return { ingredient: item, quantity: 1 };
+        }
+        return {
+            ingredient: item.ingredient,
+            quantity: item.quantity || 1,
+        };
+    });
+};
+
+const POPULATE_ORDER = [
+    { path: 'store_id' },
+    { path: 'customer_id' },
+    { path: 'employee_id' },
+    { path: 'items.product_id', select: 'name variants' },
+    { path: 'items.combo_id', select: 'name price image' },
+    { path: 'items.combo_selections.product_id', select: 'name variants' },
+    { path: 'items.added_topping.ingredient', select: 'name price unit' },
+    {
+        path: 'items.combo_selections.added_topping.ingredient',
+        select: 'name price unit',
+    },
+];
 
 export const create = async (data) => {
     const {
@@ -35,47 +66,160 @@ export const create = async (data) => {
     const populatedItems = [];
 
     for (const item of items) {
-        const { product_id, size, quantity = 1, note = '' } = item;
-        if (!product_id || !size || quantity < 1) {
-            throw new Error(
-                'Thông tin item trong đơn hàng không hợp lệ (product_id, size, quantity)',
-            );
-        }
-
-        const product =
-            await Product.findById(product_id).select('variants name');
-        if (!product) {
-            throw new Error('Không tìm thấy sản phẩm!');
-        }
-
-        const variant = product.variants.find(
-            (v) => v.size.toLowerCase() === size.toLowerCase(),
-        );
-        if (!variant) {
-            throw new Error(`Size "${size}" không tồn tại cho sản phẩm này`);
-        }
-
-        const price = variant.price;
-        sub_total += price * quantity;
-
-        populatedItems.push({
+        const {
+            item_type = 'product',
             product_id,
-            price,
             size,
-            quantity,
-            note,
-        });
+            quantity = 1,
+            note = '',
+            added_topping = [],
+            combo_id,
+            combo_selections = [],
+        } = item;
 
-        if (variant.recipe?.length) {
-            for (const rec of variant.recipe) {
-                const ingId = rec.ingredient._id.toString();
-                const needed = (rec.quantity || 1) * quantity;
-                inventoryUpdates.set(
-                    ingId,
-                    (inventoryUpdates.get(ingId) || 0) + needed,
+        if (quantity < 1) {
+            throw new Error('Số lượng item phải lớn hơn 0!');
+        }
+
+        let price;
+        let sku;
+        let finalSize = size;
+
+        if (item_type === 'product') {
+            if (!size) {
+                throw new Error('Thiếu size cho sản phẩm!');
+            }
+            if (!product_id) {
+                throw new Error('Thiếu product_id cho sản phẩm');
+            }
+            const product =
+                await Product.findById(product_id).select('variants name');
+            if (!product) {
+                throw new Error('Không tìm thấy sản phẩm!');
+            }
+
+            const variant = product.variants.find(
+                (v) => v.size.toLowerCase() === size.toLowerCase(),
+            );
+            if (!variant) {
+                throw new Error(
+                    `Size "${size}" không tồn tại cho sản phẩm này`,
                 );
             }
+
+            price = variant.price;
+            sku = variant.sku;
+
+            if (variant.recipe?.length) {
+                for (const rec of variant.recipe) {
+                    const ingId = rec.ingredient._id.toString();
+                    const needed = (rec.quantity || 1) * quantity;
+                    inventoryUpdates.set(
+                        ingId,
+                        (inventoryUpdates.get(ingId) || 0) + needed,
+                    );
+                }
+            }
+
+            populatedItems.push({
+                item_type,
+                product_id,
+                sku,
+                price,
+                size,
+                quantity,
+                note,
+                added_topping: normalizeAddedTopping(added_topping),
+            });
+        } else if (item_type === 'combo') {
+            console.log(item);
+            if (!combo_id) {
+                throw new Error('Thiếu combo_id cho combo');
+            }
+
+            finalSize = 'combo';
+
+            if (
+                !Array.isArray(combo_selections) ||
+                combo_selections.length === 0
+            ) {
+                throw new Error(
+                    'Combo phải có ít nhất 1 lựa chọn (combo_selections)!',
+                );
+            }
+
+            const selectionProductIds = combo_selections
+                .map((sel) => sel.product_id)
+                .filter(Boolean);
+
+            const selectionProducts = await Product.find({
+                _id: { $in: selectionProductIds },
+            })
+                .populate('category', 'slug name')
+                .lean();
+
+            const pizzaProductIds = new Set(
+                selectionProducts
+                    .filter(
+                        (p) =>
+                            p.category?.slug === 'pizza' ||
+                            p.category?.name?.toLowerCase() === 'pizza',
+                    )
+                    .map((p) => p._id.toString()),
+            );
+
+            for (let i = 0; i < combo_selections.length; i++) {
+                const sel = combo_selections[i];
+                if (!sel.product_id) {
+                    throw new Error(
+                        `Thiếu product_id trong combo_selections #${i + 1}!`,
+                    );
+                }
+                if (!sel.size) {
+                    throw new Error(
+                        `Thiếu size trong combo_selections #${i + 1}!`,
+                    );
+                }
+                // Chỉ kiểm tra crust nếu sản phẩm là pizza
+                if (
+                    pizzaProductIds.has(sel.product_id.toString()) &&
+                    !sel.crust
+                ) {
+                    throw new Error(
+                        `Thiếu crust trong combo_selections #${i + 1} (pizza)!`,
+                    );
+                }
+            }
+
+            const combo = await Combo.findById(combo_id).select('price');
+            if (!combo) {
+                throw new Error('Không tìm thấy combo');
+            }
+            price = combo.price;
+            sku = `COMBO-${combo_id}`;
+
+            // Chuẩn hoá added_topping trong từng combo_selection
+            const normalizedSelections = combo_selections.map((sel) => ({
+                ...sel,
+                added_topping: normalizeAddedTopping(sel.added_topping),
+            }));
+
+            populatedItems.push({
+                item_type,
+                sku,
+                price,
+                size: finalSize,
+                quantity,
+                note,
+                added_topping: normalizeAddedTopping(added_topping),
+                combo_id,
+                combo_selections: normalizedSelections,
+            });
+        } else {
+            throw new Error(`Loại item không hợp lệ: ${item_type}`);
         }
+
+        sub_total += price * quantity;
     }
 
     let discount_amount = 0;
@@ -101,18 +245,6 @@ export const create = async (data) => {
 
     const total = sub_total - discount_amount;
 
-    // for (const [ingIdStr, needed] of inventoryUpdates.entries()) {
-    //     const inventory = await Inventory.findOne({
-    //         store_id,
-    //         ingredient_id: ingIdStr,
-    //     });
-    //     if (!inventory || inventory.current_stock < needed) {
-    //         throw new Error(
-    //             `Hết nguyên liệu cho một số món trong đơn hàng! Vui lòng kiểm tra kho.`,
-    //         );
-    //     }
-    // }
-
     const orderData = {
         store_id,
         customer_id,
@@ -131,25 +263,16 @@ export const create = async (data) => {
 
     const order = await Order.create(orderData);
 
-    // // Cập nhật tồn kho
-    // for (const [ingIdStr, needed] of inventoryUpdates.entries()) {
-    //     await Inventory.findOneAndUpdate(
-    //         { store_id, ingredient_id: ingIdStr },
-    //         { $inc: { current_stock: -needed } },
-    //         { new: true },
-    //     );
-    // }
-
     const populatedOrder = await Order.findOne({
         _id: order._id,
         isDeleted: false,
-    }).populate('store_id customer_id employee_id items.product_id');
+    }).populate(POPULATE_ORDER);
 
     let payment_info = null;
 
     if (SEPAY_QR_PAYMENT_METHODS.has(paymentMethod)) {
         payment_info = await paymentService.createPaymentRequest({
-            orderId: populatedOrder._id.toString(), // Truyền ID thật của đơn hàng
+            orderId: populatedOrder._id.toString(),
         });
     }
 
@@ -163,7 +286,7 @@ export const getAll = async (query = {}) => {
     const filter = { isDeleted: false, ...query };
 
     return await Order.find(filter)
-        .populate('store_id customer_id employee_id items.product_id')
+        .populate(POPULATE_ORDER)
         .sort({ createdAt: -1 });
 };
 
@@ -171,7 +294,7 @@ export const getById = async (order_id) => {
     const order = await Order.findOne({
         _id: order_id,
         isDeleted: false,
-    }).populate('store_id customer_id employee_id items.product_id');
+    }).populate(POPULATE_ORDER);
     if (!order) {
         throw new Error('Không tìm thấy đơn hàng!');
     }
@@ -219,7 +342,7 @@ export const updateStatus = async (order_id, status) => {
     const order = await Order.findByIdAndUpdate(order_id, payload, {
         new: true,
         runValidators: true,
-    }).populate('store_id customer_id employee_id items.product_id');
+    }).populate(POPULATE_ORDER);
 
     return order;
 };
@@ -257,7 +380,7 @@ export const updatePaymentStatus = async (order_id, paymentStatus) => {
     return await Order.findOne({
         _id: order._id,
         isDeleted: false,
-    }).populate('store_id customer_id employee_id items.product_id');
+    }).populate(POPULATE_ORDER);
 };
 
 export const cancelOrder = async (order_id) => {
@@ -321,9 +444,7 @@ export const getHistoryOrder = async (user_id) => {
         .select('-password');
     const orders = await Order.find({
         customer_id: customer.ref_id._id,
-    })
-        .populate('items.product_id')
-        .populate('store_id');
+    }).populate(POPULATE_ORDER);
 
     if (!orders) {
         throw new Error('Chưa có đơn hàng nào!');
@@ -332,9 +453,7 @@ export const getHistoryOrder = async (user_id) => {
 };
 
 export const getAllHistoryOrder = async () => {
-    const orders = await Order.find({})
-        .populate('items.product_id')
-        .populate('store_id');
+    const orders = await Order.find({}).populate(POPULATE_ORDER);
 
     if (!orders) {
         throw new Error('Chưa có đơn hàng nào!');

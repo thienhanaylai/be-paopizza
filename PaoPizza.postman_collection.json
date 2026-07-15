@@ -1342,7 +1342,7 @@
     },
     {
       "name": "Cart",
-      "description": "Shopping cart management.\n\nAll routes require JWT. Cart is identified by `userId` (mapped to `user_id` in DB).",
+      "description": "Shopping cart management.\n\nAll routes require JWT. Cart is identified by `userId` (mapped to `user_id` in DB).\n\nSupport 2 item types: `product` and `combo`.\n- Product items: require `product_id`, optional `added_topping` (array of Ingredient ObjectIds)\n- Combo items: require `combo_id`, optional `combo_selections` (array of { product_id, sku, size, added_topping })",
       "item": [
         {
           "name": "Get Cart By User Id",
@@ -1368,7 +1368,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0050\",\n    \"user_id\": \"67a8b123456789abcdef0007\",\n    \"items\": [\n      {\n        \"product_id\": {\n          \"_id\": \"67a8b123456789abcdef0060\",\n          \"name\": \"Pizza Margherita\",\n          \"variants\": [\n            {\n              \"size\": \"M\",\n              \"price\": 99000\n            }\n          ]\n        },\n        \"sku\": \"PIZ-MAR-M\",\n        \"price\": 99000,\n        \"size\": \"M\",\n        \"quantity\": 2,\n        \"note\": \"Khong hanh\"\n      }\n    ],\n    \"createdAt\": \"2024-01-01T00:00:00.000Z\",\n    \"updatedAt\": \"2024-01-01T00:00:00.000Z\"\n  }\n}"
+              "body": "{\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0050\",\n    \"user_id\": \"67a8b123456789abcdef0007\",\n    \"items\": [\n      {\n        \"item_type\": \"product\",\n        \"product_id\": {\n          \"_id\": \"67a8b123456789abcdef0060\",\n          \"name\": \"Pizza Margherita\",\n          \"variants\": [\n            {\n              \"size\": \"M\",\n              \"price\": 99000\n            }\n          ]\n        },\n        \"sku\": \"PIZ-MAR-M\",\n        \"price\": 99000,\n        \"size\": \"M\",\n        \"quantity\": 2,\n        \"note\": \"Khong hanh\",\n        \"added_topping\": []\n      }\n    ],\n    \"createdAt\": \"2024-01-01T00:00:00.000Z\",\n    \"updatedAt\": \"2024-01-01T00:00:00.000Z\"\n  }\n}"
             },
             {
               "name": "200 - Empty Cart",
@@ -1385,7 +1385,7 @@
           ]
         },
         {
-          "name": "Add To Cart",
+          "name": "Add Product To Cart",
           "request": {
             "method": "POST",
             "header": [
@@ -1400,7 +1400,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": \"{{userIdForCart}}\",\n  \"product_id\": \"{{productId}}\",\n  \"size\": \"M\",\n  \"quantity\": 1,\n  \"note\": \"Khong hanh\"\n}",
+              "raw": "{\n  \"userId\": \"{{userIdForCart}}\",\n  \"item_type\": \"product\",\n  \"product_id\": \"{{productId}}\",\n  \"size\": \"M\",\n  \"quantity\": 1,\n  \"note\": \"Khong hanh\",\n  \"added_topping\": [\n    { \"ingredient\": \"{{ingredientId}}\", \"quantity\": 2 }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1408,7 +1408,7 @@
               }
             },
             "url": "{{baseUrl}}/cart",
-            "description": "Add an item to cart. If same `product_id` + `size` already exists, quantity is increased. **Requires JWT.**\n\n**Body**:\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| userId | string | Yes | User ObjectId |\n| product_id | string | Yes | Product ObjectId |\n| size | string | Yes | Must match product variant size (case-insensitive) |\n| quantity | number | No | default: 1, must be >= 1 |\n| note | string | No | default: '' |\n\n**Response 200**:\n```json\n{\n  \"data\": {\n    \"_id\": \"...\",\n    \"user_id\": \"...\",\n    \"items\": [ ... ]\n  }\n}\n```\n\n**Response 400**: `{ \"message\": \"Thiếu thông tin sản phẩm hoặc quantity không hợp lệ\" }`"
+            "description": "Add a product item to cart. If same `item_type` + `product_id` + `size` already exists, quantity is increased. **Requires JWT.**\n\n**Body**:\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| userId | string | Yes | User ObjectId |\n| item_type | string | No | 'product' (default) or 'combo' |\n| product_id | string | Yes* | Required when item_type='product' |\n| size | string | Yes | Must match product variant size |\n| quantity | number | No | default: 1, must be >= 1 |\n| note | string | No | default: '' |\n| added_topping | [object] | No | [{ ingredient: ObjectId, quantity: number }] |"
           },
           "response": [
             {
@@ -1422,6 +1422,47 @@
                 }
               ],
               "body": "{\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0050\",\n    \"user_id\": \"67a8b123456789abcdef0007\",\n    \"items\": [\n      {\n        \"product_id\": {\n          \"_id\": \"67a8b123456789abcdef0060\",\n          \"name\": \"Pizza Margherita\",\n          \"variants\": [\n            {\n              \"size\": \"M\",\n              \"price\": 99000\n            }\n          ]\n        },\n        \"sku\": \"PIZ-MAR-M\",\n        \"price\": 99000,\n        \"size\": \"M\",\n        \"quantity\": 1,\n        \"note\": \"Khong hanh\"\n      }\n    ],\n    \"createdAt\": \"2024-01-01T00:00:00.000Z\",\n    \"updatedAt\": \"2024-01-01T00:00:00.000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Add Combo To Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userIdForCart}}\",\n  \"item_type\": \"combo\",\n  \"combo_id\": \"{{comboId}}\",\n  \"size\": \"M\",\n  \"quantity\": 1,\n  \"note\": \"\",\n  \"combo_selections\": [\n    {\n      \"product_id\": \"{{productId}}\",\n      \"sku\": \"SKU-001\",\n      \"crust\": \"thin\",\n      \"size\": \"M\",\n      \"added_topping\": [\n        { \"ingredient\": \"{{ingredientId}}\", \"quantity\": 1 }\n      ]\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/cart",
+            "description": "Add a combo item to cart. If same `item_type` + `combo_id` + `size` already exists, quantity is increased. **Requires JWT.**\n\n**Body**:\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| userId | string | Yes | User ObjectId |\n| item_type | string | Yes | 'combo' |\n| combo_id | string | Yes | Combo ObjectId |\n| size | string | Yes | Size identifier |\n| quantity | number | No | default: 1, must be >= 1 |\n| note | string | No | default: '' |\n| combo_selections | [object] | No | [{ product_id, sku, crust, size, added_topping: [{ ingredient, quantity }] }] |"
+          },
+          "response": [
+            {
+              "name": "200 - Combo Added",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0050\",\n    \"user_id\": \"67a8b123456789abcdef0007\",\n    \"items\": [\n      {\n        \"item_type\": \"combo\",\n        \"combo_id\": {\n          \"_id\": \"67a8b123456789abcdef0100\",\n          \"name\": \"Combo 1\",\n          \"price\": 120000\n        },\n        \"sku\": \"COMBO-...\",\n        \"price\": 120000,\n        \"size\": \"M\",\n        \"quantity\": 1,\n        \"note\": \"\",\n        \"combo_selections\": [\n          {\n            \"product_id\": \"67a8b123456789abcdef0060\",\n            \"sku\": \"SKU-001\",\n            \"crust\": \"thin\",\n            \"size\": \"M\",\n            \"added_topping\": []\n          }\n        ]\n      }\n    ]\n  }\n}"
             }
           ]
         },
@@ -1441,7 +1482,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": \"{{userIdForCart}}\",\n  \"product_id\": \"{{productId}}\",\n  \"size\": \"M\"\n}",
+              "raw": "{\n  \"userId\": \"{{userIdForCart}}\",\n  \"item_type\": \"product\",\n  \"product_id\": \"{{productId}}\",\n  \"size\": \"M\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1449,7 +1490,7 @@
               }
             },
             "url": "{{baseUrl}}/cart/remove",
-            "description": "Remove one cart item by `product_id` + `size`. Body requires: `userId`, `product_id`, `size`. **Requires JWT.**"
+            "description": "Remove one cart item by `item_type` + (`product_id` or `combo_id`) + `size`. Body requires: `userId`, `size`. For product: `item_type='product'`, `product_id`. For combo: `item_type='combo'`, `combo_id`. **Requires JWT.**"
           },
           "response": [
             {
@@ -1482,7 +1523,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": \"{{userIdForCart}}\",\n  \"product_id\": \"{{productId}}\",\n  \"size\": \"M\",\n  \"quantity\": 3,\n  \"note\": \"Không hành\"\n}",
+              "raw": "{\n  \"userId\": \"{{userIdForCart}}\",\n  \"item_type\": \"product\",\n  \"product_id\": \"{{productId}}\",\n  \"size\": \"M\",\n  \"quantity\": 3,\n  \"note\": \"Không hành\",\n  \"added_topping\": []\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1490,7 +1531,7 @@
               }
             },
             "url": "{{baseUrl}}/cart/update",
-            "description": "Update quantity/note of an existing cart item. Body requires: `userId`, `product_id`, `size` and optional `quantity`, `note`. If `quantity < 1`, item is removed. **Requires JWT.**"
+            "description": "Update quantity/note/topping of an existing cart item. Body requires: `userId`, `size` + (`product_id` for product, `combo_id` for combo). Optional: `quantity`, `note`, `added_topping`. If `quantity < 1`, item is removed. **Requires JWT.**"
           },
           "response": [
             {
@@ -1503,7 +1544,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"message\": \"Cập nhật giỏ hàng thành công\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0050\",\n    \"user_id\": \"67a8b123456789abcdef0007\",\n    \"items\": [\n      {\n        \"product_id\": {\n          \"_id\": \"67a8b123456789abcdef0060\",\n          \"name\": \"Pizza Margherita\",\n          \"variants\": [\n            {\n              \"size\": \"M\",\n              \"price\": 99000\n            }\n          ]\n        },\n        \"sku\": \"PIZ-MAR-M\",\n        \"price\": 99000,\n        \"size\": \"M\",\n        \"quantity\": 3,\n        \"note\": \"Khong hanh\"\n      }\n    ]\n  }\n}"
+              "body": "{\n  \"message\": \"Cập nhật giỏ hàng thành công\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0050\",\n    \"user_id\": \"67a8b123456789abcdef0007\",\n    \"items\": [\n      {\n        \"item_type\": \"product\",\n        \"product_id\": {\n          \"_id\": \"67a8b123456789abcdef0060\",\n          \"name\": \"Pizza Margherita\",\n          \"variants\": [\n            {\n              \"size\": \"M\",\n              \"price\": 99000\n            }\n          ]\n        },\n        \"sku\": \"PIZ-MAR-M\",\n        \"price\": 99000,\n        \"size\": \"M\",\n        \"quantity\": 3,\n        \"note\": \"Khong hanh\",\n        \"added_topping\": []\n      }\n    ]\n  }\n}"
             }
           ]
         },
@@ -2005,7 +2046,7 @@
     },
     {
       "name": "Ingredient",
-      "description": "Ingredient management.\n\nPublic endpoints: GET /ingredient, GET /ingredient/category, GET /ingredient/unit.\nProtected endpoints: GET /ingredient/:ingredient_id (JWT), create/update/updateActive/deleted (JWT + admin).",
+      "description": "Ingredient management.\n\nFields: name, unit, category, cost_per_unit, price, image, is_active, isDeleted.\nPublic endpoints: GET /ingredient, GET /ingredient/category, GET /ingredient/unit.\nProtected endpoints: GET /ingredient/:ingredient_id (JWT), create/update/updateActive/deleted (JWT + admin).",
       "item": [
         {
           "name": "Get All Ingredients",
@@ -2090,7 +2131,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Bột mì\",\n  \"unit\": \"kg\",\n  \"category\": \"dough\",\n  \"cost_per_unit\": 12000,\n  \"is_active\": true\n}",
+              "raw": "{\n  \"name\": \"Bột mì\",\n  \"unit\": \"kg\",\n  \"category\": \"dough\",\n  \"cost_per_unit\": 12000,\n  \"price\": 16000,\n  \"is_active\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2098,7 +2139,7 @@
               }
             },
             "url": "{{baseUrl}}/ingredient/create",
-            "description": "Create new ingredient. Requires JWT + admin.\n\nBody: name, unit (required). Optional: category, cost_per_unit, is_active.\nCategory slug: dough, seafood, meat, sauce, vegetable, drink, other.\nUnit slug: gram, kg, ml, lit, piece, box, can, bag.\nTest script sets ingredientId variable."
+            "description": "Create new ingredient. Requires JWT + admin.\n\nBody: name, unit (required). Optional: category, cost_per_unit, price, is_active, image.\nCategory slug: dough, seafood, meat, sauce, vegetable, drink, other.\nUnit slug: gram, kg, ml, lit, piece, box, can, bag, package.\nTest script sets ingredientId variable."
           },
           "response": [
             {
@@ -2131,7 +2172,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"ingredient_id\": \"{{ingredientId}}\",\n  \"name\": \"Bột mì Updated\",\n  \"unit\": \"kg\",\n  \"category\": \"dough\",\n  \"cost_per_unit\": 15000,\n  \"is_active\": true\n}",
+              "raw": "{\n  \"ingredient_id\": \"{{ingredientId}}\",\n  \"name\": \"Bột mì Updated\",\n  \"unit\": \"kg\",\n  \"category\": \"dough\",\n  \"cost_per_unit\": 15000,\n  \"price\": 20000,\n  \"is_active\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2139,7 +2180,7 @@
               }
             },
             "url": "{{baseUrl}}/ingredient/update",
-            "description": "Update ingredient (ingredient_id in body). **Yêu cầu admin.** Required: ingredient_id, name, unit. Optional: category, cost_per_unit, is_active."
+            "description": "Update ingredient (ingredient_id in body). **Yêu cầu admin.** Required: ingredient_id, name, unit. Optional: category, cost_per_unit, price, is_active, image."
           },
           "response": [
             {
@@ -2280,7 +2321,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"result\": [\n    { \"name\": \"Gram\", \"slug\": \"gram\" },\n    { \"name\": \"Kí\", \"slug\": \"kg\" }\n  ]\n}"
+              "body": "{\n  \"result\": [\n    { \"name\": \"Gram\", \"slug\": \"gram\" },\n    { \"name\": \"Kí\", \"slug\": \"kg\" },\n    { \"name\": \"Ml\", \"slug\": \"ml\" },\n    { \"name\": \"Lít\", \"slug\": \"lit\" },\n    { \"name\": \"Cái\", \"slug\": \"piece\" },\n    { \"name\": \"Hộp\", \"slug\": \"box\" },\n    { \"name\": \"Lon\", \"slug\": \"can\" },\n    { \"name\": \"Bao\", \"slug\": \"bag\" },\n    { \"name\": \"Gói\", \"slug\": \"package\" }\n  ]\n}"
             }
           ]
         }
@@ -3257,7 +3298,7 @@
     },
     {
       "name": "Orders",
-      "description": "Order management endpoints",
+      "description": "Order management endpoints.\n\nItems support 2 types: `product` and `combo`.\n- Product items: require `item_type='product'`, `product_id`, `sku`, `size`. Optional: `added_topping`\n- Combo items: require `item_type='combo'`, `combo_id`, `size`. Optional: `combo_selections`",
       "item": [
         {
           "name": "Create Order",
@@ -3275,7 +3316,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"store_id\": \"{{storeId}}\",\n  \"customer_id\": null,\n  \"employee_id\": null,\n  \"items\": [\n    {\n      \"product_id\": \"{{productId}}\",\n      \"size\": \"S\",\n      \"quantity\": 1,\n      \"note\": \"Khong hanh\"\n    }\n  ],\n  \"order_type\": \"carry_out\",\n  \"paymentMethod\": \"cash\",\n  \"promotion_code\": \"\",\n  \"contact_info\": {\n    \"full_name\": \"Khach Test\",\n    \"phone\": \"0909000999\",\n    \"address\": \"1 Nguyen Hue, TP.HCM\",\n    \"email\": \"khach.test@example.com\"\n  }\n}",
+              "raw": "{\n  \"store_id\": \"{{storeId}}\",\n  \"customer_id\": null,\n  \"employee_id\": null,\n  \"items\": [\n    {\n      \"item_type\": \"product\",\n      \"product_id\": \"{{productId}}\",\n      \"sku\": \"SKU-EXAMPLE\",\n      \"size\": \"S\",\n      \"quantity\": 1,\n      \"note\": \"Khong hanh\",\n      \"added_topping\": [\n        { \"ingredient\": \"{{ingredientId}}\", \"quantity\": 2 }\n      ]\n    }\n  ],\n  \"order_type\": \"carry_out\",\n  \"paymentMethod\": \"cash\",\n  \"promotion_code\": \"\",\n  \"contact_info\": {\n    \"full_name\": \"Khach Test\",\n    \"phone\": \"0909000999\",\n    \"address\": \"1 Nguyen Hue, TP.HCM\",\n    \"email\": \"khach.test@example.com\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3283,7 +3324,7 @@
               }
             },
             "url": "{{baseUrl}}/orders",
-            "description": "Create order. Price is auto-resolved from product variant by size. customer_id/employee_id should be ObjectId or null. Requires JWT."
+            "description": "Create order. Price is auto-resolved from product variant by size (product) or combo price (combo). customer_id/employee_id should be ObjectId or null. Requires JWT.\n\n**Items fields**:\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| item_type | string | Yes | 'product' or 'combo' |\n| product_id | string | Yes* | Required when item_type='product' |\n| combo_id | string | Yes* | Required when item_type='combo' |\n| sku | string | Yes | SKU from variant |\n| size | string | Yes | Size identifier |\n| quantity | number | No | default: 1 |\n| note | string | No | default: '' |\n| added_topping | [object] | No | [{ ingredient: ObjectId, quantity: number }] |\n| combo_selections | [object] | No | For combo: [{ product_id, sku, crust, size, added_topping }] |"
           },
           "response": []
         },

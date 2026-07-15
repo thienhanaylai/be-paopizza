@@ -1,12 +1,30 @@
 import { Cart } from './cart.model.js';
 import { Product } from '../product/product.model.js';
+import { Combo } from '../combo/combo.model.js';
 
 export const getCart = async (data) => {
     const { userId } = data;
-    let cart = await Cart.findOne({ user_id: userId }).populate({
-        path: 'items.product_id',
-        select: 'name variants',
-    });
+    let cart = await Cart.findOne({ user_id: userId })
+        .populate({
+            path: 'items.product_id',
+            select: 'name variants',
+        })
+        .populate({
+            path: 'items.combo_id',
+            select: 'name price image',
+        })
+        .populate({
+            path: 'items.combo_selections.product_id',
+            select: 'name variants',
+        })
+        .populate({
+            path: 'items.added_topping.ingredient',
+            select: 'name price unit',
+        })
+        .populate({
+            path: 'items.combo_selections.added_topping.ingredient',
+            select: 'name price unit',
+        });
     if (!cart) {
         cart = await Cart.create({ user_id: userId });
     }
@@ -14,9 +32,30 @@ export const getCart = async (data) => {
 };
 
 export const addToCart = async (data) => {
-    const { userId, product_id, size, quantity = 1, note = '' } = data;
-    if (!product_id || !size || quantity < 1) {
-        throw new Error('Thiếu thông tin sản phẩm hoặc quantity không hợp lệ');
+    const {
+        userId,
+        item_type = 'product',
+        product_id,
+        size = '',
+        quantity = 1,
+        note = '',
+        added_topping = [],
+        combo_id,
+        combo_selections = [],
+    } = data;
+    console.log(data);
+    if (quantity < 1) {
+        throw new Error('Quantity không hợp lệ');
+    }
+
+    if (item_type === 'product' && !product_id) {
+        throw new Error('Thiếu product_id cho sản phẩm');
+    }
+    if (item_type === 'combo' && !combo_id) {
+        throw new Error('Thiếu combo_id cho combo');
+    }
+    if (item_type === 'product' && !size) {
+        throw new Error('Thiếu size');
     }
 
     let cart = await Cart.findOne({ user_id: userId });
@@ -24,42 +63,73 @@ export const addToCart = async (data) => {
         cart = new Cart({ user_id: userId });
     }
 
-    const product = await Product.findById(product_id).select('variants name');
-    if (!product) {
-        throw new Error('Không tìm thấy sản phẩm');
+    let price;
+    let sku;
+
+    if (item_type === 'product') {
+        const product =
+            await Product.findById(product_id).select('variants name');
+        if (!product) {
+            throw new Error('Không tìm thấy sản phẩm');
+        }
+
+        const variant = product.variants.find(
+            (item) => item.size.toLowerCase() === size.toLowerCase(),
+        );
+        if (!variant) {
+            throw new Error(`Size "${size}" không tồn tại cho sản phẩm này`);
+        }
+
+        price = variant.price;
+        sku = variant.sku;
+    } else if (item_type === 'combo') {
+        const combo = await Combo.findById(combo_id).select('price');
+        if (!combo) {
+            throw new Error('Không tìm thấy combo');
+        }
+        price = combo.price;
+        sku = `COMBO-${combo_id}`;
     }
 
-    const variant = product.variants.find(
-        (item) => item.size.toLowerCase() === size.toLowerCase(),
-    );
+    // Find existing item: match by item_type, and by product_id or combo_id + size
+    const existingIndex = cart.items.findIndex((item) => {
+        if (item.item_type !== item_type) return false;
+        if (item.size.toLowerCase() !== size.toLowerCase()) return false;
 
-    if (!variant) {
-        throw new Error(`Size "${size}" không tồn tại cho sản phẩm này`);
-    }
-
-    const existingIndex = cart.items.findIndex(
-        (item) =>
-            item.product_id.toString() === product_id.toString() &&
-            item.size.toLowerCase() === size.toLowerCase(),
-    );
-
-    const price = variant.price;
-    const sku = variant.sku;
+        if (item_type === 'product') {
+            return item.product_id.toString() === product_id.toString();
+        } else {
+            return item.combo_id.toString() === combo_id.toString();
+        }
+    });
 
     if (existingIndex !== -1) {
         cart.items[existingIndex].quantity += quantity;
         cart.items[existingIndex].price = price;
         cart.items[existingIndex].sku = sku;
         if (note) cart.items[existingIndex].note = note;
+        if (added_topping.length > 0) {
+            cart.items[existingIndex].added_topping = added_topping;
+        }
     } else {
-        cart.items.push({
-            product_id,
+        const newItem = {
+            item_type,
             price,
             sku,
             size,
             quantity,
             note,
-        });
+            added_topping,
+        };
+
+        if (item_type === 'product') {
+            newItem.product_id = product_id;
+        } else {
+            newItem.combo_id = combo_id;
+            newItem.combo_selections = combo_selections;
+        }
+
+        cart.items.push(newItem);
     }
 
     await cart.save();
@@ -67,36 +137,53 @@ export const addToCart = async (data) => {
 };
 
 export const removeFromCart = async (data) => {
-    const { userId, product_id, size } = data;
+    const { userId, item_type = 'product', product_id, combo_id, size } = data;
     const cart = await Cart.findOne({ user_id: userId });
     if (!cart) {
         throw new Error('Không tìm thấy giỏ hàng');
     }
 
-    cart.items = cart.items.filter(
-        (item) =>
-            !(
-                item.product_id.toString() === product_id.toString() &&
-                item.size.toLowerCase() === size.toLowerCase()
-            ),
-    );
+    cart.items = cart.items.filter((item) => {
+        if (item.item_type !== item_type) return true;
+        if (item.size.toLowerCase() !== size.toLowerCase()) return false;
+
+        if (item_type === 'product') {
+            return item.product_id.toString() !== product_id.toString();
+        } else {
+            return item.combo_id.toString() !== combo_id.toString();
+        }
+    });
 
     await cart.save();
     return await getCart({ userId });
 };
 
 export const updateCartItem = async (data) => {
-    const { userId, product_id, size, quantity, note } = data;
+    const {
+        userId,
+        item_type = 'product',
+        product_id,
+        combo_id,
+        size,
+        quantity,
+        note,
+        added_topping,
+    } = data;
     const cart = await Cart.findOne({ user_id: userId });
     if (!cart) {
         throw new Error('Không tìm thấy giỏ hàng');
     }
 
-    const itemIndex = cart.items.findIndex(
-        (item) =>
-            item.product_id.toString() === product_id.toString() &&
-            item.size.toLowerCase() === size.toLowerCase(),
-    );
+    const itemIndex = cart.items.findIndex((item) => {
+        if (item.item_type !== item_type) return false;
+        if (item.size.toLowerCase() !== size.toLowerCase()) return false;
+
+        if (item_type === 'product') {
+            return item.product_id.toString() === product_id.toString();
+        } else {
+            return item.combo_id.toString() === combo_id.toString();
+        }
+    });
 
     if (itemIndex === -1) {
         throw new Error('Không tìm thấy item trong giỏ hàng');
@@ -111,6 +198,9 @@ export const updateCartItem = async (data) => {
     }
     if (note !== undefined) {
         cart.items[itemIndex].note = note;
+    }
+    if (added_topping !== undefined) {
+        cart.items[itemIndex].added_topping = added_topping;
     }
 
     await cart.save();

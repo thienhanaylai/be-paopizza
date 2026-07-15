@@ -1,7 +1,7 @@
 import * as comboService from './combo.service.js';
 
 export const createCombo = async (req, res) => {
-    const result = await comboService.create(req.body);
+    const result = await comboService.create(req.body, req.file);
     return res.status(201).json({
         message: 'Thêm combo thành công!',
         data: result,
@@ -10,10 +10,13 @@ export const createCombo = async (req, res) => {
 
 export const updateCombo = async (req, res) => {
     const combo_id = req.params.combo_id || req.body.combo_id || req.body.id;
-    const result = await comboService.update({
-        combo_id,
-        ...req.body,
-    });
+    const result = await comboService.update(
+        {
+            combo_id,
+            ...req.body,
+        },
+        req.file,
+    );
     return res.status(200).json({
         message: 'Cập nhật combo thành công!',
         data: result,

@@ -517,7 +517,7 @@ const seedSampleData = async () => {
     const combos = await Combo.insertMany(
         Array.from({ length: comboCount }, (_, index) => {
             const type = index % 2 === 0 ? 'percent' : 'amount';
-            const disscount =
+            const discount =
                 type === 'percent'
                     ? 10 + (index % 3) * 5
                     : 15000 + index * 1000;
@@ -526,8 +526,8 @@ const seedSampleData = async () => {
             const basePrice = productA?.variants?.[0]?.price || 90000;
             const price =
                 type === 'percent'
-                    ? Math.max(0, Math.round(basePrice * (1 - disscount / 100)))
-                    : Math.max(0, basePrice - disscount);
+                    ? Math.max(0, Math.round(basePrice * (1 - discount / 100)))
+                    : Math.max(0, basePrice - discount);
 
             const rules = [];
             if (pizzaCategory) {
@@ -565,8 +565,8 @@ const seedSampleData = async () => {
                 dateEnd: dateUtc(2026, 5, 15 + index),
                 image: `https://picsum.photos/seed/combo-${index + 1}/1200/800`,
                 rules,
-                disscountType: type,
-                disscount,
+                discountType: type,
+                discount,
                 price,
                 is_active: index % 3 !== 0,
                 isDeleted: false,
@@ -815,23 +815,27 @@ const seedSampleData = async () => {
 
             const items = [
                 {
+                    item_type: 'product',
                     product_id: productA._id,
                     sku: variantA.sku,
                     price: variantA.price,
                     size: variantA.size,
                     quantity: 1 + (index % 3),
                     note: pick(cartNotes, index),
+                    added_topping: [],
                 },
             ];
 
             if (index % 2 === 0) {
                 items.push({
+                    item_type: 'product',
                     product_id: productB._id,
                     sku: variantB.sku,
                     price: variantB.price,
                     size: variantB.size,
                     quantity: 1,
                     note: pick(cartNotes, index + 2),
+                    added_topping: [],
                 });
             }
 
@@ -1057,21 +1061,27 @@ const seedSampleData = async () => {
 
             const items = [
                 {
+                    item_type: 'product',
                     product_id: productA._id,
+                    sku: variantA.sku,
                     price: variantA.price,
                     size: variantA.size,
                     quantity: 1 + (index % 2),
                     note: pick(cartNotes, index),
+                    added_topping: [],
                 },
             ];
 
             if (index % 2 === 0) {
                 items.push({
+                    item_type: 'product',
                     product_id: productB._id,
+                    sku: variantB.sku,
                     price: variantB.price,
                     size: variantB.size,
                     quantity: 1,
                     note: pick(cartNotes, index + 1),
+                    added_topping: [],
                 });
             }
 

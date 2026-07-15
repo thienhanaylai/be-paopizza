@@ -2,9 +2,17 @@ import * as ingredientService from './ingredient.service.js';
 
 export const createIngredient = async (req, res, next) => {
     try {
-        const { name, unit, category, cost_per_unit, is_active, image } =
+        const { name, unit, category, cost_per_unit, price, is_active, image } =
             req.body;
-        console.log({ name, unit, category, cost_per_unit, is_active, image });
+        console.log({
+            name,
+            unit,
+            category,
+            cost_per_unit,
+            price,
+            is_active,
+            image,
+        });
         if (!name || !unit) {
             throw new Error('Thiếu thông tin!');
         }
@@ -13,6 +21,7 @@ export const createIngredient = async (req, res, next) => {
             unit,
             category,
             cost_per_unit,
+            price,
             is_active,
             image,
         });
@@ -32,6 +41,7 @@ export const updateIngredient = async (req, res, next) => {
             unit,
             category,
             cost_per_unit,
+            price,
             is_active,
             image,
         } = req.body;
@@ -44,6 +54,7 @@ export const updateIngredient = async (req, res, next) => {
             unit,
             category,
             cost_per_unit,
+            price,
             is_active,
             image,
         });

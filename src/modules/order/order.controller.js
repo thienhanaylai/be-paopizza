@@ -16,7 +16,14 @@ const safeLog = async (payload) => {
 };
 
 export const createOrder = async (req, res) => {
-    const result = await orderService.create(req.body);
+    const orderData = { ...req.body };
+
+    // Nếu user đã đăng nhập và là Customer, tự động gán customer_id từ profile
+    if (req.user && req.user.user_type === 'Customer' && req.user.ref_id) {
+        orderData.customer_id = orderData.customer_id || req.user.ref_id;
+    }
+
+    const result = await orderService.create(orderData);
     const actorInfo = buildActorInfo(req.user);
     await safeLog({
         store_id: req.body?.store_id,

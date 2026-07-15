@@ -1,3 +1,5 @@
+import passport from 'passport';
+
 export const authorize = (allowedRoles = []) => {
     return (req, res, next) => {
         const user = req.user;
@@ -16,4 +18,20 @@ export const authorize = (allowedRoles = []) => {
 
         next();
     };
+};
+
+/**
+ * Middleware xác thực tuỳ chọn – nếu có token hợp lệ thì gán req.user,
+ * nếu không có token hoặc token không hợp lệ thì vẫn cho đi tiếp (guest).
+ */
+export const optionalAuth = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, (err, user) => {
+        if (err) {
+            return next(err);
+        }
+        if (user) {
+            req.user = user;
+        }
+        next();
+    })(req, res, next);
 };

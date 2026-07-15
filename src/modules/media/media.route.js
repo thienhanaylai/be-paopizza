@@ -13,6 +13,12 @@ router.post(
     asyncHandler(mediaController.uploadImage),
 );
 
+router.post(
+    '/combo',
+    uploadProductImage.array('combos', 5),
+    asyncHandler(mediaController.uploadImage),
+);
+
 //upload icon cate
 const uploadCategoryIcon = createUploader('categories/icons', [
     { width: 150, height: 150, crop: 'fill' },

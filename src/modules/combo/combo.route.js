@@ -19,12 +19,14 @@ router.post(
     '/create',
     requireAuth,
     requireAdmin,
+    uploadComboImage.single('image'),
     asyncHandler(comboController.createCombo),
 );
 router.post(
     '/update',
     requireAuth,
     requireAdmin,
+    uploadComboImage.single('image'),
     asyncHandler(comboController.updateCombo),
 );
 router.post(

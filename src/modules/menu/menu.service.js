@@ -16,6 +16,14 @@ const productPopulate = {
     ],
 };
 
+const comboPopulate = {
+    path: 'combos.combo',
+    populate: [
+        { path: 'rules.applicableCategories' },
+        { path: 'rules.applicableProducts' },
+    ],
+};
+
 const parseBoolean = (value, fieldName) => {
     if (value === undefined) return undefined;
     if (typeof value === 'boolean') return value;
@@ -58,18 +66,28 @@ const normalizeCombos = (combos) => {
     }
 
     return combos.map((item, index) => {
-        if (!item || typeof item !== 'object') {
+        if (!item) {
             throw new Error(`Combo #${index + 1} không hợp lệ!`);
         }
 
-        const combo = item.combo || item.combo_id;
+        let combo;
+        if (typeof item === 'string' || mongoose.Types.ObjectId.isValid(item)) {
+            combo = item;
+        } else if (typeof item === 'object') {
+            combo = item.combo || item.combo_id || item._id || item.id;
+
+            if (combo && typeof combo === 'object') {
+                combo = combo._id || combo.id;
+            }
+        } else {
+            throw new Error(`Combo #${index + 1} không hợp lệ!`);
+        }
+
         if (!combo) {
             throw new Error(`Thiếu combo ở combo #${index + 1}!`);
         }
 
-        return {
-            combo,
-        };
+        return { combo };
     });
 };
 
@@ -140,7 +158,7 @@ export const update = async (data) => {
     })
         .populate('store', 'name')
         .populate(productPopulate)
-        .populate('combos.combo', 'name price disscount disscountType');
+        .populate(comboPopulate);
     return result;
 };
 
@@ -148,7 +166,7 @@ export const getAll = async (query = {}) => {
     return await Menu.find(query)
         .populate('store', 'name')
         .populate(productPopulate)
-        .populate('combos.combo', 'name price disscount disscountType')
+        .populate(comboPopulate)
         .sort({ createdAt: -1 })
         .lean();
 };
@@ -157,7 +175,7 @@ export const getById = async (menu_id) => {
     const menu = await Menu.findById(menu_id)
         .populate('store', 'name')
         .populate(productPopulate)
-        .populate('combos.combo', 'name price disscount disscountType')
+        .populate(comboPopulate)
         .lean();
     if (!menu) {
         throw new Error('Không tìm thấy menu!');
@@ -198,7 +216,7 @@ export const getByStore = async (store_id) => {
         .populate('store')
         .select('-combos._id')
         .populate(productPopulate)
-        .populate('combos.combo')
+        .populate(comboPopulate)
         .lean();
     if (!menu) {
         throw new Error('Không tìm thấy menu!');

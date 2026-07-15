@@ -10,28 +10,44 @@ export const getCart = async (req, res) => {
 };
 
 export const addToCart = async (req, res) => {
-    const { userId, product_id, size, quantity = 1, note = '' } = req.body;
+    const {
+        userId,
+        item_type,
+        product_id,
+        size,
+        quantity = 1,
+        note = '',
+        added_topping,
+        combo_id,
+        combo_selections,
+    } = req.body;
     if (!userId) {
         throw new Error('userId is required');
     }
     const result = await cartService.addToCart({
         userId,
+        item_type,
         product_id,
         size,
         quantity,
         note,
+        added_topping,
+        combo_id,
+        combo_selections,
     });
     return res.status(200).json({ data: result });
 };
 
 export const removeFromCart = async (req, res) => {
-    const { userId, product_id, size } = req.body;
-    if (!userId || !product_id || !size) {
+    const { userId, item_type, product_id, combo_id, size } = req.body;
+    if (!userId || !size) {
         throw new Error('Missing required fields');
     }
     const result = await cartService.removeFromCart({
         userId,
+        item_type,
         product_id,
+        combo_id,
         size,
     });
     return res.status(200).json({
@@ -41,16 +57,28 @@ export const removeFromCart = async (req, res) => {
 };
 
 export const updateCartItem = async (req, res) => {
-    const { userId, product_id, size, quantity, note } = req.body;
-    if (!userId || !product_id || !size) {
+    const {
+        userId,
+        item_type,
+        product_id,
+        combo_id,
+        size,
+        quantity,
+        note,
+        added_topping,
+    } = req.body;
+    if (!userId || !size) {
         throw new Error('Missing required fields');
     }
     const result = await cartService.updateCartItem({
         userId,
+        item_type,
         product_id,
+        combo_id,
         size,
         quantity,
         note,
+        added_topping,
     });
     return res.status(200).json({
         message: 'Cập nhật giỏ hàng thành công',

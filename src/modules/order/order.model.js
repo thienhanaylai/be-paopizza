@@ -11,6 +11,52 @@ const ORDER_STATUSES = [
 const PAYMENT_METHODS = ['cash', 'card', 'qrCode', 'ewallet'];
 const PAYMENT_STATUSES = ['pending', 'success', 'failed'];
 const ORDER_TYPE = ['carry_out', 'dine_in', 'delivery'];
+
+const addedToppingSchema = new mongoose.Schema(
+    {
+        ingredient: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Ingredient',
+            required: true,
+        },
+        quantity: {
+            type: Number,
+            default: 1,
+            min: 1,
+        },
+    },
+    { _id: false },
+);
+
+const comboSelectionSchema = new mongoose.Schema(
+    {
+        product_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Product',
+            required: true,
+        },
+        crust: {
+            type: String,
+            trim: true,
+        },
+        sku: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        size: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        added_topping: {
+            type: [addedToppingSchema],
+            default: [],
+        },
+    },
+    { _id: false },
+);
+
 const pointSchema = new mongoose.Schema(
     {
         type: {
@@ -29,10 +75,22 @@ const pointSchema = new mongoose.Schema(
 
 const itemSchema = new mongoose.Schema(
     {
+        item_type: {
+            type: String,
+            enum: ['product', 'combo'],
+            required: true,
+        },
         product_id: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Product',
-            required: true,
+            required: function () {
+                return this.item_type === 'product';
+            },
+        },
+        sku: {
+            type: String,
+            require: true,
+            trim: true,
         },
         price: {
             type: Number,
@@ -44,33 +102,38 @@ const itemSchema = new mongoose.Schema(
             required: true,
             trim: true,
         },
-        crust: {
-            type: [String],
-            enum: ['thick', 'medium', 'thin'],
-        },
         quantity: {
             type: Number,
             required: true,
             min: 1,
-        },
-        comboId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Combo',
-            default: null,
-        },
-        comboInstanceId: {
-            type: String,
-            default: '',
         },
         note: {
             type: String,
             trim: true,
             default: '',
         },
+        added_topping: {
+            type: [addedToppingSchema],
+            default: [],
+        },
+        combo_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Combo',
+
+            required: function () {
+                return this.item_type === 'combo';
+            },
+        },
+        combo_selections: {
+            type: [comboSelectionSchema],
+            default: function () {
+                // Nếu là combo thì mặc định mảng rỗng, nếu là product thì undefined (không lưu vào DB)
+                return this.item_type === 'combo' ? [] : undefined;
+            },
+        },
     },
     { _id: false },
 );
-
 const contactInfoSchema = new mongoose.Schema(
     {
         full_name: {
