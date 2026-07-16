@@ -28,6 +28,10 @@ const comboSelectionSchema = new mongoose.Schema(
             required: true,
             trim: true,
         },
+        crust: {
+            type: String,
+            trim: true,
+        },
         size: {
             type: String,
             required: true,
@@ -82,7 +86,7 @@ const itemSchema = new mongoose.Schema(
             type: [addedToppingSchema],
             default: [],
         },
-        combo_id: {
+        combo: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Combo',
 

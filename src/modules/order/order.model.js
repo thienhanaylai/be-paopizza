@@ -116,7 +116,7 @@ const itemSchema = new mongoose.Schema(
             type: [addedToppingSchema],
             default: [],
         },
-        combo_id: {
+        combo: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Combo',
 

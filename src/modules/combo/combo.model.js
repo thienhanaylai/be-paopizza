@@ -21,7 +21,7 @@ const ruleSchema = new mongoose.Schema(
         ],
         applicableSizes: {
             type: [String],
-            default: [],
+            default: [], 
         },
         requiredQuantity: {
             type: Number,

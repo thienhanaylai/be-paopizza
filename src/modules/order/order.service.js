@@ -29,7 +29,7 @@ const POPULATE_ORDER = [
     { path: 'customer_id' },
     { path: 'employee_id' },
     { path: 'items.product_id', select: 'name variants' },
-    { path: 'items.combo_id', select: 'name price image' },
+    { path: 'items.combo', select: 'name price image' },
     { path: 'items.combo_selections.product_id', select: 'name variants' },
     { path: 'items.added_topping.ingredient', select: 'name price unit' },
     {
@@ -73,7 +73,7 @@ export const create = async (data) => {
             quantity = 1,
             note = '',
             added_topping = [],
-            combo_id,
+            combo,
             combo_selections = [],
         } = item;
 
@@ -133,8 +133,8 @@ export const create = async (data) => {
             });
         } else if (item_type === 'combo') {
             console.log(item);
-            if (!combo_id) {
-                throw new Error('Thiếu combo_id cho combo');
+            if (!combo) {
+                throw new Error('Thiếu combo cho combo');
             }
 
             finalSize = 'combo';
@@ -191,12 +191,12 @@ export const create = async (data) => {
                 }
             }
 
-            const combo = await Combo.findById(combo_id).select('price');
-            if (!combo) {
+            const comboDoc = await Combo.findById(combo).select('price');
+            if (!comboDoc) {
                 throw new Error('Không tìm thấy combo');
             }
-            price = combo.price;
-            sku = `COMBO-${combo_id}`;
+            price = comboDoc.price;
+            sku = `COMBO-${combo}`;
 
             // Chuẩn hoá added_topping trong từng combo_selection
             const normalizedSelections = combo_selections.map((sel) => ({
@@ -212,7 +212,7 @@ export const create = async (data) => {
                 quantity,
                 note,
                 added_topping: normalizeAddedTopping(added_topping),
-                combo_id,
+                combo,
                 combo_selections: normalizedSelections,
             });
         } else {

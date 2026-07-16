@@ -18,7 +18,7 @@ export const addToCart = async (req, res) => {
         quantity = 1,
         note = '',
         added_topping,
-        combo_id,
+        combo,
         combo_selections,
     } = req.body;
     if (!userId) {
@@ -32,22 +32,22 @@ export const addToCart = async (req, res) => {
         quantity,
         note,
         added_topping,
-        combo_id,
+        combo,
         combo_selections,
     });
     return res.status(200).json({ data: result });
 };
 
 export const removeFromCart = async (req, res) => {
-    const { userId, item_type, product_id, combo_id, size } = req.body;
-    if (!userId || !size) {
+    const { userId, item_type, product_id, combo, size } = req.body;
+    if (!userId) {
         throw new Error('Missing required fields');
     }
     const result = await cartService.removeFromCart({
         userId,
         item_type,
         product_id,
-        combo_id,
+        combo,
         size,
     });
     return res.status(200).json({
@@ -61,7 +61,7 @@ export const updateCartItem = async (req, res) => {
         userId,
         item_type,
         product_id,
-        combo_id,
+        combo,
         size,
         quantity,
         note,
@@ -74,7 +74,7 @@ export const updateCartItem = async (req, res) => {
         userId,
         item_type,
         product_id,
-        combo_id,
+        combo,
         size,
         quantity,
         note,

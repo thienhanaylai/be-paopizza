@@ -1342,7 +1342,7 @@
     },
     {
       "name": "Cart",
-      "description": "Shopping cart management.\n\nAll routes require JWT. Cart is identified by `userId` (mapped to `user_id` in DB).\n\nSupport 2 item types: `product` and `combo`.\n- Product items: require `product_id`, optional `added_topping` (array of Ingredient ObjectIds)\n- Combo items: require `combo_id`, optional `combo_selections` (array of { product_id, sku, size, added_topping })",
+      "description": "Shopping cart management.\n\nAll routes require JWT. Cart is identified by `userId` (mapped to `user_id` in DB).\n\nSupport 2 item types: `product` and `combo`.\n- Product items: require `product_id`, optional `added_topping` (array of Ingredient ObjectIds)\n- Combo items: require `combo`, optional `combo_selections` (array of { product_id, sku, size, added_topping })",
       "item": [
         {
           "name": "Get Cart By User Id",
@@ -1441,7 +1441,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": \"{{userIdForCart}}\",\n  \"item_type\": \"combo\",\n  \"combo_id\": \"{{comboId}}\",\n  \"size\": \"M\",\n  \"quantity\": 1,\n  \"note\": \"\",\n  \"combo_selections\": [\n    {\n      \"product_id\": \"{{productId}}\",\n      \"sku\": \"SKU-001\",\n      \"crust\": \"thin\",\n      \"size\": \"M\",\n      \"added_topping\": [\n        { \"ingredient\": \"{{ingredientId}}\", \"quantity\": 1 }\n      ]\n    }\n  ]\n}",
+              "raw": "{\n  \"userId\": \"{{userIdForCart}}\",\n  \"item_type\": \"combo\",\n  \"combo\": \"{{comboId}}\",\n  \"size\": \"M\",\n  \"quantity\": 1,\n  \"note\": \"\",\n  \"combo_selections\": [\n    {\n      \"product_id\": \"{{productId}}\",\n      \"sku\": \"SKU-001\",\n      \"crust\": \"thin\",\n      \"size\": \"M\",\n      \"added_topping\": [\n        { \"ingredient\": \"{{ingredientId}}\", \"quantity\": 1 }\n      ]\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1449,7 +1449,7 @@
               }
             },
             "url": "{{baseUrl}}/cart",
-            "description": "Add a combo item to cart. If same `item_type` + `combo_id` + `size` already exists, quantity is increased. **Requires JWT.**\n\n**Body**:\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| userId | string | Yes | User ObjectId |\n| item_type | string | Yes | 'combo' |\n| combo_id | string | Yes | Combo ObjectId |\n| size | string | Yes | Size identifier |\n| quantity | number | No | default: 1, must be >= 1 |\n| note | string | No | default: '' |\n| combo_selections | [object] | No | [{ product_id, sku, crust, size, added_topping: [{ ingredient, quantity }] }] |"
+            "description": "Add a combo item to cart. If same `item_type` + `combo` + `size` already exists, quantity is increased. **Requires JWT.**\n\n**Body**:\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| userId | string | Yes | User ObjectId |\n| item_type | string | Yes | 'combo' |\n| combo | string | Yes | Combo ObjectId |\n| size | string | Yes | Size identifier |\n| quantity | number | No | default: 1, must be >= 1 |\n| note | string | No | default: '' |\n| combo_selections | [object] | No | [{ product_id, sku, crust, size, added_topping: [{ ingredient, quantity }] }] |"
           },
           "response": [
             {
@@ -1462,7 +1462,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0050\",\n    \"user_id\": \"67a8b123456789abcdef0007\",\n    \"items\": [\n      {\n        \"item_type\": \"combo\",\n        \"combo_id\": {\n          \"_id\": \"67a8b123456789abcdef0100\",\n          \"name\": \"Combo 1\",\n          \"price\": 120000\n        },\n        \"sku\": \"COMBO-...\",\n        \"price\": 120000,\n        \"size\": \"M\",\n        \"quantity\": 1,\n        \"note\": \"\",\n        \"combo_selections\": [\n          {\n            \"product_id\": \"67a8b123456789abcdef0060\",\n            \"sku\": \"SKU-001\",\n            \"crust\": \"thin\",\n            \"size\": \"M\",\n            \"added_topping\": []\n          }\n        ]\n      }\n    ]\n  }\n}"
+              "body": "{\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0050\",\n    \"user_id\": \"67a8b123456789abcdef0007\",\n    \"items\": [\n      {\n        \"item_type\": \"combo\",\n        \"combo\": {\n          \"_id\": \"67a8b123456789abcdef0100\",\n          \"name\": \"Combo 1\",\n          \"price\": 120000\n        },\n        \"sku\": \"COMBO-...\",\n        \"price\": 120000,\n        \"size\": \"M\",\n        \"quantity\": 1,\n        \"note\": \"\",\n        \"combo_selections\": [\n          {\n            \"product_id\": \"67a8b123456789abcdef0060\",\n            \"sku\": \"SKU-001\",\n            \"crust\": \"thin\",\n            \"size\": \"M\",\n            \"added_topping\": []\n          }\n        ]\n      }\n    ]\n  }\n}"
             }
           ]
         },
@@ -1490,7 +1490,7 @@
               }
             },
             "url": "{{baseUrl}}/cart/remove",
-            "description": "Remove one cart item by `item_type` + (`product_id` or `combo_id`) + `size`. Body requires: `userId`, `size`. For product: `item_type='product'`, `product_id`. For combo: `item_type='combo'`, `combo_id`. **Requires JWT.**"
+            "description": "Remove one cart item by `item_type` + (`product_id` or `combo`) + `size`. Body requires: `userId`, `size`. For product: `item_type='product'`, `product_id`. For combo: `item_type='combo'`, `combo`. **Requires JWT.**"
           },
           "response": [
             {
@@ -1531,7 +1531,7 @@
               }
             },
             "url": "{{baseUrl}}/cart/update",
-            "description": "Update quantity/note/topping of an existing cart item. Body requires: `userId`, `size` + (`product_id` for product, `combo_id` for combo). Optional: `quantity`, `note`, `added_topping`. If `quantity < 1`, item is removed. **Requires JWT.**"
+            "description": "Update quantity/note/topping of an existing cart item. Body requires: `userId`, `size` + (`product_id` for product, `combo` for combo). Optional: `quantity`, `note`, `added_topping`. If `quantity < 1`, item is removed. **Requires JWT.**"
           },
           "response": [
             {
@@ -1593,7 +1593,7 @@
     },
     {
       "name": "Category",
-      "description": "Category management.\n\nAll routes require JWT. Create/Update/UpdateActive/Delete require admin.",
+      "description": "Category management.\n\nGET endpoints are public. Create/Update/UpdateActive/Delete require JWT + admin.",
       "item": [
         {
           "name": "Get All Categories",
@@ -2354,6 +2354,16 @@
           ]
         },
         {
+          "name": "Get Active Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/products/active",
+            "description": "Get all active products (isDeleted=false, is_active=true). Public endpoint."
+          },
+          "response": []
+        },
+        {
           "name": "Get Product By Id",
           "request": {
             "method": "GET",
@@ -2540,6 +2550,21 @@
               "body": "{\n  \"message\": \"Cập nhật sản phẩm thành công!\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0060\",\n    \"name\": \"Pizza Margherita Updated\"\n  }\n}"
             }
           ]
+        },
+        {
+          "name": "Update Product Status (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/products/updateStatus/{{productId}}",
+            "description": "Toggle product active status (is_active). Requires JWT + admin."
+          },
+          "response": []
         },
         {
           "name": "Soft Delete Product (Admin)",
@@ -2916,6 +2941,16 @@
             "header": [],
             "url": "{{baseUrl}}/menus/{{menuId}}",
             "description": "Get menu detail by id. Public endpoint."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Menu By Store",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/menus/store/{{storeId}}",
+            "description": "Get menu by store_id. Public endpoint."
           },
           "response": []
         },
@@ -3298,7 +3333,7 @@
     },
     {
       "name": "Orders",
-      "description": "Order management endpoints.\n\nItems support 2 types: `product` and `combo`.\n- Product items: require `item_type='product'`, `product_id`, `sku`, `size`. Optional: `added_topping`\n- Combo items: require `item_type='combo'`, `combo_id`, `size`. Optional: `combo_selections`",
+      "description": "Order management endpoints.\n\nItems support 2 types: `product` and `combo`.\n- Product items: require `item_type='product'`, `product_id`, `sku`, `size`. Optional: `added_topping`\n- Combo items: require `item_type='combo'`, `combo`, `size`. Optional: `combo_selections`",
       "item": [
         {
           "name": "Create Order",
@@ -3324,7 +3359,7 @@
               }
             },
             "url": "{{baseUrl}}/orders",
-            "description": "Create order. Price is auto-resolved from product variant by size (product) or combo price (combo). customer_id/employee_id should be ObjectId or null. Requires JWT.\n\n**Items fields**:\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| item_type | string | Yes | 'product' or 'combo' |\n| product_id | string | Yes* | Required when item_type='product' |\n| combo_id | string | Yes* | Required when item_type='combo' |\n| sku | string | Yes | SKU from variant |\n| size | string | Yes | Size identifier |\n| quantity | number | No | default: 1 |\n| note | string | No | default: '' |\n| added_topping | [object] | No | [{ ingredient: ObjectId, quantity: number }] |\n| combo_selections | [object] | No | For combo: [{ product_id, sku, crust, size, added_topping }] |"
+            "description": "Create order. Price is auto-resolved from product variant by size (product) or combo price (combo). customer_id/employee_id should be ObjectId or null. Requires JWT.\n\n**Items fields**:\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| item_type | string | Yes | 'product' or 'combo' |\n| product_id | string | Yes* | Required when item_type='product' |\n| combo | string | Yes* | Required when item_type='combo' |\n| sku | string | Yes | SKU from variant |\n| size | string | Yes | Size identifier |\n| quantity | number | No | default: 1 |\n| note | string | No | default: '' |\n| added_topping | [object] | No | [{ ingredient: ObjectId, quantity: number }] |\n| combo_selections | [object] | No | For combo: [{ product_id, sku, crust, size, added_topping }] |"
           },
           "response": []
         },
@@ -3441,6 +3476,64 @@
             },
             "url": "{{baseUrl}}/orders/{{orderId}}/payment-status",
             "description": "Manual payment status update for cash orders at counter. paymentStatus: pending|success|failed. Requires JWT + admin|staff."
+          },
+          "response": []
+        },
+        {
+          "name": "Customer Cancel Order",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/orders/customer/cancel/{{orderId}}",
+            "description": "Customer cancels their own order (only if status is pending). Requires JWT."
+          },
+          "response": []
+        },
+        {
+          "name": "Staff Cancel Order",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/orders/cancel/{{orderId}}",
+            "description": "Staff cancels an order. Requires JWT + admin|manager|staff."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Payment Status (Admin/Staff)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentStatus\": \"success\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/orders/updatePaymentStatus/{{orderId}}",
+            "description": "Update order payment status (pending|success|failed). Requires JWT + admin|manager|staff."
           },
           "response": []
         },
@@ -3672,6 +3765,30 @@
           "response": []
         },
         {
+          "name": "Apply Promo Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"PROMO15\",\n  \"orderTotal\": 200000,\n  \"store_id\": \"{{storeId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/promotions/apply",
+            "description": "Apply a promo code to check discount. Public endpoint. Body: code (required), orderTotal (required), store_id (optional)."
+          },
+          "response": []
+        },
+        {
           "name": "Soft Delete Promotion (Admin)",
           "request": {
             "method": "PATCH",
@@ -3798,6 +3915,46 @@
           "response": []
         },
         {
+          "name": "Upload Combo Images",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "combos",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/img/combo",
+            "description": "Upload up to 5 combo images. Field name: combos (file array)."
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Ingredient Image",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/img/ingredient",
+            "description": "Upload ingredient image. Field name: image (single file)."
+          },
+          "response": []
+        },
+        {
           "name": "Upload Category Icon",
           "request": {
             "method": "POST",
@@ -3908,6 +4065,12 @@
       "value": "0918000001",
       "type": "string",
       "description": "Seed customer login username (phone)"
+    },
+    {
+      "key": "customerAddressId",
+      "value": "",
+      "type": "string",
+      "description": "Customer address ID for address update/delete/set-default operations"
     },
     {
       "key": "employeeId",

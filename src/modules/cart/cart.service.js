@@ -10,7 +10,7 @@ export const getCart = async (data) => {
             select: 'name variants',
         })
         .populate({
-            path: 'items.combo_id',
+            path: 'items.combo',
             select: 'name price image',
         })
         .populate({
@@ -28,6 +28,7 @@ export const getCart = async (data) => {
     if (!cart) {
         cart = await Cart.create({ user_id: userId });
     }
+    console.log(cart);
     return cart;
 };
 
@@ -40,7 +41,7 @@ export const addToCart = async (data) => {
         quantity = 1,
         note = '',
         added_topping = [],
-        combo_id,
+        combo,
         combo_selections = [],
     } = data;
     console.log(data);
@@ -51,8 +52,8 @@ export const addToCart = async (data) => {
     if (item_type === 'product' && !product_id) {
         throw new Error('Thiếu product_id cho sản phẩm');
     }
-    if (item_type === 'combo' && !combo_id) {
-        throw new Error('Thiếu combo_id cho combo');
+    if (item_type === 'combo' && !combo) {
+        throw new Error('Thiếu combo');
     }
     if (item_type === 'product' && !size) {
         throw new Error('Thiếu size');
@@ -83,15 +84,14 @@ export const addToCart = async (data) => {
         price = variant.price;
         sku = variant.sku;
     } else if (item_type === 'combo') {
-        const combo = await Combo.findById(combo_id).select('price');
-        if (!combo) {
+        const comboDoc = await Combo.findById(combo).select('price');
+        if (!comboDoc) {
             throw new Error('Không tìm thấy combo');
         }
-        price = combo.price;
-        sku = `COMBO-${combo_id}`;
+        price = comboDoc.price;
+        sku = `COMBO-${combo}`;
     }
 
-    // Find existing item: match by item_type, and by product_id or combo_id + size
     const existingIndex = cart.items.findIndex((item) => {
         if (item.item_type !== item_type) return false;
         if (item.size.toLowerCase() !== size.toLowerCase()) return false;
@@ -99,7 +99,7 @@ export const addToCart = async (data) => {
         if (item_type === 'product') {
             return item.product_id.toString() === product_id.toString();
         } else {
-            return item.combo_id.toString() === combo_id.toString();
+            return item.combo.toString() === combo.toString();
         }
     });
 
@@ -125,7 +125,7 @@ export const addToCart = async (data) => {
         if (item_type === 'product') {
             newItem.product_id = product_id;
         } else {
-            newItem.combo_id = combo_id;
+            newItem.combo = combo;
             newItem.combo_selections = combo_selections;
         }
 
@@ -137,7 +137,7 @@ export const addToCart = async (data) => {
 };
 
 export const removeFromCart = async (data) => {
-    const { userId, item_type = 'product', product_id, combo_id, size } = data;
+    const { userId, item_type = 'product', product_id, combo, size } = data;
     const cart = await Cart.findOne({ user_id: userId });
     if (!cart) {
         throw new Error('Không tìm thấy giỏ hàng');
@@ -150,7 +150,7 @@ export const removeFromCart = async (data) => {
         if (item_type === 'product') {
             return item.product_id.toString() !== product_id.toString();
         } else {
-            return item.combo_id.toString() !== combo_id.toString();
+            return item.combo.toString() !== combo.toString();
         }
     });
 
@@ -163,7 +163,7 @@ export const updateCartItem = async (data) => {
         userId,
         item_type = 'product',
         product_id,
-        combo_id,
+        combo,
         size,
         quantity,
         note,
@@ -181,7 +181,7 @@ export const updateCartItem = async (data) => {
         if (item_type === 'product') {
             return item.product_id.toString() === product_id.toString();
         } else {
-            return item.combo_id.toString() === combo_id.toString();
+            return item.combo.toString() === combo.toString();
         }
     });
 
