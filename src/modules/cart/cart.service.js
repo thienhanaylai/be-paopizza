@@ -89,8 +89,21 @@ export const addToCart = async (data) => {
             throw new Error('Không tìm thấy combo');
         }
         price = comboDoc.price;
-        sku = `COMBO-${combo}`;
+
+        // Đếm số lượng item combo cùng loại đã có trong giỏ (cùng combo_id)
+        const sameComboCount = cart.items.filter(
+            (item) =>
+                item.item_type === 'combo' &&
+                item.combo.toString() === combo.toString(),
+        ).length;
+        // Tạo SKU có số thứ tự: COMBO-<comboId>-1, COMBO-<comboId>-2,...
+        sku = `COMBO-${combo}-${sameComboCount + 1}`;
     }
+
+    // Hàm so sánh 2 combo_selections (deep compare qua JSON)
+    const isSameComboSelection = (a, b) => {
+        return JSON.stringify(a) === JSON.stringify(b);
+    };
 
     const existingIndex = cart.items.findIndex((item) => {
         if (item.item_type !== item_type) return false;
@@ -99,7 +112,11 @@ export const addToCart = async (data) => {
         if (item_type === 'product') {
             return item.product_id.toString() === product_id.toString();
         } else {
-            return item.combo.toString() === combo.toString();
+            // Cùng combo và cùng selection mới tính là trùng
+            return (
+                item.combo.toString() === combo.toString() &&
+                isSameComboSelection(item.combo_selections, combo_selections)
+            );
         }
     });
 
@@ -137,7 +154,14 @@ export const addToCart = async (data) => {
 };
 
 export const removeFromCart = async (data) => {
-    const { userId, item_type = 'product', product_id, combo, size } = data;
+    const {
+        userId,
+        item_type = 'product',
+        product_id,
+        combo,
+        size,
+        sku,
+    } = data;
     const cart = await Cart.findOne({ user_id: userId });
     if (!cart) {
         throw new Error('Không tìm thấy giỏ hàng');
@@ -150,6 +174,10 @@ export const removeFromCart = async (data) => {
         if (item_type === 'product') {
             return item.product_id.toString() !== product_id.toString();
         } else {
+            // Nếu có sku thì xóa theo sku (phân biệt các selection khác nhau của cùng combo)
+            if (sku) {
+                return item.sku !== sku;
+            }
             return item.combo.toString() !== combo.toString();
         }
     });
@@ -164,10 +192,12 @@ export const updateCartItem = async (data) => {
         item_type = 'product',
         product_id,
         combo,
-        size,
+        size = '',
+        sku,
         quantity,
         note,
         added_topping,
+        combo_selections,
     } = data;
     const cart = await Cart.findOne({ user_id: userId });
     if (!cart) {
@@ -176,11 +206,17 @@ export const updateCartItem = async (data) => {
 
     const itemIndex = cart.items.findIndex((item) => {
         if (item.item_type !== item_type) return false;
-        if (item.size.toLowerCase() !== size.toLowerCase()) return false;
+        if ((item.size || '').toLowerCase() !== size.toLowerCase())
+            return false;
 
         if (item_type === 'product') {
             return item.product_id.toString() === product_id.toString();
         } else {
+            // Combo: ưu tiên tìm theo sku (COMBO-<id>-1) để phân biệt các selection khác nhau
+            if (sku) {
+                return item.sku === sku;
+            }
+            // Fallback: tìm theo combo_id (chỉ nên dùng khi giỏ chỉ có 1 item combo đó)
             return item.combo.toString() === combo.toString();
         }
     });
@@ -201,6 +237,9 @@ export const updateCartItem = async (data) => {
     }
     if (added_topping !== undefined) {
         cart.items[itemIndex].added_topping = added_topping;
+    }
+    if (combo_selections !== undefined) {
+        cart.items[itemIndex].combo_selections = combo_selections;
     }
 
     await cart.save();

@@ -39,7 +39,7 @@ export const addToCart = async (req, res) => {
 };
 
 export const removeFromCart = async (req, res) => {
-    const { userId, item_type, product_id, combo, size } = req.body;
+    const { userId, item_type, product_id, combo, size, sku } = req.body;
     if (!userId) {
         throw new Error('Missing required fields');
     }
@@ -49,6 +49,7 @@ export const removeFromCart = async (req, res) => {
         product_id,
         combo,
         size,
+        sku,
     });
     return res.status(200).json({
         message: 'Đã xóa sản phẩm khỏi giỏ hàng',
@@ -63,11 +64,13 @@ export const updateCartItem = async (req, res) => {
         product_id,
         combo,
         size,
+        sku,
         quantity,
         note,
         added_topping,
+        combo_selections,
     } = req.body;
-    if (!userId || !size) {
+    if (!userId) {
         throw new Error('Missing required fields');
     }
     const result = await cartService.updateCartItem({
@@ -76,9 +79,11 @@ export const updateCartItem = async (req, res) => {
         product_id,
         combo,
         size,
+        sku,
         quantity,
         note,
         added_topping,
+        combo_selections,
     });
     return res.status(200).json({
         message: 'Cập nhật giỏ hàng thành công',
