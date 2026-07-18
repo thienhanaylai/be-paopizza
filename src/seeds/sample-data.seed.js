@@ -507,12 +507,6 @@ const seedSampleData = async () => {
 
     const products = await Product.insertMany(productsData);
 
-    const categoryBySlug = new Map(
-        categories.map((category) => [category.slug, category]),
-    );
-    const pizzaCategory = categoryBySlug.get('pizza') || categories[0];
-    const drinkCategory = categoryBySlug.get('drink') || categories[1];
-
     const comboCount = Math.min(8, Math.max(3, Math.floor(TARGET_COUNT / 2)));
     const combos = await Combo.insertMany(
         Array.from({ length: comboCount }, (_, index) => {
@@ -529,34 +523,77 @@ const seedSampleData = async () => {
                     ? Math.max(0, Math.round(basePrice * (1 - discount / 100)))
                     : Math.max(0, basePrice - discount);
 
+            // ---- Diverse combo rules (category-based only) ----
+            const catBySlug = new Map(categories.map((c) => [c.slug, c]));
+            const allCatSlugs = [
+                'pizza',
+                'drink',
+                'appetizer',
+                'dessert',
+                'pasta',
+                'burger',
+                'salad',
+                'soup',
+            ];
+
+            // Shuffle categories deterministically so each combo gets a different mix
+            const shuffledSlugs = [...allCatSlugs];
+            for (let si = shuffledSlugs.length - 1; si > 0; si -= 1) {
+                const ri = Math.floor(
+                    seededRandom(index * 31.17 + si * 2.71) * (si + 1),
+                );
+                [shuffledSlugs[si], shuffledSlugs[ri]] = [
+                    shuffledSlugs[ri],
+                    shuffledSlugs[si],
+                ];
+            }
+
+            // Pick 1–4 distinct categories per combo
+            const maxRules = Math.min(
+                1 + Math.floor(seededRandom(index * 7.13 + 3) * 4),
+                allCatSlugs.length,
+            );
             const rules = [];
-            if (pizzaCategory) {
+
+            for (let ri = 0; ri < maxRules; ri += 1) {
+                const slug = shuffledSlugs[ri];
+                const cat = catBySlug.get(slug);
+                if (!cat) continue;
+
+                const seed = index * 100 + ri + 1;
+
+                // applicableSizes: ~30% chance for food categories, always for drink
+                const hasSizes =
+                    slug === 'drink' || seededRandom(seed * 11.11) > 0.7;
+                const applicableSizes = hasSizes
+                    ? slug === 'drink'
+                        ? ['330ml', '1L']
+                        : ['S', 'M', 'L']
+                    : [];
+
+                const qty = 1 + Math.floor(seededRandom(seed * 17.71) * 3);
+
                 rules.push({
-                    groupName: 'Pizza',
-                    applicableCategories: [pizzaCategory._id],
-                    requiredQuantity: 1,
+                    groupName: cat.name,
+                    applicableCategories: [cat._id],
+                    requiredQuantity: qty,
+                    ...(applicableSizes.length > 0 && { applicableSizes }),
                 });
             }
-            if (drinkCategory) {
-                rules.push({
-                    groupName: 'Drink',
-                    applicableCategories: [drinkCategory._id],
-                    requiredQuantity: 1,
-                });
-            }
+
+            // Safety fallback: ensure at least 1 rule exists
             if (rules.length === 0) {
+                const fallbackCat = catBySlug.get('pizza') || categories[0];
                 rules.push({
-                    groupName: 'Combo Items',
-                    applicableProducts: [productA._id, productB._id],
-                    requiredQuantity: 2,
-                });
-            } else if (rules.length === 1) {
-                rules.push({
-                    groupName: 'Combo Item',
-                    applicableProducts: [productA._id],
+                    groupName: fallbackCat.name,
+                    applicableCategories: [fallbackCat._id],
                     requiredQuantity: 1,
                 });
             }
+
+            // Random pricingType: ~50% static, ~50% dynamic (deterministic)
+            const pricingType =
+                seededRandom(index * 43.21 + 9) > 0.5 ? 'static' : 'dynamic';
 
             return {
                 name: `Combo ${pad(index + 1)}`,
@@ -567,8 +604,9 @@ const seedSampleData = async () => {
                 rules,
                 discountType: type,
                 discount,
-                price,
-                is_active: index % 3 !== 0,
+                pricingType,
+                ...(pricingType === 'static' && { price }),
+                isActive: index % 3 !== 0,
                 isDeleted: false,
             };
         }),

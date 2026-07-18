@@ -46,7 +46,7 @@ const ingredientSchema = new mongoose.Schema(
             enum: INGREDIENT_CATEGORY_SLUGS,
             trim: true,
         },
-        cost_per_unit: {
+        costPerUnit: {
             type: Number,
             default: 0,
             min: 0,
@@ -60,7 +60,7 @@ const ingredientSchema = new mongoose.Schema(
             type: String,
             default: '',
         },
-        is_active: {
+        isActive: {
             type: Boolean,
             default: true,
         },

@@ -55,7 +55,7 @@ export const update = async (data) => {
 };
 
 export const updateActive = async (data) => {
-    const { category_id, is_active } = data;
+    const { category_id, isActive } = data;
     if (!category_id) {
         throw new Error('Thiếu category_id!');
     }
@@ -67,7 +67,7 @@ export const updateActive = async (data) => {
 
     const result = await Category.findByIdAndUpdate(
         category_id,
-        { is_active },
+        { isActive },
         { new: true },
     );
     return result;
@@ -87,7 +87,7 @@ export const deletedCategory = async (data) => {
     const result = await Category.findByIdAndUpdate(
         category_id,
         {
-            is_active: false,
+            isActive: false,
             isDeleted: true,
         },
         { new: true },

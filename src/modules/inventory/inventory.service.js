@@ -98,11 +98,11 @@ export const getAll = async (store_id) => {
             .populate('store_id', 'name')
             .populate(
                 'ingredients.ingredient_id',
-                'name unit category cost_per_unit',
+                'name unit category costPerUnit',
             )
             .lean(),
-        Ingredient.find({ isDeleted: false, is_active: true })
-            .select('name unit category cost_per_unit')
+        Ingredient.find({ isDeleted: false, isActive: true })
+            .select('name unit category costPerUnit')
             .lean(),
         Store.findById(store_id).select('name').lean(),
     ]);

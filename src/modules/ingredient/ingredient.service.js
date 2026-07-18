@@ -5,8 +5,7 @@ import {
 } from './ingredient.model.js';
 
 export const create = async (data) => {
-    const { name, unit, category, cost_per_unit, price, is_active, image } =
-        data;
+    const { name, unit, category, costPerUnit, price, isActive, image } = data;
     const ingredient = await Ingredient.findOne({ name });
     if (ingredient) {
         throw new Error(`Đã có nguyên liệu: ${name} trong danh sách!`);
@@ -21,16 +20,16 @@ export const create = async (data) => {
         createData.category = category;
     }
 
-    if (cost_per_unit !== undefined) {
-        createData.cost_per_unit = cost_per_unit;
+    if (costPerUnit !== undefined) {
+        createData.costPerUnit = costPerUnit;
     }
 
     if (price !== undefined) {
         createData.price = price;
     }
 
-    if (is_active !== undefined) {
-        createData.is_active = is_active;
+    if (isActive !== undefined) {
+        createData.isActive = isActive;
     }
 
     if (image !== undefined) {
@@ -46,9 +45,9 @@ export const update = async (data) => {
         name,
         unit,
         category,
-        cost_per_unit,
+        costPerUnit,
         price,
-        is_active,
+        isActive,
         image,
     } = data;
     const ingredient = await Ingredient.findOne({
@@ -69,16 +68,16 @@ export const update = async (data) => {
         updateData.category = category;
     }
 
-    if (cost_per_unit !== undefined) {
-        updateData.cost_per_unit = cost_per_unit;
+    if (costPerUnit !== undefined) {
+        updateData.costPerUnit = costPerUnit;
     }
 
     if (price !== undefined) {
         updateData.price = price;
     }
 
-    if (is_active !== undefined) {
-        updateData.is_active = is_active;
+    if (isActive !== undefined) {
+        updateData.isActive = isActive;
     }
 
     if (image !== undefined) {
@@ -92,7 +91,7 @@ export const update = async (data) => {
 };
 
 export const updateActive = async (data) => {
-    const { ingredient_id, is_active } = data;
+    const { ingredient_id, isActive } = data;
     const ingredient = await Ingredient.findOne({
         _id: ingredient_id,
         isDeleted: false,
@@ -105,7 +104,7 @@ export const updateActive = async (data) => {
     return Ingredient.findByIdAndUpdate(
         ingredient_id,
         {
-            is_active,
+            isActive,
         },
         { new: true, runValidators: true },
     );
@@ -125,7 +124,7 @@ export const deletedIngredient = async (data) => {
     return Ingredient.findByIdAndUpdate(
         ingredient_id,
         {
-            is_active: false,
+            isActive: false,
             isDeleted: true,
         },
         { new: true },

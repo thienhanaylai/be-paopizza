@@ -78,7 +78,7 @@ export const getAll = async () => {
 };
 
 export const getAllProductsActive = async () => {
-    return await Product.find({ isDeleted: false, is_active: true })
+    return await Product.find({ isDeleted: false, isActive: true })
         .populate('category', 'name slug')
         .populate({
             path: 'variants.recipe.ingredient',
@@ -104,7 +104,7 @@ export const deletedProduct = async (product_id) => {
     const product = await Product.findByIdAndUpdate(
         product_id,
         {
-            is_active: false,
+            isActive: false,
             isDeleted: true,
         },
         { new: true },
@@ -117,7 +117,7 @@ export const getByCategory = async (category_id) => {
     return await Product.find({
         category: category_id,
         isDeleted: false,
-        is_active: true,
+        isActive: true,
     })
         .populate('category', 'name slug')
         .populate({
@@ -130,7 +130,7 @@ export const getByCategory = async (category_id) => {
 export const updateStatusProduct = async (product_id) => {
     const product = await Product.findById(product_id);
     if (!product) throw new Error('Không tìm thấy sản phẩm!');
-    product.is_active = !product.is_active;
+    product.isActive = !product.isActive;
 
     await product.save();
     return product;

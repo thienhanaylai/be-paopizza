@@ -36,13 +36,13 @@ export const updateCategory = async (req, res) => {
 };
 
 export const updateActive = async (req, res) => {
-    const { category_id, is_active } = req.body;
+    const { category_id, isActive } = req.body;
     if (!category_id) {
         throw new Error('Thiếu thông tin!');
     }
     const result = await categoryService.updateActive({
         category_id,
-        is_active,
+        isActive,
     });
     return res.status(200).json({
         message: 'Cập nhật trạng thái danh mục thành công!',

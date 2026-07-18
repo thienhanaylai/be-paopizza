@@ -1619,7 +1619,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"data\": [\n    {\n      \"_id\": \"67a8b123456789abcdef0200\",\n      \"name\": \"Pizza\",\n      \"slug\": \"pizza\",\n      \"is_active\": true,\n      \"isDeleted\": false,\n      \"icon\": \"pizza-icon\"\n    }\n  ]\n}"
+              "body": "{\n  \"data\": [\n    {\n      \"_id\": \"67a8b123456789abcdef0200\",\n      \"name\": \"Pizza\",\n      \"slug\": \"pizza\",\n      \"isActive\": true,\n      \"isDeleted\": false,\n      \"icon\": \"pizza-icon\"\n    }\n  ]\n}"
             }
           ]
         },
@@ -1647,7 +1647,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0200\",\n    \"name\": \"Pizza\",\n    \"slug\": \"pizza\",\n    \"is_active\": true,\n    \"isDeleted\": false,\n    \"icon\": \"pizza-icon\"\n  }\n}"
+              "body": "{\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0200\",\n    \"name\": \"Pizza\",\n    \"slug\": \"pizza\",\n    \"isActive\": true,\n    \"isDeleted\": false,\n    \"icon\": \"pizza-icon\"\n  }\n}"
             }
           ]
         },
@@ -1704,7 +1704,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"message\": \"Thêm danh mục thành công!\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0210\",\n    \"name\": \"Pizza Signature\",\n    \"slug\": \"pizza-signature\",\n    \"icon\": \"pizza-icon\",\n    \"is_active\": true,\n    \"isDeleted\": false\n  }\n}"
+              "body": "{\n  \"message\": \"Thêm danh mục thành công!\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0210\",\n    \"name\": \"Pizza Signature\",\n    \"slug\": \"pizza-signature\",\n    \"icon\": \"pizza-icon\",\n    \"isActive\": true,\n    \"isDeleted\": false\n  }\n}"
             }
           ]
         },
@@ -1765,7 +1765,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"category_id\": \"{{categoryId}}\",\n  \"is_active\": false\n}",
+              "raw": "{\n  \"category_id\": \"{{categoryId}}\",\n  \"isActive\": false\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1786,7 +1786,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"message\": \"Cập nhật trạng thái danh mục thành công!\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0210\",\n    \"is_active\": false\n  }\n}"
+              "body": "{\n  \"message\": \"Cập nhật trạng thái danh mục thành công!\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0210\",\n    \"isActive\": false\n  }\n}"
             }
           ]
         },
@@ -1814,7 +1814,7 @@
               }
             },
             "url": "{{baseUrl}}/categories/deleted",
-            "description": "Soft delete category (set `isDeleted=true`, `is_active=false`). **Requires JWT + admin.**"
+            "description": "Soft delete category (set `isDeleted=true`, `isActive=false`). **Requires JWT + admin.**"
           },
           "response": [
             {
@@ -1827,7 +1827,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"message\": \"Xoá danh mục thành công!\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0210\",\n    \"isDeleted\": true,\n    \"is_active\": false\n  }\n}"
+              "body": "{\n  \"message\": \"Xoá danh mục thành công!\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0210\",\n    \"isDeleted\": true,\n    \"isActive\": false\n  }\n}"
             }
           ]
         }
@@ -2046,7 +2046,7 @@
     },
     {
       "name": "Ingredient",
-      "description": "Ingredient management.\n\nFields: name, unit, category, cost_per_unit, price, image, is_active, isDeleted.\nPublic endpoints: GET /ingredient, GET /ingredient/category, GET /ingredient/unit.\nProtected endpoints: GET /ingredient/:ingredient_id (JWT), create/update/updateActive/deleted (JWT + admin).",
+      "description": "Ingredient management.\n\nFields: name, unit, category, costPerUnit, price, image, isActive, isDeleted.\nPublic endpoints: GET /ingredient, GET /ingredient/category, GET /ingredient/unit.\nProtected endpoints: GET /ingredient/:ingredient_id (JWT), create/update/updateActive/deleted (JWT + admin).",
       "item": [
         {
           "name": "Get All Ingredients",
@@ -2131,7 +2131,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Bột mì\",\n  \"unit\": \"kg\",\n  \"category\": \"dough\",\n  \"cost_per_unit\": 12000,\n  \"price\": 16000,\n  \"is_active\": true\n}",
+              "raw": "{\n  \"name\": \"Bột mì\",\n  \"unit\": \"kg\",\n  \"category\": \"dough\",\n  \"costPerUnit\": 12000,\n  \"price\": 16000,\n  \"isActive\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2139,7 +2139,7 @@
               }
             },
             "url": "{{baseUrl}}/ingredient/create",
-            "description": "Create new ingredient. Requires JWT + admin.\n\nBody: name, unit (required). Optional: category, cost_per_unit, price, is_active, image.\nCategory slug: dough, seafood, meat, sauce, vegetable, drink, other.\nUnit slug: gram, kg, ml, lit, piece, box, can, bag, package.\nTest script sets ingredientId variable."
+            "description": "Create new ingredient. Requires JWT + admin.\n\nBody: name, unit (required). Optional: category, costPerUnit, price, isActive, image.\nCategory slug: dough, seafood, meat, sauce, vegetable, drink, other.\nUnit slug: gram, kg, ml, lit, piece, box, can, bag, package.\nTest script sets ingredientId variable."
           },
           "response": [
             {
@@ -2172,7 +2172,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"ingredient_id\": \"{{ingredientId}}\",\n  \"name\": \"Bột mì Updated\",\n  \"unit\": \"kg\",\n  \"category\": \"dough\",\n  \"cost_per_unit\": 15000,\n  \"price\": 20000,\n  \"is_active\": true\n}",
+              "raw": "{\n  \"ingredient_id\": \"{{ingredientId}}\",\n  \"name\": \"Bột mì Updated\",\n  \"unit\": \"kg\",\n  \"category\": \"dough\",\n  \"costPerUnit\": 15000,\n  \"price\": 20000,\n  \"isActive\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2180,7 +2180,7 @@
               }
             },
             "url": "{{baseUrl}}/ingredient/update",
-            "description": "Update ingredient (ingredient_id in body). **Yêu cầu admin.** Required: ingredient_id, name, unit. Optional: category, cost_per_unit, price, is_active, image."
+            "description": "Update ingredient (ingredient_id in body). **Yêu cầu admin.** Required: ingredient_id, name, unit. Optional: category, costPerUnit, price, isActive, image."
           },
           "response": [
             {
@@ -2213,7 +2213,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"ingredient_id\": \"{{ingredientId}}\",\n  \"is_active\": true\n}",
+              "raw": "{\n  \"ingredient_id\": \"{{ingredientId}}\",\n  \"isActive\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2336,7 +2336,7 @@
           "request": {
             "method": "GET",
             "url": "{{baseUrl}}/products",
-            "description": "Get all active products (`isDeleted=false`, `is_active=true`). Public endpoint."
+            "description": "Get all active products (`isDeleted=false`, `isActive=true`). Public endpoint."
           },
           "response": [
             {
@@ -2359,7 +2359,7 @@
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}/products/active",
-            "description": "Get all active products (isDeleted=false, is_active=true). Public endpoint."
+            "description": "Get all active products (isDeleted=false, isActive=true). Public endpoint."
           },
           "response": []
         },
@@ -2562,7 +2562,7 @@
               }
             ],
             "url": "{{baseUrl}}/products/updateStatus/{{productId}}",
-            "description": "Toggle product active status (is_active). Requires JWT + admin."
+            "description": "Toggle product active status (isActive). Requires JWT + admin."
           },
           "response": []
         },
@@ -2577,7 +2577,7 @@
               }
             ],
             "url": "{{baseUrl}}/products/deleted/{{productId}}",
-            "description": "Soft delete product (set isDeleted=true, is_active=false). **Requires JWT + admin.**"
+            "description": "Soft delete product (set isDeleted=true, isActive=false). **Requires JWT + admin.**"
           },
           "response": [
             {
@@ -2590,7 +2590,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"message\": \"Xoá sản phẩm thành công!\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0060\",\n    \"isDeleted\": true,\n    \"is_active\": false\n  }\n}"
+              "body": "{\n  \"message\": \"Xoá sản phẩm thành công!\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0060\",\n    \"isDeleted\": true,\n    \"isActive\": false\n  }\n}"
             }
           ]
         }
@@ -2598,7 +2598,7 @@
     },
     {
       "name": "Combos",
-      "description": "Combo management. Includes creating combos with complex rules, activating/deactivating, uploading images, and querying.\n\nAll modifications require JWT auth with 'admin' role.",
+      "description": "Combo management. Includes creating combos with complex rules, activating/deactivating, uploading images, and querying.\n\n**pricingType**: `static` (fixed price, requires `price`) or `dynamic` (price auto-calculated from items).\n\n**Rules** support `applicableCategories`, `applicableProducts`, `applicableSizes`, and `requiredQuantity`.\n\nAll modifications require JWT auth with 'admin' role.",
       "item": [
         {
           "name": "Get All Combos",
@@ -2619,7 +2619,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"data\": [\n    {\n      \"_id\": \"67a8b123456789abcdef0900\",\n      \"name\": \"Combo Pizza Margherita & Pepsi\",\n      \"description\": \"1 Pizza Margherita size M + 1 Pepsi\",\n      \"dateStart\": \"2026-06-01T00:00:00.000Z\",\n      \"dateEnd\": \"2026-06-30T23:59:59.000Z\",\n      \"image\": \"https://res.cloudinary.com/paopizza/image/upload/v123456/combos/margherita-pepsi.jpg\",\n      \"rules\": [\n        {\n          \"groupName\": \"Pizza Group\",\n          \"applicableProducts\": [\n            {\n              \"_id\": \"67a8b123456789abcdef0060\",\n              \"name\": \"Pizza Margherita\"\n            }\n          ],\n          \"applicableCategories\": [],\n          \"requiredQuantity\": 1\n        },\n        {\n          \"groupName\": \"Drink Group\",\n          \"applicableProducts\": [],\n          \"applicableCategories\": [\n            {\n              \"_id\": \"67a8b123456789abcdef0200\",\n              \"name\": \"Drink\"\n            }\n          ],\n          \"requiredQuantity\": 1\n        }\n      ],\n      \"disscountType\": \"amount\",\n      \"disscount\": 15000,\n      \"price\": 120000,\n      \"is_active\": true,\n      \"isDeleted\": false,\n      \"createdAt\": \"2026-06-08T11:50:00.000Z\",\n      \"updatedAt\": \"2026-06-08T11:50:00.000Z\"\n    }\n  ]\n}"
+              "body": "{\n  \"data\": [\n    {\n      \"_id\": \"67a8b123456789abcdef0900\",\n      \"name\": \"Combo Pizza Margherita & Pepsi\",\n      \"description\": \"1 Pizza Margherita size M + 1 Pepsi\",\n      \"dateStart\": \"2026-06-01T00:00:00.000Z\",\n      \"dateEnd\": \"2026-06-30T23:59:59.000Z\",\n      \"image\": \"https://res.cloudinary.com/paopizza/image/upload/v123456/combos/margherita-pepsi.jpg\",\n      \"rules\": [\n        {\n          \"groupName\": \"Pizza Group\",\n          \"applicableProducts\": [\n            {\n              \"_id\": \"67a8b123456789abcdef0060\",\n              \"name\": \"Pizza Margherita\"\n            }\n          ],\n          \"applicableCategories\": [],\n          \"applicableSizes\": [],\n          \"requiredQuantity\": 1\n        },\n        {\n          \"groupName\": \"Drink Group\",\n          \"applicableProducts\": [],\n          \"applicableCategories\": [\n            {\n              \"_id\": \"67a8b123456789abcdef0200\",\n              \"name\": \"Drink\"\n            }\n          ],\n          \"applicableSizes\": [],\n          \"requiredQuantity\": 1\n        }\n      ],\n      \"pricingType\": \"static\",\n      \"discountType\": \"amount\",\n      \"discount\": 15000,\n      \"price\": 120000,\n      \"isActive\": true,\n      \"isDeleted\": false,\n      \"createdAt\": \"2026-06-08T11:50:00.000Z\",\n      \"updatedAt\": \"2026-06-08T11:50:00.000Z\"\n    }\n  ]\n}"
             }
           ]
         },
@@ -2642,7 +2642,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"data\": [\n    {\n      \"_id\": \"67a8b123456789abcdef0900\",\n      \"name\": \"Combo Pizza Margherita & Pepsi\",\n      \"description\": \"1 Pizza Margherita size M + 1 Pepsi\",\n      \"dateStart\": \"2026-06-01T00:00:00.000Z\",\n      \"dateEnd\": \"2026-06-30T23:59:59.000Z\",\n      \"image\": \"https://res.cloudinary.com/paopizza/image/upload/v123456/combos/margherita-pepsi.jpg\",\n      \"rules\": [\n        {\n          \"groupName\": \"Pizza Group\",\n          \"applicableProducts\": [\n            {\n              \"_id\": \"67a8b123456789abcdef0060\",\n              \"name\": \"Pizza Margherita\"\n            }\n          ],\n          \"applicableCategories\": [],\n          \"requiredQuantity\": 1\n        }\n      ],\n      \"disscountType\": \"amount\",\n      \"disscount\": 15000,\n      \"price\": 120000,\n      \"is_active\": true,\n      \"isDeleted\": false\n    }\n  ]\n}"
+              "body": "{\n  \"data\": [\n    {\n      \"_id\": \"67a8b123456789abcdef0900\",\n      \"name\": \"Combo Pizza Margherita & Pepsi\",\n      \"description\": \"1 Pizza Margherita size M + 1 Pepsi\",\n      \"dateStart\": \"2026-06-01T00:00:00.000Z\",\n      \"dateEnd\": \"2026-06-30T23:59:59.000Z\",\n      \"image\": \"https://res.cloudinary.com/paopizza/image/upload/v123456/combos/margherita-pepsi.jpg\",\n      \"rules\": [\n        {\n          \"groupName\": \"Pizza Group\",\n          \"applicableProducts\": [\n            {\n              \"_id\": \"67a8b123456789abcdef0060\",\n              \"name\": \"Pizza Margherita\"\n            }\n          ],\n          \"applicableCategories\": [],\n          \"applicableSizes\": [],\n          \"requiredQuantity\": 1\n        }\n      ],\n      \"pricingType\": \"static\",\n      \"discountType\": \"amount\",\n      \"discount\": 15000,\n      \"price\": 120000,\n      \"isActive\": true,\n      \"isDeleted\": false\n    }\n  ]\n}"
             }
           ]
         },
@@ -2665,7 +2665,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0900\",\n    \"name\": \"Combo Pizza Margherita & Pepsi\",\n    \"description\": \"1 Pizza Margherita size M + 1 Pepsi\",\n    \"dateStart\": \"2026-06-01T00:00:00.000Z\",\n    \"dateEnd\": \"2026-06-30T23:59:59.000Z\",\n    \"image\": \"https://res.cloudinary.com/paopizza/image/upload/v123456/combos/margherita-pepsi.jpg\",\n    \"rules\": [\n      {\n        \"groupName\": \"Pizza Group\",\n        \"applicableProducts\": [\n          {\n            \"_id\": \"67a8b123456789abcdef0060\",\n            \"name\": \"Pizza Margherita\"\n          }\n        ],\n        \"applicableCategories\": [],\n        \"requiredQuantity\": 1\n      }\n    ],\n    \"disscountType\": \"amount\",\n    \"disscount\": 15000,\n    \"price\": 120000,\n    \"is_active\": true,\n    \"isDeleted\": false\n  }\n}"
+              "body": "{\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0900\",\n    \"name\": \"Combo Pizza Margherita & Pepsi\",\n    \"description\": \"1 Pizza Margherita size M + 1 Pepsi\",\n    \"dateStart\": \"2026-06-01T00:00:00.000Z\",\n    \"dateEnd\": \"2026-06-30T23:59:59.000Z\",\n    \"image\": \"https://res.cloudinary.com/paopizza/image/upload/v123456/combos/margherita-pepsi.jpg\",\n    \"rules\": [\n      {\n        \"groupName\": \"Pizza Group\",\n        \"applicableProducts\": [\n          {\n            \"_id\": \"67a8b123456789abcdef0060\",\n            \"name\": \"Pizza Margherita\"\n          }\n        ],\n        \"applicableCategories\": [],\n        \"applicableSizes\": [],\n        \"requiredQuantity\": 1\n      }\n    ],\n    \"pricingType\": \"static\",\n    \"discountType\": \"amount\",\n    \"discount\": 15000,\n    \"price\": 120000,\n    \"isActive\": true,\n    \"isDeleted\": false\n  }\n}"
             },
             {
               "name": "404 - Not Found",
@@ -2697,7 +2697,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Combo Pizza Margherita & Pepsi\",\n  \"description\": \"1 Pizza Margherita size M + 1 Pepsi\",\n  \"dateStart\": \"2026-06-01T00:00:00.000Z\",\n  \"dateEnd\": \"2026-06-30T23:59:59.000Z\",\n  \"disscountType\": \"amount\",\n  \"disscount\": 15000,\n  \"price\": 120000,\n  \"is_active\": true,\n  \"rules\": [\n    {\n      \"groupName\": \"Pizza Group\",\n      \"applicableProducts\": [\n        \"{{productId}}\"\n      ],\n      \"requiredQuantity\": 1\n    },\n    {\n      \"groupName\": \"Drink Group\",\n      \"applicableCategories\": [\n        \"{{categoryId}}\"\n      ],\n      \"requiredQuantity\": 1\n    }\n  ]\n}",
+              "raw": "{\n  \"name\": \"Combo Pizza Margherita & Pepsi\",\n  \"description\": \"1 Pizza Margherita size M + 1 Pepsi\",\n  \"dateStart\": \"2026-06-01T00:00:00.000Z\",\n  \"dateEnd\": \"2026-06-30T23:59:59.000Z\",\n  \"pricingType\": \"static\",\n  \"discountType\": \"amount\",\n  \"discount\": 15000,\n  \"price\": 120000,\n  \"isActive\": true,\n  \"rules\": [\n    {\n      \"groupName\": \"Pizza Group\",\n      \"applicableProducts\": [\n        \"{{productId}}\"\n      ],\n      \"applicableCategories\": [],\n      \"applicableSizes\": [],\n      \"requiredQuantity\": 1\n    },\n    {\n      \"groupName\": \"Drink Group\",\n      \"applicableProducts\": [],\n      \"applicableCategories\": [\n        \"{{categoryId}}\"\n      ],\n      \"applicableSizes\": [],\n      \"requiredQuantity\": 1\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2705,7 +2705,7 @@
               }
             },
             "url": "{{baseUrl}}/combos/create",
-            "description": "Create a new combo. Requires JWT auth with 'admin' role."
+            "description": "Create a new combo. Requires JWT auth with 'admin' role.\n\n**Body fields**:\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| name | string | Yes | Unique combo name |\n| description | string | No | |\n| dateStart | ISO date | Yes | |\n| dateEnd | ISO date | Yes | |\n| pricingType | enum | No | `static` (default) or `dynamic` |\n| discountType | enum | Yes | `percent` or `amount` |\n| discount | number | Yes | Discount value |\n| price | number | Only if static | Fixed combo price |\n| isActive | boolean | No | Default true |\n| rules | array | Yes | At least 1 rule required |\n\n**Rule fields**:\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| groupName | string | Yes | Rule label |\n| applicableCategories | ObjectId[] | No | Category refs |\n| applicableProducts | ObjectId[] | No | Product refs |\n| applicableSizes | string[] | No | e.g. [\"S\", \"M\", \"L\"] or [\"330ml\", \"1L\"] |\n| requiredQuantity | number | Yes | Min 1 |\n\nAt least one of applicableCategories/applicableProducts required per rule."
           },
           "response": [
             {
@@ -2718,7 +2718,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"message\": \"Thêm combo thành công!\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0900\",\n    \"name\": \"Combo Pizza Margherita & Pepsi\",\n    \"description\": \"1 Pizza Margherita size M + 1 Pepsi\",\n    \"dateStart\": \"2026-06-01T00:00:00.000Z\",\n    \"dateEnd\": \"2026-06-30T23:59:59.000Z\",\n    \"image\": \"\",\n    \"rules\": [\n      {\n        \"groupName\": \"Pizza Group\",\n        \"applicableProducts\": [\n          \"67a8b123456789abcdef0060\"\n        ],\n        \"applicableCategories\": [],\n        \"requiredQuantity\": 1\n      },\n      {\n        \"groupName\": \"Drink Group\",\n        \"applicableProducts\": [],\n        \"applicableCategories\": [\n          \"67a8b123456789abcdef0200\"\n        ],\n        \"requiredQuantity\": 1\n      }\n    ],\n    \"disscountType\": \"amount\",\n    \"disscount\": 15000,\n    \"price\": 120000,\n    \"is_active\": true,\n    \"isDeleted\": false,\n    \"createdAt\": \"2026-06-08T11:50:00.000Z\",\n    \"updatedAt\": \"2026-06-08T11:50:00.000Z\"\n  }\n}"
+              "body": "{\n  \"message\": \"Thêm combo thành công!\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0900\",\n    \"name\": \"Combo Pizza Margherita & Pepsi\",\n    \"description\": \"1 Pizza Margherita size M + 1 Pepsi\",\n    \"dateStart\": \"2026-06-01T00:00:00.000Z\",\n    \"dateEnd\": \"2026-06-30T23:59:59.000Z\",\n    \"image\": \"\",\n    \"rules\": [\n      {\n        \"groupName\": \"Pizza Group\",\n        \"applicableProducts\": [\n          \"67a8b123456789abcdef0060\"\n        ],\n        \"applicableCategories\": [],\n        \"applicableSizes\": [],\n        \"requiredQuantity\": 1\n      },\n      {\n        \"groupName\": \"Drink Group\",\n        \"applicableProducts\": [],\n        \"applicableCategories\": [\n          \"67a8b123456789abcdef0200\"\n        ],\n        \"applicableSizes\": [],\n        \"requiredQuantity\": 1\n      }\n    ],\n    \"pricingType\": \"static\",\n    \"discountType\": \"amount\",\n    \"discount\": 15000,\n    \"price\": 120000,\n    \"isActive\": true,\n    \"isDeleted\": false,\n    \"createdAt\": \"2026-06-08T11:50:00.000Z\",\n    \"updatedAt\": \"2026-06-08T11:50:00.000Z\"\n  }\n}"
             },
             {
               "name": "400 - Validation Error",
@@ -2730,7 +2730,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"success\": false,\n  \"statusCode\": 400,\n  \"errorCode\": \"BAD_REQUEST\",\n  \"message\": \"Thiếu thông tin name, disscountType hoặc ngày bắt đầu/kết thúc!\"\n}"
+              "body": "{\n  \"success\": false,\n  \"statusCode\": 400,\n  \"errorCode\": \"BAD_REQUEST\",\n  \"message\": \"Thiếu thông tin name, discountType hoặc ngày bắt đầu/kết thúc!\"\n}"
             },
             {
               "name": "400 - Duplicate Name Error",
@@ -2762,7 +2762,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"combo_id\": \"{{comboId}}\",\n  \"name\": \"Combo Pizza Margherita & Pepsi Updated\",\n  \"price\": 130000\n}",
+              "raw": "{\n  \"combo_id\": \"{{comboId}}\",\n  \"name\": \"Combo Pizza Margherita & Pepsi Updated\",\n  \"pricingType\": \"static\",\n  \"discountType\": \"amount\",\n  \"discount\": 15000,\n  \"price\": 130000,\n  \"isActive\": true,\n  \"rules\": [\n    {\n      \"groupName\": \"Pizza Group\",\n      \"applicableProducts\": [\"{{productId}}\"],\n      \"applicableCategories\": [],\n      \"applicableSizes\": [\"S\", \"M\"],\n      \"requiredQuantity\": 1\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2770,7 +2770,7 @@
               }
             },
             "url": "{{baseUrl}}/combos/update",
-            "description": "Update combo details. Requires JWT auth with 'admin' role."
+            "description": "Update combo details. Send only fields you want to change. Requires JWT auth with 'admin' role.\n\n**Updatable fields**: name, description, dateStart, dateEnd, pricingType, discountType, discount, price, isActive, rules.\n\nWhen switching `pricingType` to `static`, you must provide `price`."
           },
           "response": [
             {
@@ -2783,7 +2783,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"message\": \"Cập nhật combo thành công!\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0900\",\n    \"name\": \"Combo Pizza Margherita & Pepsi Updated\",\n    \"description\": \"1 Pizza Margherita size M + 1 Pepsi\",\n    \"dateStart\": \"2026-06-01T00:00:00.000Z\",\n    \"dateEnd\": \"2026-06-30T23:59:59.000Z\",\n    \"image\": \"\",\n    \"rules\": [\n      {\n        \"groupName\": \"Pizza Group\",\n        \"applicableProducts\": [\n          \"67a8b123456789abcdef0060\"\n        ],\n        \"applicableCategories\": [],\n        \"requiredQuantity\": 1\n      }\n    ],\n    \"disscountType\": \"amount\",\n    \"disscount\": 15000,\n    \"price\": 130000,\n    \"is_active\": true,\n    \"isDeleted\": false,\n    \"createdAt\": \"2026-06-08T11:50:00.000Z\",\n    \"updatedAt\": \"2026-06-08T11:55:00.000Z\"\n  }\n}"
+              "body": "{\n  \"message\": \"Cập nhật combo thành công!\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0900\",\n    \"name\": \"Combo Pizza Margherita & Pepsi Updated\",\n    \"description\": \"1 Pizza Margherita size M + 1 Pepsi\",\n    \"dateStart\": \"2026-06-01T00:00:00.000Z\",\n    \"dateEnd\": \"2026-06-30T23:59:59.000Z\",\n    \"image\": \"\",\n    \"rules\": [\n      {\n        \"groupName\": \"Pizza Group\",\n        \"applicableProducts\": [\n          \"67a8b123456789abcdef0060\"\n        ],\n        \"applicableCategories\": [],\n        \"applicableSizes\": [],\n        \"requiredQuantity\": 1\n      }\n    ],\n    \"pricingType\": \"static\",\n    \"discountType\": \"amount\",\n    \"discount\": 15000,\n    \"price\": 130000,\n    \"isActive\": true,\n    \"isDeleted\": false,\n    \"createdAt\": \"2026-06-08T11:50:00.000Z\",\n    \"updatedAt\": \"2026-06-08T11:55:00.000Z\"\n  }\n}"
             },
             {
               "name": "404 - Not Found",
@@ -2853,7 +2853,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"is_active\": false\n}",
+              "raw": "{\n  \"isActive\": false\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2874,7 +2874,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"message\": \"Cập nhật trạng thái combo thành công!\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0900\",\n    \"name\": \"Combo Pizza Margherita & Pepsi\",\n    \"is_active\": false\n  }\n}"
+              "body": "{\n  \"message\": \"Cập nhật trạng thái combo thành công!\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0900\",\n    \"name\": \"Combo Pizza Margherita & Pepsi\",\n    \"isActive\": false\n  }\n}"
             }
           ]
         },
@@ -2889,7 +2889,7 @@
               }
             ],
             "url": "{{baseUrl}}/combos/deleted/{{comboId}}",
-            "description": "Soft delete a combo by setting 'isDeleted' to true and 'is_active' to false. Requires JWT auth with 'admin' role."
+            "description": "Soft delete a combo by setting 'isDeleted' to true and 'isActive' to false. Requires JWT auth with 'admin' role."
           },
           "response": [
             {
@@ -2902,7 +2902,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"message\": \"Xoá combo thành công!\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0900\",\n    \"name\": \"Combo Pizza Margherita & Pepsi\",\n    \"is_active\": false,\n    \"isDeleted\": true\n  }\n}"
+              "body": "{\n  \"message\": \"Xoá combo thành công!\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0900\",\n    \"name\": \"Combo Pizza Margherita & Pepsi\",\n    \"isActive\": false,\n    \"isDeleted\": true\n  }\n}"
             },
             {
               "name": "404 - Not Found",

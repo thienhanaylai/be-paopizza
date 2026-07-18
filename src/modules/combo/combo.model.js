@@ -85,7 +85,7 @@ const comboSchema = new mongoose.Schema(
                 return this.pricingType === 'static';
             },
         },
-        is_active: {
+        isActive: {
             type: Boolean,
             default: true,
         },

@@ -2,7 +2,7 @@ import * as ingredientService from './ingredient.service.js';
 
 export const createIngredient = async (req, res, next) => {
     try {
-        const { name, unit, category, cost_per_unit, price, is_active, image } =
+        const { name, unit, category, costPerUnit, price, isActive, image } =
             req.body;
 
         if (!name || !unit) {
@@ -12,9 +12,9 @@ export const createIngredient = async (req, res, next) => {
             name,
             unit,
             category,
-            cost_per_unit,
+            costPerUnit,
             price,
-            is_active,
+            isActive,
             image,
         });
         return res.status(201).json({
@@ -32,9 +32,9 @@ export const updateIngredient = async (req, res, next) => {
             name,
             unit,
             category,
-            cost_per_unit,
+            costPerUnit,
             price,
-            is_active,
+            isActive,
             image,
         } = req.body;
         if (!ingredient_id || !name || !unit) {
@@ -45,9 +45,9 @@ export const updateIngredient = async (req, res, next) => {
             name,
             unit,
             category,
-            cost_per_unit,
+            costPerUnit,
             price,
-            is_active,
+            isActive,
             image,
         });
         return res.status(201).json({
@@ -60,13 +60,13 @@ export const updateIngredient = async (req, res, next) => {
 };
 export const updateActive = async (req, res, next) => {
     try {
-        const { ingredient_id, is_active } = req.body;
-        if (!ingredient_id || typeof is_active === 'undefined') {
+        const { ingredient_id, isActive } = req.body;
+        if (!ingredient_id || typeof isActive === 'undefined') {
             throw new Error('Thiếu thông tin!');
         }
         const result = await ingredientService.updateActive({
             ingredient_id,
-            is_active,
+            isActive,
         });
         return res.status(201).json({
             message: 'Cập nhật trạng thái nguyên liệu thành công!',

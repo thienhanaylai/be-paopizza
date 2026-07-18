@@ -90,7 +90,7 @@ const productSchema = new mongoose.Schema(
             type: Date,
             default: null,
         },
-        is_active: {
+        isActive: {
             type: Boolean,
             default: true,
         },

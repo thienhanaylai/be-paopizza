@@ -3,6 +3,7 @@ import '../category/category.model.js';
 import '../product/product.model.js';
 
 const DISCOUNT_TYPES = new Set(['percent', 'amount']);
+const PRICING_TYPES = new Set(['static', 'dynamic']);
 
 const parseDate = (value, fieldName) => {
     if (value === undefined || value === null || value === '') return undefined;
@@ -122,6 +123,15 @@ const parseDiscountType = (value) => {
     return normalized;
 };
 
+const parsePricingType = (value) => {
+    if (value === undefined || value === null || value === '') return 'static';
+    const normalized = String(value).trim().toLowerCase();
+    if (!PRICING_TYPES.has(normalized)) {
+        throw new Error('pricingType phải là static hoặc dynamic!');
+    }
+    return normalized;
+};
+
 export const create = async (data, file) => {
     const {
         name,
@@ -130,11 +140,12 @@ export const create = async (data, file) => {
         dateEnd,
         image = '',
         rules,
-        is_active,
+        isActive,
     } = data;
 
     const discountType = parseDiscountType(getDiscountType(data));
-    console.log(data);
+    const pricingType = parsePricingType(data.pricingType);
+
     if (!name || !dateStart || !dateEnd || !discountType) {
         throw new Error(
             'Thiếu thông tin name, discountType hoặc ngày bắt đầu/kết thúc!',
@@ -142,9 +153,11 @@ export const create = async (data, file) => {
     }
 
     const discountValue = parseNumber(getDiscountValue(data) ?? 0, 'discount');
+
+    // price chỉ bắt buộc khi pricingType là static
     const price = parseNumber(data.price, 'price');
-    if (price === undefined) {
-        throw new Error('Thiếu price combo!');
+    if (pricingType === 'static' && price === undefined) {
+        throw new Error('Thiếu price combo! (bắt buộc với pricingType=static)');
     }
 
     const startDate = parseDate(dateStart, 'dateStart');
@@ -175,11 +188,12 @@ export const create = async (data, file) => {
         rules: normalizedRules,
         discountType,
         discount: discountValue ?? 0,
-        price,
+        pricingType,
+        ...(pricingType === 'static' && price !== undefined && { price }),
     };
 
-    if (is_active !== undefined) {
-        payload.is_active = parseBoolean(is_active, 'is_active');
+    if (isActive !== undefined) {
+        payload.isActive = parseBoolean(isActive, 'isActive');
     }
 
     return await Combo.create(payload);
@@ -223,8 +237,24 @@ export const update = async (data, file) => {
     if (updateData.price !== undefined) {
         updateData.price = parseNumber(updateData.price, 'price');
     }
-    if (updateData.is_active !== undefined) {
-        updateData.is_active = parseBoolean(updateData.is_active, 'is_active');
+    if (updateData.pricingType !== undefined) {
+        updateData.pricingType = parsePricingType(updateData.pricingType);
+    }
+    if (updateData.isActive !== undefined) {
+        updateData.isActive = parseBoolean(updateData.isActive, 'isActive');
+    }
+
+    // Khi chuyển sang static mà không có price thì báo lỗi
+    const resolvedPricingType =
+        updateData.pricingType !== undefined
+            ? updateData.pricingType
+            : combo.pricingType || 'static';
+    if (
+        resolvedPricingType === 'static' &&
+        updateData.price === undefined &&
+        !combo.price
+    ) {
+        throw new Error('Phải cung cấp price khi pricingType là static!');
     }
     if (updateData.rules !== undefined) {
         updateData.rules = normalizeRules(updateData.rules);
@@ -261,7 +291,7 @@ export const getAll = async (query = {}) => {
 };
 
 export const getAllActive = async () => {
-    return await Combo.find({ isDeleted: false, is_active: true })
+    return await Combo.find({ isDeleted: false, isActive: true })
         .populate('rules.applicableCategories', 'name')
         .populate('rules.applicableProducts', 'name variants')
         .sort({ createdAt: -1 })
@@ -289,7 +319,7 @@ export const deleted = async (combo_id) => {
 
     const combo = await Combo.findByIdAndUpdate(
         combo_id,
-        { isDeleted: true, is_active: false },
+        { isDeleted: true, isActive: false },
         { new: true },
     );
     if (!combo) {
@@ -298,7 +328,7 @@ export const deleted = async (combo_id) => {
     return combo;
 };
 
-export const updateStatus = async (combo_id, is_active) => {
+export const updateStatus = async (combo_id, isActive) => {
     if (!combo_id) {
         throw new Error('Thiếu combo_id!');
     }
@@ -308,8 +338,8 @@ export const updateStatus = async (combo_id, is_active) => {
         throw new Error('Không tìm thấy combo!');
     }
 
-    const nextStatus = parseBoolean(is_active, 'is_active');
-    combo.is_active = nextStatus === undefined ? !combo.is_active : nextStatus;
+    const nextStatus = parseBoolean(isActive, 'isActive');
+    combo.isActive = nextStatus === undefined ? !combo.isActive : nextStatus;
 
     await combo.save();
     return combo;

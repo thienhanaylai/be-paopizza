@@ -56,8 +56,8 @@ export const deletedCombo = async (req, res) => {
 
 export const updateComboStatus = async (req, res) => {
     const combo_id = req.params.combo_id || req.body.combo_id;
-    const { is_active } = req.body;
-    const result = await comboService.updateStatus(combo_id, is_active);
+    const { isActive } = req.body;
+    const result = await comboService.updateStatus(combo_id, isActive);
     return res.status(200).json({
         message: 'Cập nhật trạng thái combo thành công!',
         data: result,
