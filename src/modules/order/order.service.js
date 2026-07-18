@@ -132,9 +132,8 @@ export const create = async (data) => {
                 added_topping: normalizeAddedTopping(added_topping),
             });
         } else if (item_type === 'combo') {
-            console.log(item);
             if (!combo) {
-                throw new Error('Thiếu combo cho combo');
+                throw new Error('Thiếu combo_id cho combo');
             }
 
             finalSize = 'combo';

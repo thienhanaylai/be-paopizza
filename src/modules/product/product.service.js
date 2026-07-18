@@ -17,7 +17,7 @@ export const create = async (data) => {
     if (existing) {
         throw new Error('Sản phẩm với tên này đã tồn tại!');
     }
-
+    console.log(data);
     const product = await Product.create({
         name,
         category,

@@ -4,15 +4,7 @@ export const createIngredient = async (req, res, next) => {
     try {
         const { name, unit, category, cost_per_unit, price, is_active, image } =
             req.body;
-        console.log({
-            name,
-            unit,
-            category,
-            cost_per_unit,
-            price,
-            is_active,
-            image,
-        });
+
         if (!name || !unit) {
             throw new Error('Thiếu thông tin!');
         }

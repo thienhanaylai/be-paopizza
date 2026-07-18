@@ -134,7 +134,7 @@ export const create = async (data, file) => {
     } = data;
 
     const discountType = parseDiscountType(getDiscountType(data));
-
+    console.log(data);
     if (!name || !dateStart || !dateEnd || !discountType) {
         throw new Error(
             'Thiếu thông tin name, discountType hoặc ngày bắt đầu/kết thúc!',

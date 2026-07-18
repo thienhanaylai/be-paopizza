@@ -21,7 +21,7 @@ const ruleSchema = new mongoose.Schema(
         ],
         applicableSizes: {
             type: [String],
-            default: [], 
+            default: [],
         },
         requiredQuantity: {
             type: Number,
@@ -71,11 +71,19 @@ const comboSchema = new mongoose.Schema(
             min: 0,
             require: true,
         },
+        pricingType: {
+            type: String,
+            enum: ['static', 'dynamic'],
+            required: true,
+            default: 'static',
+        },
         price: {
             type: Number,
             default: 0,
             min: 0,
-            require: true,
+            required: function () {
+                return this.pricingType === 'static';
+            },
         },
         is_active: {
             type: Boolean,

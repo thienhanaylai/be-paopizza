@@ -41,7 +41,6 @@ export const uploadImage = (req, res) => {
 export const deleteImage = async (req, res) => {
     const { publicId } = req.query;
     try {
-        console.log(publicId);
         const result = await cloudinary.uploader.destroy(publicId);
         return res.status(200).json(result);
     } catch (error) {

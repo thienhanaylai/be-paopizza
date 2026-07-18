@@ -212,11 +212,11 @@ export const updateCartItem = async (data) => {
         if (item_type === 'product') {
             return item.product_id.toString() === product_id.toString();
         } else {
-            // Combo: ưu tiên tìm theo sku (COMBO-<id>-1) để phân biệt các selection khác nhau
+            //  ưu tiên tìm theo sku (COMBO-<id>-1) để phân biệt các selection khác nhau
             if (sku) {
                 return item.sku === sku;
             }
-            // Fallback: tìm theo combo_id (chỉ nên dùng khi giỏ chỉ có 1 item combo đó)
+            //  tìm theo combo_id (chỉ nên dùng khi giỏ chỉ có 1 item combo đó)
             return item.combo.toString() === combo.toString();
         }
     });

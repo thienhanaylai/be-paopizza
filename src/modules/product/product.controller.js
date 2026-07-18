@@ -70,6 +70,7 @@ const normalizeVariants = (variantsInput) => {
                 sku: variant.sku,
                 price: variant.price,
                 size: variant.size,
+                crust: Array.isArray(variant.crust) ? variant.crust : [],
                 recipe: normalizeRecipe(variant.recipe),
             };
 

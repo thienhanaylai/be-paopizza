@@ -32,7 +32,7 @@ const createEmployeeSchema = z
 
 export const create = async (req, res) => {
     const result = createEmployeeSchema.safeParse(req.body);
-    console.log(result);
+
     if (!result.success) {
         return res.status(400).json({
             message: 'Validation error',
@@ -106,7 +106,7 @@ export const getEmployeeByStore = async (req, res) => {
 export const deleteEmployee = async (req, res) => {
     const { employee_id } = req.params;
     const result = await employeeService.deleteEmployee(employee_id);
-    console.log(result);
+
     return res.status(200).json({
         data: result,
     });

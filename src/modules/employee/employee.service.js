@@ -107,7 +107,6 @@ export const getEmployeeOfStore = async (store_id) => {
 };
 
 export const deleteEmployee = async (employee_id) => {
-    console.log(employee_id);
     const emp = Employee.findById(employee_id);
     if (!emp) {
         throw new Error('Không tìm thấy nhân viên!');
