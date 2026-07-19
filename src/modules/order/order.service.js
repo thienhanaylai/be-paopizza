@@ -226,11 +226,11 @@ export const create = async (data) => {
         const promo = await Promotion.findOne({
             code: promotion_code.toUpperCase().trim(),
             status: 'active',
-            start_date: { $lte: new Date() },
-            end_date: { $gte: new Date() },
+            startDate: { $lte: new Date() },
+            endDate: { $gte: new Date() },
             $or: [
-                { applicable_store: { $in: [store_id] } },
-                { applicable_store: { $size: 0 } },
+                { applicableStore: { $in: [store_id] } },
+                { applicableStore: { $size: 0 } },
             ],
         });
         if (promo) {

@@ -5,13 +5,13 @@ export const create = async (data) => {
         code,
         type,
         value,
-        start_date,
-        end_date,
+        startDate,
+        endDate,
         status = 'draft',
-        applicable_store = [],
+        applicableStore = [],
     } = data;
 
-    if (!code || !type || value === undefined || !start_date || !end_date) {
+    if (!code || !type || value === undefined || !startDate || !endDate) {
         throw new Error(
             'Thiếu thông tin mã khuyến mãi, loại, giá trị, ngày bắt đầu/kết thúc!',
         );
@@ -29,10 +29,10 @@ export const create = async (data) => {
         code: code.toUpperCase().trim(),
         type,
         value,
-        start_date,
-        end_date,
+        startDate,
+        endDate,
         status,
-        applicable_store,
+        applicableStore,
     });
     return result;
 };
@@ -40,7 +40,7 @@ export const create = async (data) => {
 export const getAll = async (query = {}) => {
     const filter = { isDeleted: false, ...query };
     return await Promotion.find(filter)
-        .populate('applicable_store')
+        .populate('applicableStore')
         .sort({ createdAt: -1 });
 };
 
@@ -48,7 +48,7 @@ export const getById = async (promotion_id) => {
     const promotion = await Promotion.findOne({
         _id: promotion_id,
         isDeleted: false,
-    }).populate('applicable_store');
+    }).populate('applicableStore');
     if (!promotion) {
         throw new Error('Không tìm thấy khuyến mãi!');
     }
@@ -61,10 +61,10 @@ export const update = async (data) => {
         code,
         type,
         value,
-        start_date,
-        end_date,
+        startDate,
+        endDate,
         status,
-        applicable_store,
+        applicableStore,
     } = data;
     if (!promotion_id) {
         throw new Error('Thiếu promotion_id!');
@@ -79,11 +79,11 @@ export const update = async (data) => {
     if (code !== undefined) updateData.code = code.toUpperCase().trim();
     if (type !== undefined) updateData.type = type;
     if (value !== undefined) updateData.value = value;
-    if (start_date !== undefined) updateData.start_date = start_date;
-    if (end_date !== undefined) updateData.end_date = end_date;
+    if (startDate !== undefined) updateData.startDate = startDate;
+    if (endDate !== undefined) updateData.endDate = endDate;
     if (status !== undefined) updateData.status = status;
-    if (applicable_store !== undefined)
-        updateData.applicable_store = applicable_store;
+    if (applicableStore !== undefined)
+        updateData.applicableStore = applicableStore;
 
     if (code) {
         const existing = await Promotion.findOne({
@@ -99,7 +99,7 @@ export const update = async (data) => {
     const result = await Promotion.findByIdAndUpdate(promotion_id, updateData, {
         new: true,
         runValidators: true,
-    }).populate('applicable_store');
+    }).populate('applicableStore');
     return result;
 };
 
@@ -113,7 +113,7 @@ export const updateStatus = async (data) => {
         promotion_id,
         { status },
         { new: true, runValidators: true },
-    ).populate('applicable_store');
+    ).populate('applicableStore');
     if (!result) {
         throw new Error('Không tìm thấy khuyến mãi!');
     }
@@ -184,7 +184,7 @@ export const applyPromotion = async (code, orderTotal, storeId) => {
 
     // Kiểm tra thời hạn
     const now = new Date();
-    if (now < promotion.start_date) {
+    if (now < promotion.startDate) {
         return {
             valid: false,
             code: promotion.code,
@@ -194,7 +194,7 @@ export const applyPromotion = async (code, orderTotal, storeId) => {
             message: 'Mã khuyến mãi chưa đến thời gian áp dụng!',
         };
     }
-    if (now > promotion.end_date) {
+    if (now > promotion.endDate) {
         return {
             valid: false,
             code: promotion.code,
@@ -206,8 +206,8 @@ export const applyPromotion = async (code, orderTotal, storeId) => {
     }
 
     // Kiểm tra cửa hàng áp dụng
-    if (promotion.applicable_store && promotion.applicable_store.length > 0) {
-        const storeIds = promotion.applicable_store.map((id) => id.toString());
+    if (promotion.applicableStore && promotion.applicableStore.length > 0) {
+        const storeIds = promotion.applicableStore.map((id) => id.toString());
 
         if (storeId && !storeIds.includes(storeId.toString())) {
             return {

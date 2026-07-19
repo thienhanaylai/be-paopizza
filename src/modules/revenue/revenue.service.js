@@ -19,23 +19,23 @@ const parseDate = (value, fieldName) => {
 const parseDateRange = (query = {}) => {
     const now = new Date();
 
-    const endDate = query.end_date
-        ? parseDate(query.end_date, 'end_date')
+    const endDate = query.endDate
+        ? parseDate(query.endDate, 'endDate')
         : new Date(now);
     endDate.setHours(23, 59, 59, 999);
 
-    const startDate = query.start_date
-        ? parseDate(query.start_date, 'start_date')
+    const startDate = query.startDate
+        ? parseDate(query.startDate, 'startDate')
         : new Date(endDate);
 
-    if (!query.start_date) {
+    if (!query.startDate) {
         startDate.setDate(startDate.getDate() - DEFAULT_RANGE_DAYS);
     }
 
     startDate.setHours(0, 0, 0, 0);
 
     if (startDate > endDate) {
-        throw new Error('start_date phải nhỏ hơn hoặc bằng end_date');
+        throw new Error('startDate phải nhỏ hơn hoặc bằng endDate');
     }
 
     return {
@@ -172,8 +172,8 @@ export const getOverview = async ({ user, query = {} }) => {
 
     return {
         range: {
-            start_date: filters.startDate.toISOString(),
-            end_date: filters.endDate.toISOString(),
+            startDate: filters.startDate.toISOString(),
+            endDate: filters.endDate.toISOString(),
         },
         filters: {
             store_id: filters.scopedStoreId
@@ -282,8 +282,8 @@ export const getBreakdown = async ({ user, query = {} }) => {
 
     return {
         range: {
-            start_date: filters.startDate.toISOString(),
-            end_date: filters.endDate.toISOString(),
+            startDate: filters.startDate.toISOString(),
+            endDate: filters.endDate.toISOString(),
         },
         dimension,
         filters: {

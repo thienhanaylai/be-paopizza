@@ -1,7 +1,6 @@
 import { Inventory } from './inventory.model.js';
 import { Store } from '../store/store.model.js';
 import { Ingredient } from '../ingredient/ingredient.model.js';
-import * as activityLogService from '../activity-log/activity-log.service.js';
 
 export const createOrUpdate = async (data) => {
     const {
@@ -199,80 +198,4 @@ export const deletedInventory = async (inventory_id) => {
     const result = await Inventory.findByIdAndDelete(inventory_id);
     if (!result) throw new Error('Không tìm thấy inventory!');
     return result;
-};
-
-export const summaryShift = async (data) => {
-    const { store_id, employee_id, payload } = data;
-    if (!store_id || !payload) {
-        throw new Error('Thiếu thông tin!');
-    }
-    const inventory = await Inventory.findOne({ store_id });
-    if (!inventory) {
-        throw new Error('Không tìm thấy inventory');
-    }
-
-    const normalizedPayload = Array.isArray(payload)
-        ? payload
-        : Object.entries(payload).map(([item_id, current_stock]) => ({
-              item_id,
-              current_stock,
-          }));
-
-    const updates = [];
-
-    for (const item of normalizedPayload) {
-        const nextStock = Number(item?.current_stock);
-        if (Number.isNaN(nextStock) || nextStock < 0) continue;
-
-        const itemId = item?.item_id || item?._id || null;
-        const ingredientId = item?.ingredient_id || null;
-
-        const target = itemId
-            ? inventory.ingredients.id(itemId)
-            : inventory.ingredients.find((ing) =>
-                  ing.ingredient_id.equals(ingredientId),
-              );
-
-        if (!target) continue;
-
-        const before = target.current_stock;
-        target.current_stock = nextStock;
-
-        if (typeof item?.min_stock_level === 'number') {
-            target.min_stock_level = item.min_stock_level;
-        }
-
-        updates.push({
-            item_id: target._id,
-            ingredient_id: target.ingredient_id,
-            before,
-            after: nextStock,
-            diff: nextStock - before,
-        });
-    }
-
-    await inventory.save();
-
-    try {
-        await activityLogService.createLog({
-            store_id,
-            module_source: 'inventory',
-            action: 'shift_summary',
-            actor_type: 'Employee',
-            actor_id: employee_id || null,
-            target_model: 'Inventory',
-            target_id: inventory._id,
-            payload: {
-                source: 'stocktake',
-                updated_items: updates.length,
-                updates,
-            },
-        });
-    } catch (error) {
-        console.error('Activity log error:', error);
-    }
-
-    return await Inventory.findById(inventory._id)
-        .populate('store_id', 'name')
-        .populate('ingredients.ingredient_id', 'name unit');
 };

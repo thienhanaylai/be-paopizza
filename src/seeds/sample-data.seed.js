@@ -11,13 +11,10 @@ import { Employee } from '../modules/employee/employee.model.js';
 import { Ingredient } from '../modules/ingredient/ingredient.model.js';
 import { Inventory } from '../modules/inventory/inventory.model.js';
 import { Menu } from '../modules/menu/menu.model.js';
-import { ActivityLog } from '../modules/activity-log/activity-log.model.js';
 import { Order } from '../modules/order/order.model.js';
 import { Payroll } from '../modules/payroll/payroll.model.js';
 import { Product } from '../modules/product/product.model.js';
 import { Promotion } from '../modules/promotion/promotion.model.js';
-import { Schedule } from '../modules/schedule/schedule.model.js';
-import { Shift } from '../modules/shift/shift.model.js';
 import { Store } from '../modules/store/store.model.js';
 import { Supplier } from '../modules/supplier/supplier.model.js';
 import { User } from '../modules/user/user.model.js';
@@ -182,14 +179,11 @@ const clearSampleData = async () => {
         Cart.deleteMany({}),
         User.deleteMany({}),
         Payroll.deleteMany({}),
-        Schedule.deleteMany({}),
-        Shift.deleteMany({}),
         Order.deleteMany({}),
         Promotion.deleteMany({}),
         Menu.deleteMany({}),
         Combo.deleteMany({}),
         Inventory.deleteMany({}),
-        ActivityLog.deleteMany({}),
         Supplier.deleteMany({}),
         Product.deleteMany({}),
         Ingredient.deleteMany({}),
@@ -206,13 +200,11 @@ const syncModelIndexes = async () => {
         User.syncIndexes(),
         Employee.syncIndexes(),
         Inventory.syncIndexes(),
-        ActivityLog.syncIndexes(),
         Payroll.syncIndexes(),
         Category.syncIndexes(),
         Combo.syncIndexes(),
         Menu.syncIndexes(),
         Promotion.syncIndexes(),
-        Schedule.syncIndexes(),
     ]);
 };
 
@@ -898,150 +890,16 @@ const seedSampleData = async () => {
                 code: `PROMO${pad(index + 1)}`,
                 type,
                 value,
-                start_date: dateUtc(2026, 0, 1 + index),
-                end_date: dateUtc(2026, 2, 1 + index),
+                startDate: dateUtc(2026, 0, 1 + index),
+                endDate: dateUtc(2026, 2, 1 + index),
                 status: pick(promotionStatuses, index),
-                applicable_store: [
+                applicableStore: [
                     stores[index % stores.length]._id,
                     stores[(index + 6) % stores.length]._id,
                 ],
                 isDeleted: false,
             };
         }),
-    );
-
-    const shiftSlots = [
-        { start: '06:00', end: '14:00' },
-        { start: '08:00', end: '16:00' },
-        { start: '10:00', end: '18:00' },
-        { start: '12:00', end: '20:00' },
-        { start: '14:00', end: '22:00' },
-    ];
-    const shiftStations = ['kitchen', 'barista', 'cashier', 'delivery'];
-    const shiftEmployeeStatuses = ['PENDING', 'APPROVED', 'WORKING', 'DONE'];
-    const shiftStatusPool = ['pending', 'open', 'close'];
-
-    const employeesByStore = new Map();
-    for (const employee of employees) {
-        const storeKey = employee.store_id?.toString();
-        if (!storeKey) continue;
-        if (!employeesByStore.has(storeKey)) {
-            employeesByStore.set(storeKey, []);
-        }
-        employeesByStore.get(storeKey).push(employee);
-    }
-
-    const mapShiftStation = (station) => {
-        const mapping = {
-            kitchen: 'kitchen',
-            barista: 'barista',
-            cashier: 'cashier',
-            delivery: 'delivery',
-        };
-        return mapping[station] || null;
-    };
-
-    // deterministic chooser using seededRandom
-    const choose = (arr, seedVal) =>
-        arr[Math.floor(seededRandom(seedVal) * arr.length)];
-
-    const shiftDocs = [];
-    // generate random shifts per store (deterministic via seededRandom)
-    for (let storeIndex = 0; storeIndex < stores.length; storeIndex += 1) {
-        const store = stores[storeIndex];
-        const storeEmployees =
-            employeesByStore.get(store._id.toString()) || employees;
-        // number of shifts for this store (5..12)
-        const shiftCount =
-            5 + Math.floor(seededRandom(storeIndex * 13 + 7) * 8);
-
-        for (let s = 0; s < shiftCount; s += 1) {
-            const seed = storeIndex * 100 + s + 1;
-            const slot = choose(shiftSlots, seed);
-            // pick a date in a 30-day window starting 2026-04-01
-            const dayOffset = Math.floor(seededRandom(seed * 7.3) * 30);
-            const date = dateUtc(2026, 3, 1 + dayOffset);
-
-            // pick 1..min(4, storeEmployees.length) distinct employees
-            const maxEmployees = Math.min(
-                4,
-                Math.max(1, storeEmployees.length),
-            );
-            const employeeCount =
-                1 + Math.floor(seededRandom(seed * 3.1) * maxEmployees);
-
-            const picked = new Set();
-            const list_employee = [];
-            let attempts = 0;
-            while (picked.size < employeeCount && attempts < 30) {
-                const e =
-                    storeEmployees[
-                        Math.floor(
-                            seededRandom(seed + attempts * 11.17) *
-                                storeEmployees.length,
-                        )
-                    ];
-                if (!e) break;
-                const key = e._id.toString();
-                if (!picked.has(key)) {
-                    picked.add(key);
-                    const station =
-                        mapShiftStation(e?.station) ||
-                        choose(shiftStations, seed + attempts);
-                    const status = choose(
-                        shiftEmployeeStatuses,
-                        seed + attempts * 3,
-                    );
-                    const staff_involved =
-                        status === 'WORKING'
-                            ? { check_in: slot.start, check_out: null }
-                            : status === 'DONE'
-                              ? { check_in: slot.start, check_out: slot.end }
-                              : { check_in: null, check_out: null };
-
-                    list_employee.push({
-                        employee_id: e._id,
-                        station,
-                        status,
-                        staff_involved,
-                    });
-                }
-                attempts += 1;
-            }
-
-            const firstStatus = list_employee[0]?.status || 'PENDING';
-            const shift_status =
-                firstStatus === 'DONE'
-                    ? 'close'
-                    : firstStatus === 'WORKING'
-                      ? 'open'
-                      : choose(shiftStatusPool, seed + 5);
-
-            shiftDocs.push({
-                store_id: store._id,
-                date,
-                start_time: slot.start,
-                end_time: slot.end,
-                shift_status,
-                list_employee,
-            });
-        }
-    }
-
-    const shifts = await Shift.insertMany(shiftDocs);
-
-    const schedules = await Schedule.insertMany(
-        Array.from({ length: TARGET_COUNT }, (_, index) => ({
-            store_id: stores[index % stores.length]._id,
-            work_date: dateUtc(2026, 3, 1 + index),
-            list_shift:
-                index % 2 === 0
-                    ? [
-                          { shift_id: shifts[index % shifts.length]._id },
-                          { shift_id: shifts[(index + 1) % shifts.length]._id },
-                      ]
-                    : [{ shift_id: shifts[index % shifts.length]._id }],
-        })),
     );
 
     const payrollStatuses = ['pending', 'paid', 'cancelled'];
@@ -1178,87 +1036,6 @@ const seedSampleData = async () => {
         { timestamps: false },
     );
 
-    const activityLogData = [];
-
-    const stocktakeCount = Math.min(10, stores.length, inventoryData.length);
-    for (let index = 0; index < stocktakeCount; index += 1) {
-        const store = stores[index];
-        const employee = employees[index % employees.length];
-        const inv = inventoryData[index];
-        const item = inv?.ingredients?.[0];
-        if (!item) continue;
-
-        activityLogData.push({
-            store_id: store._id,
-            module_source: 'inventory',
-            action: 'stocktake',
-            actor_type: 'Employee',
-            actor_id: employee._id,
-            actor_role: resolveActorRole(employee),
-            target_model: 'InventoryItem',
-            target_id: item.ingredient_id,
-            payload: {
-                current_stock: item.current_stock,
-                min_stock_level: item.min_stock_level,
-                source: 'stocktake',
-            },
-            createdAt: dateUtc(2026, 3, 1 + index),
-            updatedAt: dateUtc(2026, 3, 1 + index),
-        });
-    }
-
-    const inventoryLogCount = Math.min(30, ingredients.length);
-    for (let index = 0; index < inventoryLogCount; index += 1) {
-        const store = stores[index % stores.length];
-        const employee = employees[(index + 2) % employees.length];
-        const ing = ingredients[index];
-        activityLogData.push({
-            store_id: store._id,
-            module_source: 'inventory',
-            action: 'inventory_update',
-            actor_type: 'Employee',
-            actor_id: employee._id,
-            actor_role: resolveActorRole(employee),
-            target_model: 'InventoryItem',
-            target_id: ing._id,
-            payload: {
-                current_stock: 1200 + index * 15,
-                min_stock_level: 200 + index * 5,
-                source: 'manual',
-            },
-            createdAt: dateUtc(2026, 2, 1 + (index % 20)),
-            updatedAt: dateUtc(2026, 2, 1 + (index % 20)),
-        });
-    }
-
-    const orderLogCount = Math.min(80, orders.length);
-    for (let index = 0; index < orderLogCount; index += 1) {
-        const order = orders[index];
-        const employee = employees[index % employees.length];
-        activityLogData.push({
-            store_id: order.store_id,
-            module_source: 'order',
-            action: 'order_create',
-            actor_type: 'Employee',
-            actor_id: order.employee_id || employee._id,
-            actor_role: resolveActorRole(employee),
-            target_model: 'Order',
-            target_id: order._id,
-            payload: {
-                total: order.total,
-                items_count: order.items?.length || 0,
-                paymentMethod: order.paymentMethod,
-                order_type: order.order_type,
-            },
-            createdAt: order.createdAt,
-            updatedAt: order.createdAt,
-        });
-    }
-
-    const activityLogs = await ActivityLog.insertMany(activityLogData, {
-        timestamps: false,
-    });
-
     return {
         stores: stores.length,
         categories: categories.length,
@@ -1268,14 +1045,11 @@ const seedSampleData = async () => {
         combos: combos.length,
         menus: menus.length,
         inventory: inventoryData.length,
-        activityLogs: activityLogs.length,
         customers: customers.length,
         employees: employees.length,
         users: users.length,
         carts: carts.length,
         promotions: promotions.length,
-        shifts: shifts.length,
-        schedules: schedules.length,
         payrolls: payrolls.length,
         orders: orders.length,
     };

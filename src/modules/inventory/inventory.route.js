@@ -33,12 +33,6 @@ router.post(
     requireManager,
     asyncHandler(inventoryController.updateStock),
 );
-router.post(
-    '/summaryShift',
-    requireAuth,
-    requireManager,
-    asyncHandler(inventoryController.summaryShift),
-);
 router.delete(
     '/:id',
     requireAuth,

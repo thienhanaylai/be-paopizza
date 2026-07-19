@@ -3696,7 +3696,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"PROMO15\",\n  \"type\": \"percentage\",\n  \"value\": 15,\n  \"start_date\": \"2026-01-01T00:00:00.000Z\",\n  \"end_date\": \"2026-12-31T23:59:59.000Z\",\n  \"status\": \"active\",\n  \"applicable_store\": [\n    \"{{storeId}}\"\n  ]\n}",
+              "raw": "{\n  \"code\": \"PROMO15\",\n  \"type\": \"percentage\",\n  \"value\": 15,\n  \"startDate\": \"2026-01-01T00:00:00.000Z\",\n  \"endDate\": \"2026-12-31T23:59:59.000Z\",\n  \"status\": \"active\",\n  \"applicableStore\": [\n    \"{{storeId}}\"\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3724,7 +3724,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"PROMO20\",\n  \"type\": \"percentage\",\n  \"value\": 20,\n  \"start_date\": \"2026-01-01T00:00:00.000Z\",\n  \"end_date\": \"2026-12-31T23:59:59.000Z\",\n  \"status\": \"active\",\n  \"applicable_store\": [\n    \"{{storeId}}\"\n  ]\n}",
+              "raw": "{\n  \"code\": \"PROMO20\",\n  \"type\": \"percentage\",\n  \"value\": 20,\n  \"startDate\": \"2026-01-01T00:00:00.000Z\",\n  \"endDate\": \"2026-12-31T23:59:59.000Z\",\n  \"status\": \"active\",\n  \"applicableStore\": [\n    \"{{storeId}}\"\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3819,8 +3819,8 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "url": "{{baseUrl}}/revenue/overview?start_date={{revenueStartDate}}&end_date={{revenueEndDate}}&store_id={{storeId}}&paymentMethod={{revenuePaymentMethod}}&order_type={{revenueOrderType}}",
-            "description": "Get overview metrics from completed orders (`status=completed`, `isDeleted=false`) in a date range. Query params: start_date, end_date, optional store_id, optional paymentMethod (cash|card|qrCode|ewallet), optional order_type (carry_out|dine_in|delivery)."
+            "url": "{{baseUrl}}/revenue/overview?startDate={{revenueStartDate}}&endDate={{revenueEndDate}}&store_id={{storeId}}&paymentMethod={{revenuePaymentMethod}}&order_type={{revenueOrderType}}",
+            "description": "Get overview metrics from completed orders (`status=completed`, `isDeleted=false`) in a date range. Query params: startDate, endDate, optional store_id, optional paymentMethod (cash|card|qrCode|ewallet), optional order_type (carry_out|dine_in|delivery)."
           },
           "response": []
         },
@@ -3834,7 +3834,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "url": "{{baseUrl}}/revenue/breakdown?start_date={{revenueStartDate}}&end_date={{revenueEndDate}}&dimension={{revenueDimension}}&store_id={{storeId}}&paymentMethod={{revenuePaymentMethod}}&order_type={{revenueOrderType}}",
+            "url": "{{baseUrl}}/revenue/breakdown?startDate={{revenueStartDate}}&endDate={{revenueEndDate}}&dimension={{revenueDimension}}&store_id={{storeId}}&paymentMethod={{revenuePaymentMethod}}&order_type={{revenueOrderType}}",
             "description": "Get grouped metrics from completed orders. `dimension` supports store|paymentMethod|order_type. Supports same optional filters as overview."
           },
           "response": []

@@ -12,6 +12,11 @@ const promotionSchema = new mongoose.Schema(
             uppercase: true,
             unique: true,
         },
+        point: {
+            type: Number,
+            min: 0,
+            default: 0,
+        },
         type: {
             type: String,
             enum: PROMOTION_TYPES,
@@ -22,11 +27,11 @@ const promotionSchema = new mongoose.Schema(
             required: true,
             min: 0,
         },
-        start_date: {
+        startDate: {
             type: Date,
             required: true,
         },
-        end_date: {
+        endDate: {
             type: Date,
             required: true,
         },
@@ -35,7 +40,7 @@ const promotionSchema = new mongoose.Schema(
             enum: PROMOTION_STATUSES,
             default: 'draft',
         },
-        applicable_store: {
+        applicableStore: {
             type: [mongoose.Schema.Types.ObjectId],
             ref: 'Store',
             default: [],
