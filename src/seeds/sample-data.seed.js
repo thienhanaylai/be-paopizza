@@ -517,15 +517,14 @@ const seedSampleData = async () => {
 
             // ---- Diverse combo rules (category-based only) ----
             const catBySlug = new Map(categories.map((c) => [c.slug, c]));
+            // Chỉ dùng category thực sự có sản phẩm (khớp với CSV import)
             const allCatSlugs = [
                 'pizza',
                 'drink',
                 'appetizer',
                 'dessert',
                 'pasta',
-                'burger',
                 'salad',
-                'soup',
             ];
 
             // Shuffle categories deterministically so each combo gets a different mix
@@ -604,10 +603,24 @@ const seedSampleData = async () => {
         }),
     );
 
+    // Nhóm sản phẩm theo category để đảm bảo menu phủ đều
+    const productsByCategory = new Map();
+    for (const product of products) {
+        const catKey = product.category.toString();
+        if (!productsByCategory.has(catKey)) {
+            productsByCategory.set(catKey, []);
+        }
+        productsByCategory.get(catKey).push(product);
+    }
+    const categoryKeys = [...productsByCategory.keys()];
+
     const menus = await Menu.insertMany(
         stores.map((store, index) => {
             const maxMenuProductCount = Math.min(30, products.length);
-            const minMenuProductCount = Math.min(12, maxMenuProductCount);
+            const minMenuProductCount = Math.min(
+                Math.max(12, categoryKeys.length * 3),
+                maxMenuProductCount,
+            );
             const productCount =
                 maxMenuProductCount === 0
                     ? 0
@@ -617,11 +630,55 @@ const seedSampleData = async () => {
                               (maxMenuProductCount - minMenuProductCount + 1),
                       );
 
-            const productItems = sampleSeededItems(
-                products,
-                productCount,
+            // Đảm bảo mỗi category có ít nhất 3 sản phẩm trong menu
+            const pickedIds = new Set();
+            const guaranteedItems = [];
+            const MIN_PER_CATEGORY = 3;
+
+            for (const catKey of categoryKeys) {
+                const pool = productsByCategory.get(catKey);
+                if (!pool || pool.length === 0) continue;
+
+                // Pick tối đa MIN_PER_CATEGORY sản phẩm khác nhau từ pool của category
+                const takenFromCat = Math.min(MIN_PER_CATEGORY, pool.length);
+                const shuffledPool = [...pool];
+                for (let si = shuffledPool.length - 1; si > 0; si -= 1) {
+                    const ri = Math.floor(
+                        seededRandom(
+                            index * 101.33 + catKey.length * 7.19 + si * 3.17,
+                        ) *
+                            (si + 1),
+                    );
+                    [shuffledPool[si], shuffledPool[ri]] = [
+                        shuffledPool[ri],
+                        shuffledPool[si],
+                    ];
+                }
+
+                for (let pi = 0; pi < takenFromCat; pi += 1) {
+                    const picked = shuffledPool[pi];
+                    if (!pickedIds.has(picked._id.toString())) {
+                        pickedIds.add(picked._id.toString());
+                        guaranteedItems.push(picked._id);
+                    }
+                }
+            }
+
+            // Điền thêm sản phẩm ngẫu nhiên nếu chưa đủ số lượng
+            const remainingCount = Math.max(
+                0,
+                productCount - guaranteedItems.length,
+            );
+            const remainingPool = products.filter(
+                (p) => !pickedIds.has(p._id.toString()),
+            );
+            const extraItems = sampleSeededItems(
+                remainingPool,
+                remainingCount,
                 (index + 1) * 17.17,
-            ).map((product) => product._id);
+            ).map((p) => p._id);
+
+            const productItems = [...guaranteedItems, ...extraItems];
 
             const comboItems = sampleSeededItems(
                 combos,
@@ -737,13 +794,8 @@ const seedSampleData = async () => {
                 phone: `0937${pad(index + 1, 6)}`,
                 address: `${110 + index} Staff Lane, ${pick(cityPool, index)}`,
                 station,
-                salary_type: salaryType,
+                salaryType,
                 salary,
-                bank_account: {
-                    bank_name: pick(['VCB', 'ACB', 'MB', 'TPB'], index),
-                    account_number: `22${pad(index + 1, 10)}`,
-                    account_name: `EMPLOYEE ${pad(index + 1)}`,
-                },
                 status: index % 10 !== 0,
                 isDeleted: false,
             };

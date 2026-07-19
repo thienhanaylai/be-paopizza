@@ -8,7 +8,7 @@ const EMPLOYEE_STATIONS = [
     'delivery',
     'barista',
 ];
-const SALARY_TYPES = ['hourly', 'monthly'];
+const salaryTypeS = ['hourly', 'monthly'];
 
 const isValidPastDate = (value) => {
     let date;
@@ -26,27 +26,6 @@ const isValidPastDate = (value) => {
 
     return date < new Date();
 };
-
-const bankAccountSchema = new mongoose.Schema(
-    {
-        bank_name: {
-            type: String,
-            trim: true,
-            default: '',
-        },
-        account_number: {
-            type: String,
-            trim: true,
-            default: '',
-        },
-        account_name: {
-            type: String,
-            trim: true,
-            default: '',
-        },
-    },
-    { _id: false },
-);
 
 const employeeSchema = new mongoose.Schema(
     {
@@ -91,9 +70,9 @@ const employeeSchema = new mongoose.Schema(
             enum: EMPLOYEE_STATIONS,
             default: null,
         },
-        salary_type: {
+        salaryType: {
             type: String,
-            enum: SALARY_TYPES,
+            enum: salaryTypeS,
             default: 'monthly',
             required: true,
         },
@@ -101,10 +80,6 @@ const employeeSchema = new mongoose.Schema(
             type: Number,
             default: 0,
             min: 0,
-        },
-        bank_account: {
-            type: bankAccountSchema,
-            default: () => ({}),
         },
         status: {
             type: Boolean,
@@ -121,4 +96,4 @@ const employeeSchema = new mongoose.Schema(
 employeeSchema.index({ store_id: 1, email: 1 }, { unique: true });
 
 export const Employee = mongoose.model('Employee', employeeSchema);
-export { EMPLOYEE_STATIONS, SALARY_TYPES };
+export { EMPLOYEE_STATIONS, salaryTypeS };

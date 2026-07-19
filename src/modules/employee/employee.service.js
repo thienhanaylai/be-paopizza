@@ -11,7 +11,7 @@ export const createEmployee = async (data) => {
         email,
         phone,
         station,
-        salary_type,
+        salaryType,
         salary,
         role,
     } = data;
@@ -31,7 +31,7 @@ export const createEmployee = async (data) => {
             phone,
             station,
             salary,
-            salary_type,
+            salaryType,
         });
 
         const newUser = await User.create({

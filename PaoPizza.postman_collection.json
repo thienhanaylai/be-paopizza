@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "d4e5ca2d-2f14-47fe-a5cf-6f4e19af8642",
     "name": "PaoPizza API",
-    "description": "Backend API for PaoPizza.\n\nBase path: `/api/v1`\n\nMounted modules: auth, users, customers, cart, employees, supplier, ingredient, categories, stores, products, combos, menus, inventory, orders, payments, promotions, revenue, media, shifts.\nSchedule/payroll currently only have models/seed data.\n\nAuth: Passport Local + JWT Bearer + refresh token cookie.\n\nSample seed login:\n- Admin: `admin` / `BAO123@az`\n- Employee: `emp_02` / `12345678`\n- Customer (phone as username): `0918000001` / `12345678`",
+    "description": "Backend API for PaoPizza.\n\nBase path: `/api/v1`\n\nMounted modules: auth, users, customers, cart, employees, supplier, ingredient, categories, stores, products, combos, menus, inventory, orders, payments, promotions, revenue, media.\n\nAuth: Passport Local + JWT Bearer + refresh token cookie.\n\nSample seed login:\n- Admin: `admin` / `BAO123@az`\n- Employee: `emp_02` / `12345678`\n- Customer (phone as username): `0918000001` / `12345678`",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -979,7 +979,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"newstaff02\",\n  \"password\": \"12345678\",\n  \"store_id\": \"{{storeId}}\",\n  \"name\": \"Tran Van B\",\n  \"birthday\": \"1995-05-15\",\n  \"email\": \"newstaff02@paopizza.com\",\n  \"phone\": \"0900123456\",\n  \"station\": \"cashier\",\n  \"salary_type\": \"hourly\",\n  \"role\": \"staff\",\n  \"address\": \"456 Nguyen Hue, Q1, HCM\",\n  \"salary\": 30000\n}",
+              "raw": "{\n  \"username\": \"newstaff02\",\n  \"password\": \"12345678\",\n  \"store_id\": \"{{storeId}}\",\n  \"name\": \"Tran Van B\",\n  \"birthday\": \"1995-05-15\",\n  \"email\": \"newstaff02@paopizza.com\",\n  \"phone\": \"0900123456\",\n  \"station\": \"cashier\",\n  \"salaryType\": \"hourly\",\n  \"role\": \"staff\",\n  \"address\": \"456 Nguyen Hue, Q1, HCM\",\n  \"salary\": 30000\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -987,7 +987,7 @@
               }
             },
             "url": "{{baseUrl}}/employees/create",
-            "description": "Create a new employee with user account. Requires JWT + admin/manager.\n\nUses Zod `.strict()` validation - **no extra fields allowed**.\n\n**Body** (Zod validated):\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| username | string | Yes | min 3, max 30 |\n| password | string | Yes | min 6 |\n| store_id | string | No | MongoDB ObjectId as string (optional) |\n| name | string | Yes | min 2, max 100 |\n| birthday | date string | Yes | must be in the past |\n| email | string | Yes | valid email |\n| phone | string | Yes | regex `/^[0-9]{10,11}$/` |\n| station | enum | Yes | `manager`, `store_manager`, `cashier`, `kitchen`, `delivery`, `barista` |\n| salary_type | enum | No | `hourly`, `monthly` (default: `hourly`) |\n| role | enum | No | `admin`, `manager`, `staff` (default: `staff`) |\n| address | string | No | |\n| salary | number | No | min 0 |\n\n**Response 201**:\n```json\n{\n  \"message\": \"Tạo nhân viên thành công\",\n  \"data\": {\n    \"account\": { ...user without password },\n    \"profile\": { ...employee object }\n  }\n}\n```\n\n**Response 400 (Zod)**:\n```json\n{\n  \"message\": \"Validation error\",\n  \"errors\": [\n    { \"field\": \"phone\", \"message\": \"Số điện thoại phải có 10-11 chữ số\" }\n  ]\n}\n```"
+            "description": "Create a new employee with user account. Requires JWT + admin/manager.\n\nUses Zod `.strict()` validation - **no extra fields allowed**.\n\n**Body** (Zod validated):\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| username | string | Yes | min 3, max 30 |\n| password | string | Yes | min 6 |\n| store_id | string | No | MongoDB ObjectId as string (optional) |\n| name | string | Yes | min 2, max 100 |\n| birthday | date string | Yes | must be in the past |\n| email | string | Yes | valid email |\n| phone | string | Yes | regex `/^[0-9]{10,11}$/` |\n| station | enum | Yes | `manager`, `store_manager`, `cashier`, `kitchen`, `delivery`, `barista` |\n| salaryType | enum | No | `hourly`, `monthly` (default: `hourly`) |\n| role | enum | No | `admin`, `manager`, `staff` (default: `staff`) |\n| address | string | No | |\n| salary | number | No | min 0 |\n\n**Response 201**:\n```json\n{\n  \"message\": \"Tạo nhân viên thành công\",\n  \"data\": {\n    \"account\": { ...user without password },\n    \"profile\": { ...employee object }\n  }\n}\n```\n\n**Response 400 (Zod)**:\n```json\n{\n  \"message\": \"Validation error\",\n  \"errors\": [\n    { \"field\": \"phone\", \"message\": \"Số điện thoại phải có 10-11 chữ số\" }\n  ]\n}\n```"
           },
           "response": [
             {
@@ -1000,7 +1000,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"message\": \"Tạo nhân viên thành công\",\n  \"data\": {\n    \"account\": {\n      \"_id\": \"67a8b123456789abcdef0040\",\n      \"username\": \"newstaff02\",\n      \"user_type\": \"Employee\",\n      \"role\": \"staff\",\n      \"ref_id\": \"67a8b123456789abcdef0041\",\n      \"status\": true\n    },\n    \"profile\": {\n      \"_id\": \"67a8b123456789abcdef0041\",\n      \"store_id\": \"67a8b123456789abcdef1234\",\n      \"name\": \"Tran Van B\",\n      \"birthday\": \"1995-05-15T00:00:00.000Z\",\n      \"email\": \"newstaff02@paopizza.com\",\n      \"phone\": \"0900123456\",\n      \"station\": \"cashier\",\n      \"salary_type\": \"hourly\",\n      \"salary\": 30000,\n      \"address\": \"456 Nguyen Hue, Q1, HCM\",\n      \"bank_account\": {\n        \"bank_name\": \"\",\n        \"account_number\": \"\",\n        \"account_name\": \"\"\n      },\n      \"status\": true\n    }\n  }\n}"
+              "body": "{\n  \"message\": \"Tạo nhân viên thành công\",\n  \"data\": {\n    \"account\": {\n      \"_id\": \"67a8b123456789abcdef0040\",\n      \"username\": \"newstaff02\",\n      \"user_type\": \"Employee\",\n      \"role\": \"staff\",\n      \"ref_id\": \"67a8b123456789abcdef0041\",\n      \"status\": true\n    },\n    \"profile\": {\n      \"_id\": \"67a8b123456789abcdef0041\",\n      \"store_id\": \"67a8b123456789abcdef1234\",\n      \"name\": \"Tran Van B\",\n      \"birthday\": \"1995-05-15T00:00:00.000Z\",\n      \"email\": \"newstaff02@paopizza.com\",\n      \"phone\": \"0900123456\",\n      \"station\": \"cashier\",\n      \"salaryType\": \"hourly\",\n      \"salary\": 30000,\n      \"address\": \"456 Nguyen Hue, Q1, HCM\",\n      \"bank_account\": {\n        \"bank_name\": \"\",\n        \"account_number\": \"\",\n        \"account_name\": \"\"\n      },\n      \"status\": true\n    }\n  }\n}"
             },
             {
               "name": "400 - Validation Error",
@@ -1032,7 +1032,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"employee_id\": \"{{employeeId}}\",\n  \"name\": \"Nguyen Van A Updated\",\n  \"phone\": \"0911222333\",\n  \"address\": \"Quan 1, TP.HCM\",\n  \"station\": \"cashier\",\n  \"salary_type\": \"hourly\",\n  \"salary\": 35000,\n  \"status\": true\n}",
+              "raw": "{\n  \"employee_id\": \"{{employeeId}}\",\n  \"name\": \"Nguyen Van A Updated\",\n  \"phone\": \"0911222333\",\n  \"address\": \"Quan 1, TP.HCM\",\n  \"station\": \"cashier\",\n  \"salaryType\": \"hourly\",\n  \"salary\": 35000,\n  \"status\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1116,225 +1116,6 @@
             ],
             "url": "{{baseUrl}}/employees/role={{employeeRole}}",
             "description": "Get users by role via employee module route `/employees/role=:role`. Requires JWT + admin/manager.\n\nExamples: `admin`, `manager`, `staff`, `customer` (maps to null role in service)."
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Shifts",
-      "description": "Shift scheduling and attendance.\n\nFields: store_id, date, start_time, end_time, list_employee[].\nStation: maker|drink|cashier|delivery. Status: PENDING|APPROVED|WORKING|DONE.",
-      "item": [
-        {
-          "name": "Get All Shifts (Manager)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": "{{baseUrl}}/shifts?store_id={{storeId}}&employee_id={{employeeId}}&status=PENDING&from_date={{shiftFromDate}}&to_date={{shiftToDate}}",
-            "description": "Get shift list with optional filters: store_id, employee_id, status, from_date/to_date, or exact date with date=YYYY-MM-DD. Requires JWT + manager/admin."
-          },
-          "response": []
-        },
-        {
-          "name": "Get Shift By ID",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": "{{baseUrl}}/shifts/{{shiftId}}",
-            "description": "Get one shift by id. Requires JWT."
-          },
-          "response": []
-        },
-        {
-          "name": "Register Shift (Employee)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"employee_id\": \"{{employeeId}}\",\n  \"store_id\": \"{{storeId}}\",\n  \"date\": \"2026-05-05\",\n  \"start_time\": \"08:00\",\n  \"end_time\": \"14:00\",\n  \"station\": \"cashier\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": "{{baseUrl}}/shifts/register",
-            "description": "Employee registers a shift by date/time. If no shift exists for the same store/date/start/end, a new shift is created with status PENDING. If a matching shift exists, the employee is appended to list_employee. Requires JWT."
-          },
-          "response": []
-        },
-        {
-          "name": "Create Shift (Manager)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"store_id\": \"{{storeId}}\",\n  \"date\": \"2026-05-05\",\n  \"start_time\": \"08:00\",\n  \"end_time\": \"14:00\",\n  \"list_employee\": [\n    {\n      \"employee_id\": \"{{employeeId}}\",\n      \"station\": \"cashier\",\n      \"status\": \"PENDING\",\n      \"staff_involved\": {\n        \"check_in\": null,\n        \"check_out\": null\n      }\n    }\n  ]\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": "{{baseUrl}}/shifts/create",
-            "description": "Create a new shift with optional list_employee entries. Requires JWT + manager/admin."
-          },
-          "response": []
-        },
-        {
-          "name": "Update Shift (Manager)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"shift_id\": \"{{shiftId}}\",\n  \"start_time\": \"09:00\",\n  \"end_time\": \"15:00\",\n  \"list_employee\": [\n    {\n      \"employee_id\": \"{{employeeId}}\",\n      \"station\": \"cashier\",\n      \"status\": \"APPROVED\"\n    }\n  ]\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": "{{baseUrl}}/shifts/update",
-            "description": "Update shift fields by shift_id. Include list_employee to replace entire list. Requires JWT + manager/admin."
-          },
-          "response": []
-        },
-        {
-          "name": "Delete Shift (Manager)",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": "{{baseUrl}}/shifts/{{shiftId}}",
-            "description": "Hard delete shift by id. Requires JWT + manager/admin."
-          },
-          "response": []
-        },
-        {
-          "name": "Assign Employee To Shift",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"shift_id\": \"{{shiftId}}\",\n  \"employee_id\": \"{{employeeId}}\",\n  \"station\": \"cashier\",\n  \"status\": \"PENDING\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": "{{baseUrl}}/shifts/assign",
-            "description": "Add an employee to shift list_employee. Requires JWT + manager/admin."
-          },
-          "response": []
-        },
-        {
-          "name": "Update Employee In Shift",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"shift_id\": \"{{shiftId}}\",\n  \"employee_id\": \"{{employeeId}}\",\n  \"status\": \"WORKING\",\n  \"check_in\": \"2026-05-05T08:02:00.000Z\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": "{{baseUrl}}/shifts/updateEmployee",
-            "description": "Update station/status/check_in/check_out for a staff member in shift. Requires JWT."
-          },
-          "response": []
-        },
-        {
-          "name": "Remove Employee From Shift",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"shift_id\": \"{{shiftId}}\",\n  \"employee_id\": \"{{employeeId}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": "{{baseUrl}}/shifts/removeEmployee",
-            "description": "Remove an employee from a shift. Requires JWT + manager/admin."
           },
           "response": []
         }
@@ -3287,34 +3068,6 @@
           "response": []
         },
         {
-          "name": "Summary Shift (Manager)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"store_id\": \"{{storeId}}\",\n  \"employee_id\": \"{{employeeId}}\",\n  \"payload\": [\n    {\n      \"item_id\": \"{{inventoryItemId}}\",\n      \"current_stock\": 8,\n      \"min_stock_level\": 2\n    }\n  ]\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": "{{baseUrl}}/inventory/summaryShift",
-            "description": "Update inventory quantities after shift summary. `payload` can be array of {item_id, current_stock, min_stock_level?} or an object map { item_id: current_stock }. Requires JWT + manager/admin."
-          },
-          "response": []
-        },
-        {
           "name": "Delete Inventory (Admin)",
           "request": {
             "method": "DELETE",
@@ -3842,55 +3595,6 @@
       ]
     },
     {
-      "name": "Activity Logs",
-      "description": "Activity log endpoints for system events. Requires JWT. GET is limited to admin/manager.",
-      "item": [
-        {
-          "name": "Create Activity Log",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"store_id\": \"{{storeId}}\",\n  \"module_source\": \"inventory\",\n  \"action\": \"shift_summary\",\n  \"target_model\": \"InventoryItem\",\n  \"target_id\": \"{{ingredientId}}\",\n  \"payload\": {\n    \"note\": \"Tong ket ca\",\n    \"items_count\": 6\n  }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": "{{baseUrl}}/activity-logs",
-            "description": "Create an activity log entry. Actor fields are auto-filled from JWT if omitted. Requires JWT."
-          },
-          "response": []
-        },
-        {
-          "name": "Get Activity Logs",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": "{{baseUrl}}/activity-logs?store_id={{storeId}}&actor_id={{actorId}}&actor_type={{actorType}}&module_source={{moduleSource}}&target_model={{targetModel}}&action={{logAction}}&from={{logFrom}}&to={{logTo}}&page={{logPage}}&limit={{logLimit}}",
-            "description": "Get activity logs with filters. Supports store_id, actor_id, actor_type, module_source, target_model, action, from, to, page, limit. Requires JWT + admin/manager."
-          },
-          "response": []
-        }
-      ]
-    },
-    {
       "name": "Media",
       "description": "Cloudinary media upload/delete endpoints",
       "item": [
@@ -4078,24 +3782,7 @@
       "type": "string",
       "description": "Employee ID for employee get/update requests"
     },
-    {
-      "key": "shiftId",
-      "value": "",
-      "type": "string",
-      "description": "Shift ID for shift get/update/delete requests"
-    },
-    {
-      "key": "shiftFromDate",
-      "value": "2026-05-01",
-      "type": "string",
-      "description": "Shift filter from_date (YYYY-MM-DD)"
-    },
-    {
-      "key": "shiftToDate",
-      "value": "2026-05-07",
-      "type": "string",
-      "description": "Shift filter to_date (YYYY-MM-DD)"
-    },
+
     {
       "key": "employeeRole",
       "value": "staff",
@@ -4168,60 +3855,7 @@
       "type": "string",
       "description": "Optional filter: carry_out|dine_in|delivery"
     },
-    {
-      "key": "actorId",
-      "value": "",
-      "type": "string",
-      "description": "Activity log actor_id filter"
-    },
-    {
-      "key": "actorType",
-      "value": "",
-      "type": "string",
-      "description": "Activity log actor_type filter: User|Employee|Customer"
-    },
-    {
-      "key": "moduleSource",
-      "value": "",
-      "type": "string",
-      "description": "Activity log module_source filter"
-    },
-    {
-      "key": "targetModel",
-      "value": "",
-      "type": "string",
-      "description": "Activity log target_model filter"
-    },
-    {
-      "key": "logAction",
-      "value": "",
-      "type": "string",
-      "description": "Activity log action filter"
-    },
-    {
-      "key": "logFrom",
-      "value": "",
-      "type": "string",
-      "description": "Activity log from date (ISO or YYYY-MM-DD)"
-    },
-    {
-      "key": "logTo",
-      "value": "",
-      "type": "string",
-      "description": "Activity log to date (ISO or YYYY-MM-DD)"
-    },
-    {
-      "key": "logPage",
-      "value": "1",
-      "type": "string",
-      "description": "Activity log page"
-    },
-    {
-      "key": "logLimit",
-      "value": "20",
-      "type": "string",
-      "description": "Activity log page size"
-    },
+
     {
       "key": "publicId",
       "value": "",

@@ -1,6 +1,6 @@
 import { Combo } from './combo.model.js';
+import { Product } from '../product/product.model.js';
 import '../category/category.model.js';
-import '../product/product.model.js';
 
 const DISCOUNT_TYPES = new Set(['percent', 'amount']);
 const PRICING_TYPES = new Set(['static', 'dynamic']);
@@ -32,6 +32,45 @@ const parseBoolean = (value, fieldName) => {
         if (normalized === 'false') return false;
     }
     throw new Error(`${fieldName} phải là boolean!`);
+};
+
+const validateCategoryHasProducts = async (rules) => {
+    // Gom tất cả category IDs từ các rule
+    const allCategoryIds = [];
+    for (const rule of rules) {
+        if (rule.applicableCategories && rule.applicableCategories.length > 0) {
+            for (const catId of rule.applicableCategories) {
+                allCategoryIds.push(catId.toString());
+            }
+        }
+    }
+
+    if (allCategoryIds.length === 0) return; // Không có category nào cần kiểm tra
+
+    // Lấy danh sách category thực sự có sản phẩm (active, chưa xoá)
+    const uniqueCatIds = [...new Set(allCategoryIds)];
+    const categoriesWithProducts = await Product.distinct('category', {
+        category: { $in: uniqueCatIds },
+        isActive: true,
+        isDeleted: false,
+    });
+
+    const hasProductSet = new Set(
+        categoriesWithProducts.map((id) => id.toString()),
+    );
+
+    // Kiểm tra từng rule, nếu category không có sản phẩm thì báo lỗi
+    for (const rule of rules) {
+        if (rule.applicableCategories && rule.applicableCategories.length > 0) {
+            for (const catId of rule.applicableCategories) {
+                if (!hasProductSet.has(catId.toString())) {
+                    throw new Error(
+                        `Danh mục "${rule.groupName}" không có sản phẩm nào đang hoạt động!`,
+                    );
+                }
+            }
+        }
+    }
 };
 
 const normalizeRules = (rules) => {
@@ -171,6 +210,9 @@ export const create = async (data, file) => {
         throw new Error('Combo phải có ít nhất 1 rule!');
     }
 
+    // Kiểm tra category trong rule phải có ít nhất 1 sản phẩm
+    await validateCategoryHasProducts(normalizedRules);
+
     const existing = await Combo.findOne({ name, isDeleted: false });
     if (existing) {
         throw new Error('Combo với tên này đã tồn tại!');
@@ -258,6 +300,8 @@ export const update = async (data, file) => {
     }
     if (updateData.rules !== undefined) {
         updateData.rules = normalizeRules(updateData.rules);
+        // Kiểm tra category trong rule phải có ít nhất 1 sản phẩm
+        await validateCategoryHasProducts(updateData.rules);
     }
     if (updateData.dateStart !== undefined) {
         updateData.dateStart = parseDate(updateData.dateStart, 'dateStart');

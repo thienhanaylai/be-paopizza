@@ -23,7 +23,7 @@ const createEmployeeSchema = z
             'delivery',
             'barista',
         ]),
-        salary_type: z.enum(['hourly', 'monthly']).default('hourly'),
+        salaryType: z.enum(['hourly', 'monthly']).default('hourly'),
         role: z.enum(['admin', 'manager', 'staff']).default('staff'),
         address: z.string().optional(),
         salary: z.coerce.number().min(0).optional(),
