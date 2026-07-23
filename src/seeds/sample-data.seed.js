@@ -1060,11 +1060,11 @@ const seedSampleData = async () => {
                 customer_id: customer?._id || null,
                 employee_id: employees[index % employees.length]._id,
                 items,
-                sub_total: subTotal,
+                subTotal: subTotal,
                 discount_amount: discountAmount,
                 total: subTotal - discountAmount,
                 status,
-                order_type: pick(orderTypes, index),
+                orderType: pick(orderTypes, index),
                 paymentMethod,
                 paymentStatus,
                 contact_info: customer

@@ -42,7 +42,7 @@ export const create = async (data) => {
     const {
         store_id,
         items,
-        order_type,
+        orderType,
         paymentMethod,
         contact_info,
         customer_id,
@@ -54,14 +54,14 @@ export const create = async (data) => {
     if (
         !store_id ||
         !items?.length ||
-        !order_type ||
+        !orderType ||
         !paymentMethod ||
         !contact_info
     ) {
         throw new Error('Thiếu thông tin đơn hàng bắt buộc!');
     }
 
-    let sub_total = 0;
+    let subTotal = 0;
     const inventoryUpdates = new Map();
     const populatedItems = [];
 
@@ -218,7 +218,7 @@ export const create = async (data) => {
             throw new Error(`Loại item không hợp lệ: ${item_type}`);
         }
 
-        sub_total += price * quantity;
+        subTotal += price * quantity;
     }
 
     let discount_amount = 0;
@@ -235,26 +235,26 @@ export const create = async (data) => {
         });
         if (promo) {
             if (promo.type === 'percentage') {
-                discount_amount = Math.round(sub_total * (promo.value / 100));
+                discount_amount = Math.round(subTotal * (promo.value / 100));
             } else if (promo.type === 'fixed_amount') {
-                discount_amount = Math.min(promo.value, sub_total);
+                discount_amount = Math.min(promo.value, subTotal);
             }
         }
     }
 
-    const total = sub_total - discount_amount;
+    const total = subTotal - discount_amount;
 
     const orderData = {
         store_id,
         customer_id,
         employee_id,
         items: populatedItems,
-        sub_total,
+        subTotal,
         discount_amount,
         total,
         note,
         status: 'pending',
-        order_type,
+        orderType,
         paymentMethod,
         paymentStatus: 'pending',
         contact_info,

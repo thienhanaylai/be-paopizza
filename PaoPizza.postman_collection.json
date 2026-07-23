@@ -3104,7 +3104,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"store_id\": \"{{storeId}}\",\n  \"customer_id\": null,\n  \"employee_id\": null,\n  \"items\": [\n    {\n      \"item_type\": \"product\",\n      \"product_id\": \"{{productId}}\",\n      \"sku\": \"SKU-EXAMPLE\",\n      \"size\": \"S\",\n      \"quantity\": 1,\n      \"note\": \"Khong hanh\",\n      \"added_topping\": [\n        { \"ingredient\": \"{{ingredientId}}\", \"quantity\": 2 }\n      ]\n    }\n  ],\n  \"order_type\": \"carry_out\",\n  \"paymentMethod\": \"cash\",\n  \"promotion_code\": \"\",\n  \"contact_info\": {\n    \"full_name\": \"Khach Test\",\n    \"phone\": \"0909000999\",\n    \"address\": \"1 Nguyen Hue, TP.HCM\",\n    \"email\": \"khach.test@example.com\"\n  }\n}",
+              "raw": "{\n  \"store_id\": \"{{storeId}}\",\n  \"customer_id\": null,\n  \"employee_id\": null,\n  \"items\": [\n    {\n      \"item_type\": \"product\",\n      \"product_id\": \"{{productId}}\",\n      \"sku\": \"SKU-EXAMPLE\",\n      \"size\": \"S\",\n      \"quantity\": 1,\n      \"note\": \"Khong hanh\",\n      \"added_topping\": [\n        { \"ingredient\": \"{{ingredientId}}\", \"quantity\": 2 }\n      ]\n    }\n  ],\n  \"orderType\": \"carry_out\",\n  \"paymentMethod\": \"cash\",\n  \"promotion_code\": \"\",\n  \"contact_info\": {\n    \"full_name\": \"Khach Test\",\n    \"phone\": \"0909000999\",\n    \"address\": \"1 Nguyen Hue, TP.HCM\",\n    \"email\": \"khach.test@example.com\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3572,8 +3572,8 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "url": "{{baseUrl}}/revenue/overview?startDate={{revenueStartDate}}&endDate={{revenueEndDate}}&store_id={{storeId}}&paymentMethod={{revenuePaymentMethod}}&order_type={{revenueOrderType}}",
-            "description": "Get overview metrics from completed orders (`status=completed`, `isDeleted=false`) in a date range. Query params: startDate, endDate, optional store_id, optional paymentMethod (cash|card|qrCode|ewallet), optional order_type (carry_out|dine_in|delivery)."
+            "url": "{{baseUrl}}/revenue/overview?startDate={{revenueStartDate}}&endDate={{revenueEndDate}}&store_id={{storeId}}&paymentMethod={{revenuePaymentMethod}}&orderType={{revenueOrderType}}",
+            "description": "Get overview metrics from completed orders (`status=completed`, `isDeleted=false`) in a date range. Query params: startDate, endDate, optional store_id, optional paymentMethod (cash|card|qrCode|ewallet), optional orderType (carry_out|dine_in|delivery)."
           },
           "response": []
         },
@@ -3587,8 +3587,8 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "url": "{{baseUrl}}/revenue/breakdown?startDate={{revenueStartDate}}&endDate={{revenueEndDate}}&dimension={{revenueDimension}}&store_id={{storeId}}&paymentMethod={{revenuePaymentMethod}}&order_type={{revenueOrderType}}",
-            "description": "Get grouped metrics from completed orders. `dimension` supports store|paymentMethod|order_type. Supports same optional filters as overview."
+            "url": "{{baseUrl}}/revenue/breakdown?startDate={{revenueStartDate}}&endDate={{revenueEndDate}}&dimension={{revenueDimension}}&store_id={{storeId}}&paymentMethod={{revenuePaymentMethod}}&orderType={{revenueOrderType}}",
+            "description": "Get grouped metrics from completed orders. `dimension` supports store|paymentMethod|orderType. Supports same optional filters as overview."
           },
           "response": []
         }
@@ -3841,7 +3841,7 @@
       "key": "revenueDimension",
       "value": "store",
       "type": "string",
-      "description": "Breakdown dimension: store|paymentMethod|order_type"
+      "description": "Breakdown dimension: store|paymentMethod|orderType"
     },
     {
       "key": "revenuePaymentMethod",

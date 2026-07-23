@@ -189,7 +189,7 @@ const orderSchema = new mongoose.Schema(
                 message: 'Order items cannot be empty',
             },
         },
-        sub_total: {
+        subTotal: {
             type: Number,
             required: true,
             min: 0,
@@ -209,7 +209,7 @@ const orderSchema = new mongoose.Schema(
             enum: ORDER_STATUSES,
             default: 'pending',
         },
-        order_type: {
+        orderType: {
             type: String,
             enum: ORDER_TYPE,
             required: true,
@@ -242,7 +242,7 @@ const orderSchema = new mongoose.Schema(
 );
 
 orderSchema.index({ store_id: 1, status: 1, createdAt: -1 });
-orderSchema.index({ store_id: 1, order_type: 1, createdAt: -1 });
+orderSchema.index({ store_id: 1, orderType: 1, createdAt: -1 });
 orderSchema.index({ paymentMethod: 1, createdAt: -1 });
 orderSchema.index({ paymentStatus: 1, createdAt: -1 });
 orderSchema.index({ createdAt: -1 });

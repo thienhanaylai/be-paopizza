@@ -3,7 +3,7 @@ import { Order, PAYMENT_METHODS } from '../order/order.model.js';
 import { Employee } from '../employee/employee.model.js';
 
 const ORDER_TYPES = ['carry_out', 'dine_in', 'delivery'];
-const BREAKDOWN_DIMENSIONS = ['store', 'paymentMethod', 'order_type'];
+const BREAKDOWN_DIMENSIONS = ['store', 'paymentMethod', 'orderType'];
 const DEFAULT_RANGE_DAYS = 30;
 
 const parseDate = (value, fieldName) => {
@@ -121,7 +121,7 @@ const buildMatchStage = ({
     }
 
     if (orderType) {
-        match.order_type = orderType;
+        match.orderType = orderType;
     }
 
     return match;
@@ -135,9 +135,9 @@ const parseCommonFilters = async (user, query = {}) => {
         'paymentMethod',
     );
     const orderType = validateEnumFilter(
-        query.order_type,
+        query.orderType,
         ORDER_TYPES,
-        'order_type',
+        'orderType',
     );
     const scopedStoreId = await resolveStoreScope(user, query.store_id);
 
@@ -180,7 +180,7 @@ export const getOverview = async ({ user, query = {} }) => {
                 ? filters.scopedStoreId.toString()
                 : null,
             paymentMethod: filters.paymentMethod,
-            order_type: filters.orderType,
+            orderType: filters.orderType,
         },
         metrics: {
             total_revenue: totalRevenue,
@@ -195,7 +195,7 @@ const buildBreakdownPipeline = (match, dimension) => {
     const groupByMap = {
         store: '$store_id',
         paymentMethod: '$paymentMethod',
-        order_type: '$order_type',
+        orderType: '$orderType',
     };
 
     const pipeline = [
@@ -291,7 +291,7 @@ export const getBreakdown = async ({ user, query = {} }) => {
                 ? filters.scopedStoreId.toString()
                 : null,
             paymentMethod: filters.paymentMethod,
-            order_type: filters.orderType,
+            orderType: filters.orderType,
         },
         data: breakdown,
     };

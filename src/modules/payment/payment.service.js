@@ -14,17 +14,6 @@ const buildQrUrl = ({ amount, transferContent }) => {
     return `https://qr.sepay.vn/img?acc=${BANK_ACCOUNT}&bank=${BANK_BIN}&amount=${amount}&des=${transferContent}`;
 };
 
-const extractBearerToken = (rawValue = '') => {
-    const value = String(rawValue).trim();
-    if (!value) return '';
-
-    if (/^Bearer\s+/i.test(value)) {
-        return value.replace(/^Bearer\s+/i, '').trim();
-    }
-
-    return value;
-};
-
 const extractApikeyToken = (rawValue = '') => {
     const value = String(rawValue).trim();
     if (!value) return '';
