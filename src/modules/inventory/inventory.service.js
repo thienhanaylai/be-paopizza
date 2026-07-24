@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Inventory } from './inventory.model.js';
 import { Store } from '../store/store.model.js';
 import { Ingredient } from '../ingredient/ingredient.model.js';
@@ -198,4 +199,48 @@ export const deletedInventory = async (inventory_id) => {
     const result = await Inventory.findByIdAndDelete(inventory_id);
     if (!result) throw new Error('INVENTORY_NOT_FOUND');
     return result;
+};
+
+/**
+ * Trừ nguyên liệu tồn kho khi đơn hàng hoàn thành.
+ * Cho phép âm kho (current_stock có thể xuống dưới 0).
+ * @param {ObjectId} store_id - ID cửa hàng
+ * @param {Map<string, number>} ingredientsMap - Map của ingredientId (string) → tổng quantity cần trừ
+ */
+export const deductForOrder = async (store_id, ingredientsMap) => {
+    if (!store_id || !ingredientsMap?.size) return;
+
+    for (const [ingredientIdStr, quantity] of ingredientsMap) {
+        if (quantity <= 0) continue;
+
+        const ingredientId = new mongoose.Types.ObjectId(ingredientIdStr);
+
+        // Thử $inc ingredient đã tồn tại trong inventory
+        const result = await Inventory.updateOne(
+            {
+                store_id,
+                'ingredients.ingredient_id': ingredientId,
+            },
+            {
+                $inc: { 'ingredients.$.current_stock': -quantity },
+            },
+        );
+
+        // Nếu chưa có ingredient này trong inventory, push mới với stock âm
+        if (result.matchedCount === 0) {
+            await Inventory.updateOne(
+                { store_id },
+                {
+                    $push: {
+                        ingredients: {
+                            ingredient_id: ingredientId,
+                            current_stock: -quantity,
+                            min_stock_level: 0,
+                        },
+                    },
+                },
+                { upsert: true },
+            );
+        }
+    }
 };

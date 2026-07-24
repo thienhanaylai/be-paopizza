@@ -4,6 +4,7 @@ import { Combo } from '../combo/combo.model.js';
 import { Promotion } from '../promotion/promotion.model.js';
 import { User } from '../user/user.model.js';
 import { paymentService } from '../payment/payment.service.js';
+import * as inventoryService from '../inventory/inventory.service.js';
 
 const SEPAY_QR_PAYMENT_METHODS = new Set(['qrCode', 'ewallet']);
 const CASH_PAYMENT_METHODS = new Set(['cash']);
@@ -310,6 +311,97 @@ export const checkPaymentSuccess = async (order_id) => {
     };
 };
 
+/**
+ * Trích xuất danh sách nguyên liệu cần trừ kho từ đơn hàng đã populate.
+ * Duyệt qua tất cả items (product & combo) và combo_selections,
+ * lấy recipe từ product variants tương ứng với size đã chọn.
+ * @returns {Map<string, number>} ingredientId (string) → tổng quantity cần trừ
+ */
+const extractIngredientsFromOrder = (order) => {
+    const ingredientsMap = new Map();
+
+    if (!order?.items?.length) return ingredientsMap;
+
+    for (const item of order.items) {
+        const itemQty = item.quantity || 1;
+
+        if (item.item_type === 'product' && item.product_id?.variants) {
+            const variant = item.product_id.variants.find(
+                (v) => v.size?.toLowerCase() === item.size?.toLowerCase(),
+            );
+            if (variant?.recipe) {
+                for (const rec of variant.recipe) {
+                    const ingId =
+                        rec.ingredient?._id?.toString() ||
+                        rec.ingredient?.toString();
+                    if (!ingId) continue;
+                    const qty = (rec.quantity || 0) * itemQty;
+                    ingredientsMap.set(
+                        ingId,
+                        (ingredientsMap.get(ingId) || 0) + qty,
+                    );
+                }
+            }
+        }
+
+        if (item.item_type === 'combo' && item.combo_selections?.length) {
+            for (const sel of item.combo_selections) {
+                if (sel.product_id?.variants) {
+                    const variant = sel.product_id.variants.find(
+                        (v) =>
+                            v.size?.toLowerCase() === sel.size?.toLowerCase(),
+                    );
+                    if (variant?.recipe) {
+                        for (const rec of variant.recipe) {
+                            const ingId =
+                                rec.ingredient?._id?.toString() ||
+                                rec.ingredient?.toString();
+                            if (!ingId) continue;
+                            const qty = (rec.quantity || 0) * itemQty;
+                            ingredientsMap.set(
+                                ingId,
+                                (ingredientsMap.get(ingId) || 0) + qty,
+                            );
+                        }
+                    }
+                }
+
+                // added_topping trong combo_selection
+                if (sel.added_topping?.length) {
+                    for (const topping of sel.added_topping) {
+                        const ingId =
+                            topping.ingredient?._id?.toString() ||
+                            topping.ingredient?.toString();
+                        if (!ingId) continue;
+                        const qty = (topping.quantity || 1) * itemQty;
+                        ingredientsMap.set(
+                            ingId,
+                            (ingredientsMap.get(ingId) || 0) + qty,
+                        );
+                    }
+                }
+            }
+        }
+
+        // added_topping ở cấp item
+        if (item.added_topping?.length) {
+            for (const topping of item.added_topping) {
+                const ingId =
+                    topping.ingredient?._id?.toString() ||
+                    topping.ingredient?.toString();
+                if (!ingId) continue;
+                const qty = (topping.quantity || 1) * itemQty;
+                ingredientsMap.set(
+                    ingId,
+                    (ingredientsMap.get(ingId) || 0) + qty,
+                );
+            }
+        }
+    }
+
+    return ingredientsMap;
+};
+
 export const updateStatus = async (order_id, status) => {
     const payload = { status };
     const currentOrder = await Order.findById(order_id).select(
@@ -332,6 +424,15 @@ export const updateStatus = async (order_id, status) => {
         new: true,
         runValidators: true,
     }).populate(POPULATE_ORDER);
+
+    // Khi đơn hàng chuyển sang completed, tự động trừ kho nguyên liệu (cho phép âm kho)
+    if (status === 'completed' && order) {
+        const storeId = order.store_id?._id || order.store_id;
+        const ingredientsMap = extractIngredientsFromOrder(order);
+        if (ingredientsMap.size > 0) {
+            await inventoryService.deductForOrder(storeId, ingredientsMap);
+        }
+    }
 
     return order;
 };

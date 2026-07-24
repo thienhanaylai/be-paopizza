@@ -12,7 +12,6 @@ import { Ingredient } from '../modules/ingredient/ingredient.model.js';
 import { Inventory } from '../modules/inventory/inventory.model.js';
 import { Menu } from '../modules/menu/menu.model.js';
 import { Order } from '../modules/order/order.model.js';
-import { Payroll } from '../modules/payroll/payroll.model.js';
 import { Product } from '../modules/product/product.model.js';
 import { Promotion } from '../modules/promotion/promotion.model.js';
 import { Store } from '../modules/store/store.model.js';
@@ -21,7 +20,7 @@ import { User } from '../modules/user/user.model.js';
 import { ingredientSeedCatalog } from './ingredient-catalog.js';
 import { buildSeedVariants } from './product-variant-builder.js';
 
-const TARGET_COUNT = 20;
+const TARGET_COUNT = 40;
 
 const connectDatabase = async () => {
     await mongoose.connect(environment.mongoUri, {
@@ -41,71 +40,257 @@ const slugify = (text) => {
         .replace(/-+/g, '-');
 };
 
+// ── Công thức pizza tường minh (định lượng cho size M) ──────────────
+// Định lượng thực tế cho 1 pizza 12" (size M):
+//   - Bột: 250g, Phô mai base: 150g, Sốt cà chua: 80ml, Muối: 5g
+//   - Topping thịt: 60-80g/loại, Hải sản: 50-70g, Rau củ: 40-60g
+//   - Extra cheese: 60-80g, Sốt thêm: 30-40ml, Dầu olive: 15ml
+//   - Gia vị khô (tiêu, lá quế): 2-3g
+// ─────────────────────────────────────────────────────────────────────
+const PIZZA_BASE = [
+    { name: 'Bot Mi', quantity: 0.25 },
+    { name: 'Pho Mai Mozzarella', quantity: 0.15 },
+    { name: 'Sot Ca Chua Napoli', quantity: 0.08 },
+    { name: 'Muoi Bien', quantity: 0.005 },
+];
+
+const PIZZA_RECIPES = {
+    // ── Classic (169k-189k M) ─────────────────────────────────────────
+
+    'ham and pickles': [
+        { name: 'Ham', quantity: 0.07 },
+        { name: 'Pickles', quantity: 0.04 },
+    ],
+    'pepperoni fresh': [
+        { name: 'Pepperoni', quantity: 0.07 },
+        { name: 'Tomatoes', quantity: 0.05 },
+        { name: 'La Que Kho', quantity: 0.002 },
+    ],
+    pepperoni: [{ name: 'Pepperoni', quantity: 0.08 }],
+    cheesy: [
+        { name: 'Pho Mai Mozzarella', quantity: 0.08 },
+        { name: 'Cheddar And Parmesan Cheeses', quantity: 0.05 },
+    ],
+    'ham & cheese': [
+        { name: 'Ham', quantity: 0.07 },
+        { name: 'Pho Mai Mozzarella', quantity: 0.06 },
+    ],
+    hawaiian: [
+        { name: 'Ham', quantity: 0.07 },
+        { name: 'Pineapple', quantity: 0.05 },
+    ],
+    margherita: [
+        { name: 'Tomatoes', quantity: 0.06 },
+        { name: 'Pho Mai Mozzarella', quantity: 0.05 },
+        { name: 'La Que Kho', quantity: 0.003 },
+        { name: 'Dau Olive', quantity: 0.01 },
+    ],
+    // ── Mid-range (199k-239k M) ──────────────────────────────────────
+    'garlic chicken': [
+        { name: 'Uc Ga Phi Le', quantity: 0.07 },
+        { name: 'Toi Bam', quantity: 0.01 },
+        { name: 'Sot Mayonnaise', quantity: 0.02 },
+    ],
+    'ham & mushroom': [
+        { name: 'Ham', quantity: 0.07 },
+        { name: 'Nam Mo', quantity: 0.05 },
+    ],
+    'double chicken': [
+        { name: 'Uc Ga Phi Le', quantity: 0.12 },
+        { name: 'Sot Mayonnaise', quantity: 0.02 },
+    ],
+    'masala pizza': [
+        { name: 'Uc Ga Phi Le', quantity: 0.07 },
+        { name: 'Toi Bam', quantity: 0.01 },
+        { name: 'Tieu Den Xay', quantity: 0.003 },
+        { name: 'Sot Mayonnaise', quantity: 0.02 },
+        { name: 'Hanh Tay', quantity: 0.04 },
+    ],
+    'burger pizza': [
+        { name: 'Thit Bo Xay', quantity: 0.08 },
+        { name: 'Pickles', quantity: 0.04 },
+        { name: 'Hanh Tay', quantity: 0.04 },
+        { name: 'Sot BBQ', quantity: 0.03 },
+    ],
+    vegetarian: [
+        { name: 'Nam Mo', quantity: 0.05 },
+        { name: 'Ot Chuong Do', quantity: 0.04 },
+        { name: 'Ot Chuong Vang', quantity: 0.04 },
+        { name: 'Hanh Tay', quantity: 0.04 },
+        { name: 'Tomatoes', quantity: 0.05 },
+    ],
+    // ── Premium (259k-299k M) ────────────────────────────────────────
+    'bbq chicken': [
+        { name: 'Uc Ga Phi Le', quantity: 0.07 },
+        { name: 'Sot BBQ', quantity: 0.04 },
+        { name: 'Hanh Tay', quantity: 0.04 },
+    ],
+    'chicken ranch': [
+        { name: 'Uc Ga Phi Le', quantity: 0.07 },
+        { name: 'Sot Mayonnaise', quantity: 0.03 },
+        { name: 'Toi Bam', quantity: 0.008 },
+        { name: 'Tieu Den Xay', quantity: 0.002 },
+    ],
+    teriyaki: [
+        { name: 'Uc Ga Phi Le', quantity: 0.07 },
+        { name: 'Sot BBQ', quantity: 0.04 },
+        { name: 'Hanh Tay', quantity: 0.04 },
+        { name: 'Toi Bam', quantity: 0.008 },
+    ],
+    julienne: [
+        { name: 'Uc Ga Phi Le', quantity: 0.07 },
+        { name: 'Nam Mo', quantity: 0.05 },
+        { name: 'Pho Mai Mozzarella', quantity: 0.06 },
+        { name: 'Sot Mayonnaise', quantity: 0.02 },
+    ],
+    'four cheese': [
+        { name: 'Pho Mai Mozzarella', quantity: 0.06 },
+        { name: 'Mozzarella Cheese', quantity: 0.05 },
+        { name: 'Cheddar And Parmesan Cheeses', quantity: 0.05 },
+        { name: 'Bryndza Cheese', quantity: 0.04 },
+    ],
+    'cheesy chicken': [
+        { name: 'Uc Ga Phi Le', quantity: 0.07 },
+        { name: 'Pho Mai Mozzarella', quantity: 0.06 },
+        { name: 'Cheddar And Parmesan Cheeses', quantity: 0.05 },
+    ],
+    'double pepperoni': [{ name: 'Pepperoni', quantity: 0.13 }],
+    carbonara: [
+        { name: 'Bacon', quantity: 0.07 },
+        { name: 'Pho Mai Mozzarella', quantity: 0.05 },
+        { name: 'Sot Mayonnaise', quantity: 0.02 },
+        { name: 'Tieu Den Xay', quantity: 0.002 },
+    ],
+    'arriva!': [
+        { name: 'Pepperoni', quantity: 0.06 },
+        { name: 'Ham', quantity: 0.06 },
+        { name: 'Bacon', quantity: 0.05 },
+        { name: 'Nam Mo', quantity: 0.04 },
+        { name: 'Ot Chuong Do', quantity: 0.04 },
+    ],
+    'pesto pizza': [
+        { name: 'Dau Olive', quantity: 0.02 },
+        { name: 'La Que Kho', quantity: 0.004 },
+        { name: 'Toi Bam', quantity: 0.008 },
+        { name: 'Tomatoes', quantity: 0.05 },
+    ],
+    'shrimp and pesto': [
+        { name: 'Tom Tuoi', quantity: 0.06 },
+        { name: 'Dau Olive', quantity: 0.015 },
+        { name: 'La Que Kho', quantity: 0.003 },
+        { name: 'Toi Bam', quantity: 0.008 },
+    ],
+    'sweet chilli shrimp': [
+        { name: 'Tom Tuoi', quantity: 0.07 },
+        { name: 'Ot Chuong Do', quantity: 0.04 },
+        { name: 'Sot BBQ', quantity: 0.03 },
+    ],
+    diablo: [
+        { name: 'Pepperoni', quantity: 0.07 },
+        { name: 'Ham Spicy Beef', quantity: 0.06 },
+        { name: 'Jalapenos', quantity: 0.04 },
+        { name: 'Ot Chuong Do', quantity: 0.04 },
+        { name: 'Toi Bam', quantity: 0.01 },
+    ],
+    // ── Feast (329k-399k M) ──────────────────────────────────────────
+    'meat feast': [
+        { name: 'Pepperoni', quantity: 0.06 },
+        { name: 'Thit Bo Xay', quantity: 0.06 },
+        { name: 'Ham', quantity: 0.06 },
+        { name: 'Bacon', quantity: 0.05 },
+        { name: 'Pork Neck', quantity: 0.05 },
+    ],
+    'four seasons': [
+        { name: 'Nam Mo', quantity: 0.05 },
+        { name: 'Ham', quantity: 0.05 },
+        { name: 'Pepperoni', quantity: 0.05 },
+        { name: 'Ot Chuong Do', quantity: 0.04 },
+        { name: 'Hanh Tay', quantity: 0.04 },
+    ],
+    dodo: [
+        { name: 'Pepperoni', quantity: 0.06 },
+        { name: 'Ham', quantity: 0.06 },
+        { name: 'Nam Mo', quantity: 0.05 },
+        { name: 'Ot Chuong Do', quantity: 0.04 },
+        { name: 'Hanh Tay', quantity: 0.04 },
+        { name: 'Bacon', quantity: 0.04 },
+    ],
+    'meat mix': [
+        { name: 'Pepperoni', quantity: 0.06 },
+        { name: 'Thit Bo Xay', quantity: 0.06 },
+        { name: 'Ham', quantity: 0.06 },
+        { name: 'Bacon', quantity: 0.05 },
+        { name: 'Pork Neck', quantity: 0.05 },
+    ],
+    'dodo mix': [
+        { name: 'Pepperoni', quantity: 0.06 },
+        { name: 'Ham', quantity: 0.06 },
+        { name: 'Uc Ga Phi Le', quantity: 0.06 },
+        { name: 'Thit Bo Xay', quantity: 0.05 },
+        { name: 'Nam Mo', quantity: 0.04 },
+        { name: 'Ot Chuong Do', quantity: 0.04 },
+        { name: 'Hanh Tay', quantity: 0.04 },
+    ],
+};
+
+// ── Map tên drink CSV → ingredient trong catalog ──────────────────
+const DRINK_INGREDIENT_MAP = {
+    'dobry cola': 'Coca-Cola',
+    'dobry cola zero': 'Coca-Cola',
+    'dobry cola ice lemon': 'Coca-Cola',
+    'dobry lemon-lime': 'Sprite',
+    'dobry orange': 'Fanta',
+    'dobry kiwi-grapes': 'Fanta',
+    'bonaaqua still water': 'Nuoc Suoi',
+    'pulpy orange juice drink': 'Nuoc Cam Ep',
+    'dobry apple juice': 'Nuoc Cam Ep',
+    'nectar dobry orange': 'Nuoc Cam Ep',
+    'nectar dobry multifruit': 'Nuoc Cam Ep',
+    'nectar dobry apple-cherry-chokeberry': 'Nuoc Cam Ep',
+    'fig-elderflower iced tea': 'Tra Da',
+    'rich black tea lemon': 'Tra Da',
+    'rich green tea': 'Tra Da',
+    'black currant fruit drink': 'Nuoc Cam Ep',
+    'blueberry-lime lemonade': 'Sprite',
+    'cherry fruit drink': 'Nuoc Cam Ep',
+    'cranberry fruit drink': 'Nuoc Cam Ep',
+};
+
 const generateRecipe = (productName, categorySlug, ingMap) => {
     const recipe = [];
     const lowerName = productName.toLowerCase();
 
-    // Helper to add ingredient
     const addIng = (name, quantity) => {
         const ing = ingMap[name];
         if (ing) {
             recipe.push({
                 ingredient: ing._id,
-                quantity: quantity,
+                quantity,
                 unit: ing.unit,
             });
         }
     };
 
     if (categorySlug === 'pizza') {
-        // Base ingredients for all pizzas
-        addIng('Bot Mi So 00', 0.25);
-        addIng('Pho Mai Mozzarella', 0.15);
-        addIng('Sot Ca Chua Napoli', 0.08);
-        addIng('Muoi Bien', 0.005);
-
-        // Specific pizza toppings
-        if (lowerName.includes('pepperoni')) {
-            addIng('Pepperoni Cat Lat', 0.1);
+        for (const base of PIZZA_BASE) {
+            addIng(base.name, base.quantity);
         }
-        if (lowerName.includes('chicken') || lowerName.includes('ranch')) {
-            addIng('Uc Ga Phi Le', 0.12);
+        const pizzaRecipe = PIZZA_RECIPES[lowerName];
+        if (pizzaRecipe) {
+            for (const topping of pizzaRecipe) {
+                addIng(topping.name, topping.quantity);
+            }
         }
-        if (lowerName.includes('bbq')) {
-            addIng('Sot BBQ', 0.05);
-        }
-        if (lowerName.includes('shrimp')) {
-            addIng('Tom Tuoi', 0.08);
-        }
-        if (lowerName.includes('mushroom')) {
-            addIng('Nam Mo', 0.06);
-        }
-        if (lowerName.includes('garlic')) {
-            addIng('Toi Bam', 0.01);
-        }
-        if (lowerName.includes('pesto')) {
-            addIng('Dau Olive', 0.02);
-            addIng('La Que Kho', 1);
-        }
-        if (lowerName.includes('onion')) {
-            addIng('Hanh Tay', 0.04);
-        }
-        if (
-            lowerName.includes('cheese') &&
-            !lowerName.includes('ham & cheese')
-        ) {
-            const cheese = recipe.find(
-                (item) =>
-                    item.ingredient.toString() ===
-                    ingMap['Pho Mai Mozzarella']?._id?.toString(),
-            );
-            if (cheese) cheese.quantity += 0.1;
+    } else if (categorySlug === 'drink') {
+        // Map tên drink từ CSV sang ingredient name trong catalog
+        const ingName = DRINK_INGREDIENT_MAP[lowerName];
+        if (ingName) {
+            addIng(ingName, 1); // 1 lon/chai/ly cho size M (1L)
         }
     } else if (categorySlug === 'pasta') {
         addIng('Dau Olive', 0.02);
         addIng('Muoi Bien', 0.005);
         addIng('Tieu Den Xay', 0.002);
-
         if (lowerName.includes('carbonara')) {
             addIng('Pho Mai Mozzarella', 0.05);
         }
@@ -117,12 +302,12 @@ const generateRecipe = (productName, categorySlug, ingMap) => {
             addIng('Tom Tuoi', 0.08);
         }
         if (lowerName.includes('pesto')) {
-            addIng('La Que Kho', 1);
+            addIng('La Que Kho', 0.002);
+            addIng('Dau Olive', 0.01);
         }
     } else if (categorySlug === 'salad') {
         addIng('Dau Olive', 0.015);
         addIng('Muoi Bien', 0.002);
-
         if (lowerName.includes('caesar')) {
             addIng('Uc Ga Phi Le', 0.08);
             addIng('Sot Mayonnaise', 0.03);
@@ -142,7 +327,7 @@ const generateRecipe = (productName, categorySlug, ingMap) => {
                 addIng('Tieu Den Xay', 0.003);
             }
             if (lowerName.includes('ham')) {
-                addIng('Pepperoni Cat Lat', 0.04);
+                addIng('Ham', 0.04);
             }
         }
         if (lowerName.includes('nugget') || lowerName.includes('bite')) {
@@ -157,7 +342,7 @@ const generateRecipe = (productName, categorySlug, ingMap) => {
         if (lowerName.includes('omelette')) {
             addIng('Muoi Bien', 0.002);
             if (lowerName.includes('ham')) {
-                addIng('Pepperoni Cat Lat', 0.03);
+                addIng('Ham', 0.03);
             }
             if (lowerName.includes('cheese')) {
                 addIng('Pho Mai Mozzarella', 0.05);
@@ -178,7 +363,6 @@ const clearSampleData = async () => {
     await Promise.all([
         Cart.deleteMany({}),
         User.deleteMany({}),
-        Payroll.deleteMany({}),
         Order.deleteMany({}),
         Promotion.deleteMany({}),
         Menu.deleteMany({}),
@@ -200,7 +384,6 @@ const syncModelIndexes = async () => {
         User.syncIndexes(),
         Employee.syncIndexes(),
         Inventory.syncIndexes(),
-        Payroll.syncIndexes(),
         Category.syncIndexes(),
         Combo.syncIndexes(),
         Menu.syncIndexes(),
@@ -499,7 +682,7 @@ const seedSampleData = async () => {
 
     const products = await Product.insertMany(productsData);
 
-    const comboCount = Math.min(8, Math.max(3, Math.floor(TARGET_COUNT / 2)));
+    const comboCount = 20;
     const combos = await Combo.insertMany(
         Array.from({ length: comboCount }, (_, index) => {
             const type = index % 2 === 0 ? 'percent' : 'amount';
@@ -508,7 +691,6 @@ const seedSampleData = async () => {
                     ? 10 + (index % 3) * 5
                     : 15000 + index * 1000;
             const productA = products[index % products.length];
-            const productB = products[(index + 3) % products.length];
             const basePrice = productA?.variants?.[0]?.price || 90000;
             const price =
                 type === 'percent'
@@ -541,7 +723,7 @@ const seedSampleData = async () => {
 
             // Pick 1–4 distinct categories per combo
             const maxRules = Math.min(
-                1 + Math.floor(seededRandom(index * 7.13 + 3) * 4),
+                1 + Math.floor(seededRandom(index * 7.13 + 3) * 3),
                 allCatSlugs.length,
             );
             const rules = [];
@@ -562,7 +744,7 @@ const seedSampleData = async () => {
                         : ['S', 'M', 'L']
                     : [];
 
-                const qty = 1 + Math.floor(seededRandom(seed * 17.71) * 3);
+                const qty = 1 + Math.floor(seededRandom(seed * 17.71) * 2);
 
                 rules.push({
                     groupName: cat.name,
@@ -695,17 +877,42 @@ const seedSampleData = async () => {
         }),
     );
 
-    const ingredientsPerStore = Math.min(6, ingredients.length);
+    // ── Inventory: seed đầy đủ TẤT CẢ nguyên liệu cho từng cửa hàng ──
+    // Định lượng tồn kho thực tế theo danh mục (đơn vị: kg / lit / package)
+    const STOCK_BY_CATEGORY = {
+        dough: { base: 80, variance: 20, minRatio: 0.1 }, // Bột: 60-100 kg
+        cheese: { base: 35, variance: 15, minRatio: 0.12 }, // Phô mai: 20-50 kg
+        meat: { base: 20, variance: 10, minRatio: 0.15 }, // Thịt: 10-30 kg
+        seafood: { base: 10, variance: 5, minRatio: 0.2 }, // Hải sản: 5-15 kg
+        vegetable: { base: 15, variance: 5, minRatio: 0.15 }, // Rau củ: 10-20 kg
+        sauce: { base: 30, variance: 10, minRatio: 0.12 }, // Sốt: 20-40 lit
+        drink: { base: 120, variance: 30, minRatio: 0.08 }, // Đồ uống: 90-150 lon/chai
+        other: { base: 20, variance: 10, minRatio: 0.1 }, // Khác: 10-30
+    };
+
     const inventoryData = stores.map((store, storeIndex) => {
-        const startIndex = (storeIndex * 3) % ingredients.length;
-        const items = Array.from({ length: ingredientsPerStore }, (_, idx) => {
-            const ingredient =
-                ingredients[(startIndex + idx) % ingredients.length];
+        const seed = storeIndex * 7 + 3;
+        const pseudoRandom = (offset) => {
+            const x = Math.sin(seed + offset) * 10000;
+            return x - Math.floor(x);
+        };
+
+        const items = ingredients.map((ingredient, idx) => {
+            const cat = ingredient.category || 'other';
+            const cfg = STOCK_BY_CATEGORY[cat] || STOCK_BY_CATEGORY.other;
+            const variance = Math.round(
+                pseudoRandom(idx) * cfg.variance * 2 - cfg.variance,
+            );
+            const currentStock = Math.max(1, cfg.base + variance);
+            const minStock = Math.max(
+                1,
+                Math.round(currentStock * cfg.minRatio),
+            );
 
             return {
                 ingredient_id: ingredient._id,
-                current_stock: 4500 + storeIndex * 320 + idx * 55,
-                min_stock_level: 850 + storeIndex * 35 + idx * 10,
+                current_stock: currentStock,
+                min_stock_level: minStock,
             };
         });
 
@@ -954,44 +1161,15 @@ const seedSampleData = async () => {
         }),
     );
 
-    const payrollStatuses = ['pending', 'paid', 'cancelled'];
-    const payrolls = await Payroll.insertMany(
-        employees.map((employee, index) => {
-            const totalHours = 160 + (index % 5) * 8;
-            const grossSalary =
-                employee.salary_type === 'monthly'
-                    ? employee.salary
-                    : employee.salary * totalHours;
-            const additionAmount = index % 3 === 0 ? 220000 + index * 10000 : 0;
-            const deductionAmount = index % 4 === 0 ? 100000 + index * 8000 : 0;
-
-            return {
-                employee_id: employee._id,
-                period: { month: 4 + (index % 2), year: 2026 },
-                total_hours: totalHours,
-                gross_salary: grossSalary,
-                additions:
-                    additionAmount > 0
-                        ? [{ reason: 'KPI bonus', amount: additionAmount }]
-                        : [],
-                deductions:
-                    deductionAmount > 0
-                        ? [{ reason: 'Insurance', amount: deductionAmount }]
-                        : [],
-                net_salary: grossSalary + additionAmount - deductionAmount,
-                status: pick(payrollStatuses, index),
-            };
-        }),
-    );
-
+    // Tất cả đơn hàng lịch sử chỉ ở 2 trạng thái: completed hoặc cancelled
     const orderStatuses = [
         'completed',
         'completed',
         'completed',
         'completed',
-        'confirmed',
-        'preparing',
-        'pending',
+        'completed',
+        'completed',
+        'completed',
         'cancelled',
     ];
     const orderTypes = ['carry_out', 'dine_in', 'delivery'];
@@ -1048,12 +1226,13 @@ const seedSampleData = async () => {
 
             const status = pick(orderStatuses, index);
             const paymentMethod = pick(paymentMethods, index);
+            // completed → luôn success, cancelled → failed (trừ cash vẫn pending do hoàn tiền mặt)
             const paymentStatus =
                 status === 'completed'
                     ? 'success'
-                    : status === 'cancelled' && paymentMethod !== 'cash'
-                      ? 'failed'
-                      : 'pending';
+                    : paymentMethod === 'cash'
+                      ? 'pending'
+                      : 'failed';
 
             return {
                 store_id: stores[index % stores.length]._id,
@@ -1102,7 +1281,6 @@ const seedSampleData = async () => {
         users: users.length,
         carts: carts.length,
         promotions: promotions.length,
-        payrolls: payrolls.length,
         orders: orders.length,
     };
 };

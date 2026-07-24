@@ -18,7 +18,6 @@ const inventorySchema = new mongoose.Schema(
                 current_stock: {
                     type: Number,
                     default: 0,
-                    min: 0,
                 },
                 min_stock_level: {
                     type: Number,
