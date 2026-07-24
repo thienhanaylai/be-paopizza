@@ -6,7 +6,7 @@ export const createUser = async (userData) => {
     // admin dùng tạo tài khảon
     const existingUser = await User.findOne({ username: userData.username });
     if (existingUser) {
-        throw new Error('Tên đăng nhập đã tồn tại trong hệ thống');
+        throw new Error('USERNAME_ALREADY_EXISTS');
     }
 
     const newUser = await User.create(userData);
@@ -26,7 +26,7 @@ export const getUserById = async (userId) => {
         .select('-password')
         .populate('ref_id');
 
-    if (!user) throw new Error('Không tìm thấy tài khoản');
+    if (!user) throw new Error('ACCOUNT_NOT_FOUND');
     return user;
 };
 
@@ -38,7 +38,7 @@ export const toggleUserStatus = async (userId, status) => {
         { new: true },
     ).select('-password');
 
-    if (!user) throw new Error('Không tìm thấy tài khoản để cập nhật');
+    if (!user) throw new Error('ACCOUNT_NOT_FOUND');
     return user;
 };
 export const updateUserById = async (userId, updateBody) => {
@@ -48,7 +48,7 @@ export const updateUserById = async (userId, updateBody) => {
 
     const user = await User.findById(userId);
     if (!user) {
-        throw new Error('Không tìm thấy tài khoản để cập nhật');
+        throw new Error('ACCOUNT_NOT_FOUND');
     }
 
     if (updateBody.username && updateBody.username !== user.username) {
@@ -56,7 +56,7 @@ export const updateUserById = async (userId, updateBody) => {
             username: updateBody.username,
         });
         if (isUsernameTaken) {
-            throw new Error('Tên đăng nhập này đã có người sử dụng');
+            throw new Error('USERNAME_ALREADY_TAKEN');
         }
     }
 

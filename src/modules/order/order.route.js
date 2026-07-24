@@ -10,7 +10,6 @@ const requireStaff = authorize(['admin', 'manager', 'staff']);
 
 const router = express.Router();
 
-// Khách vãng lai (không cần đăng nhập) cũng có thể tạo đơn hàng
 router.post('/', optionalAuth, asyncHandler(orderController.createOrder));
 router.patch(
     '/customer/cancel/:order_id',

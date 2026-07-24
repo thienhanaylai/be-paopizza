@@ -4,11 +4,11 @@ export const create = async (data) => {
     const { name, email = '', phone = '', supplier_category, isActive } = data;
 
     if (!name || !supplier_category) {
-        throw new Error('Thiếu thông tin!');
+        throw new Error('MISSING_INFO');
     }
 
     if (!CATEGORY_LIST.includes(supplier_category)) {
-        throw new Error('Loại nhà cung cấp không hợp lệ!');
+        throw new Error('INVALID_SUPPLIER_CATEGORY');
     }
 
     const duplicateOrConditions = [];
@@ -21,7 +21,7 @@ export const create = async (data) => {
             $or: duplicateOrConditions,
         });
         if (existing) {
-            throw new Error('Email hoặc số điện thoại đã tồn tại!');
+            throw new Error('SUPPLIER_EMAIL_OR_PHONE_EXISTS');
         }
     }
 
@@ -39,19 +39,19 @@ export const update = async (data) => {
         data;
 
     if (!supplier_id) {
-        throw new Error('Thiếu supplier_id!');
+        throw new Error('MISSING_SUPPLIER_ID');
     }
 
     const supplier = await Supplier.findById(supplier_id);
     if (!supplier || supplier.isDeleted) {
-        throw new Error('Không tìm thấy nhà cung cấp!');
+        throw new Error('SUPPLIER_NOT_FOUND');
     }
 
     if (
         supplier_category !== undefined &&
         !CATEGORY_LIST.includes(supplier_category)
     ) {
-        throw new Error('Loại nhà cung cấp không hợp lệ!');
+        throw new Error('INVALID_SUPPLIER_CATEGORY');
     }
 
     const duplicateOrConditions = [];
@@ -65,12 +65,12 @@ export const update = async (data) => {
             $or: duplicateOrConditions,
         });
         if (existing) {
-            throw new Error('Email hoặc số điện thoại đã tồn tại!');
+            throw new Error('SUPPLIER_EMAIL_OR_PHONE_EXISTS');
         }
     }
 
     if (isActive !== undefined && typeof isActive !== 'boolean') {
-        throw new Error('isActive phải là boolean!');
+        throw new Error('IS_ACTIVE_MUST_BE_BOOLEAN');
     }
 
     const updateData = {};
@@ -95,8 +95,7 @@ export const getAll = async () => {
 
 export const getById = async (supplier_id) => {
     const supplier = await Supplier.findById(supplier_id).lean();
-    if (!supplier || supplier.isDeleted)
-        throw new Error('Không tìm thấy nhà cung cấp!');
+    if (!supplier || supplier.isDeleted) throw new Error('SUPPLIER_NOT_FOUND');
     return supplier;
 };
 
@@ -110,6 +109,6 @@ export const deletedSupplier = async (supplier_id) => {
         { new: true },
     );
     //khôgn xoá hẳn trong database
-    if (!supplier) throw new Error('Không tìm thấy nhà cung cấp!');
+    if (!supplier) throw new Error('SUPPLIER_NOT_FOUND');
     return supplier;
 };

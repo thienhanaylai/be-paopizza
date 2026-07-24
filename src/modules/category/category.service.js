@@ -3,7 +3,7 @@ import { Category } from './category.model.js';
 export const create = async (data) => {
     const { name, slug, icon = '' } = data;
     if (!name || !slug) {
-        throw new Error('Thiếu thông tin tên và slug!');
+        throw new Error('MISSING_NAME_OR_SLUG');
     }
 
     const existing = await Category.findOne({
@@ -11,7 +11,7 @@ export const create = async (data) => {
         isDeleted: false,
     });
     if (existing) {
-        throw new Error(`Danh mục với tên hoặc slug này đã tồn tại!`);
+        throw new Error('CATEGORY_ALREADY_EXISTS');
     }
 
     const result = await Category.create({ name, slug, icon });
@@ -21,12 +21,12 @@ export const create = async (data) => {
 export const update = async (data) => {
     const { category_id, name, slug, icon } = data;
     if (!category_id) {
-        throw new Error('Thiếu category_id!');
+        throw new Error('MISSING_CATEGORY_ID');
     }
 
     const category = await Category.findById(category_id);
     if (!category) {
-        throw new Error('Không tìm thấy danh mục!');
+        throw new Error('CATEGORY_NOT_FOUND');
     }
 
     const updateData = {};
@@ -43,7 +43,7 @@ export const update = async (data) => {
         if (slug) duplicateQuery.slug = slug;
         const existing = await Category.findOne(duplicateQuery);
         if (existing) {
-            throw new Error('Tên hoặc slug đã tồn tại trong hệ thống!');
+            throw new Error('CATEGORY_NAME_OR_SLUG_EXISTS');
         }
     }
 
@@ -57,12 +57,12 @@ export const update = async (data) => {
 export const updateActive = async (data) => {
     const { category_id, isActive } = data;
     if (!category_id) {
-        throw new Error('Thiếu category_id!');
+        throw new Error('MISSING_CATEGORY_ID');
     }
 
     const category = await Category.findById(category_id);
     if (!category) {
-        throw new Error('Không tìm thấy danh mục!');
+        throw new Error('CATEGORY_NOT_FOUND');
     }
 
     const result = await Category.findByIdAndUpdate(
@@ -76,12 +76,12 @@ export const updateActive = async (data) => {
 export const deletedCategory = async (data) => {
     const { category_id } = data;
     if (!category_id) {
-        throw new Error('Thiếu category_id!');
+        throw new Error('MISSING_CATEGORY_ID');
     }
 
     const category = await Category.findById(category_id);
     if (!category) {
-        throw new Error('Không tìm thấy danh mục để xoá!');
+        throw new Error('CATEGORY_NOT_FOUND');
     }
 
     const result = await Category.findByIdAndUpdate(
@@ -101,7 +101,6 @@ export const getAllCategory = async (query = {}) => {
 
 export const getCategory = async (category_id) => {
     const category = await Category.findById(category_id);
-    if (!category || category.isDeleted)
-        throw new Error('Không tìm thấy danh mục!');
+    if (!category || category.isDeleted) throw new Error('CATEGORY_NOT_FOUND');
     return category;
 };

@@ -22,7 +22,7 @@ export const create = async (data) => {
     } = data;
 
     if (!name || !address || !phone || !email || !time_open || !time_close) {
-        throw new Error('Thiếu thông tin cửa hàng!');
+        throw new Error('MISSING_STORE_INFO');
     }
 
     if (
@@ -31,27 +31,23 @@ export const create = async (data) => {
         !address.district ||
         !address.city
     ) {
-        throw new Error(
-            'Địa chỉ cửa hàng phải đầy đủ số nhà/đường, quận/huyện, tỉnh/thành phố!',
-        );
+        throw new Error('INCOMPLETE_STORE_ADDRESS');
     }
 
     if (!STORE_STATES.includes(status)) {
-        throw new Error('Trạng thái cửa hàng không hợp lệ!');
+        throw new Error('INVALID_STORE_STATUS');
     }
 
     if (manager_by) {
         if (!mongoose.Types.ObjectId.isValid(manager_by)) {
-            throw new Error('ID người quản lý không hợp lệ!');
+            throw new Error('INVALID_MANAGER_ID');
         }
         const managerExists = await Employee.findOne({
             _id: manager_by,
             isDeleted: false,
         });
         if (!managerExists) {
-            throw new Error(
-                'Người quản lý (nhân viên) không tồn tại hoặc đã bị xóa!',
-            );
+            throw new Error('MANAGER_NOT_FOUND');
         }
     }
 
@@ -59,9 +55,7 @@ export const create = async (data) => {
     if (location) {
         const { coordinates } = location;
         if (!Array.isArray(coordinates) || coordinates.length !== 2) {
-            throw new Error(
-                'Tọa độ cửa hàng không hợp lệ! Phải gồm 2 số [kinh độ, vĩ độ]',
-            );
+            throw new Error('INVALID_STORE_COORDINATES');
         }
         locationPayload = {
             type: 'Point',
@@ -74,9 +68,7 @@ export const create = async (data) => {
         $or: [{ name }, { phone }, { email }],
     });
     if (existing) {
-        throw new Error(
-            'Cửa hàng với tên, số điện thoại hoặc email này đã tồn tại!',
-        );
+        throw new Error('STORE_ALREADY_EXISTS');
     }
 
     const payload = {
@@ -98,42 +90,38 @@ export const create = async (data) => {
 export const update = async (data) => {
     const { store_id, ...updateData } = data;
     if (!store_id) {
-        throw new Error('Thiếu store_id!');
+        throw new Error('MISSING_STORE_ID');
     }
 
     const store = await Store.findById(store_id);
     if (!store || store.status === CLOSED_STORE_STATE) {
-        throw new Error('Không tìm thấy cửa hàng!');
+        throw new Error('STORE_NOT_FOUND');
     }
 
     if (
         updateData.status !== undefined &&
         !STORE_STATES.includes(updateData.status)
     ) {
-        throw new Error('Trạng thái cửa hàng không hợp lệ!');
+        throw new Error('INVALID_STORE_STATUS');
     }
 
     if (updateData.address) {
         const { streetNumber, district, city } = updateData.address;
         if (!streetNumber || !district || !city) {
-            throw new Error(
-                'Địa chỉ cửa hàng phải đầy đủ số nhà/đường, quận/huyện, tỉnh/thành phố!',
-            );
+            throw new Error('INCOMPLETE_STORE_ADDRESS');
         }
     }
 
     if (updateData.manager_by) {
         if (!mongoose.Types.ObjectId.isValid(updateData.manager_by)) {
-            throw new Error('ID người quản lý không hợp lệ!');
+            throw new Error('INVALID_MANAGER_ID');
         }
         const managerExists = await Employee.findOne({
             _id: updateData.manager_by,
             isDeleted: false,
         });
         if (!managerExists) {
-            throw new Error(
-                'Người quản lý (nhân viên) không tồn tại hoặc đã bị xóa!',
-            );
+            throw new Error('MANAGER_NOT_FOUND');
         }
     } else if (updateData.manager_by === null || updateData.manager_by === '') {
         updateData.manager_by = null;
@@ -142,9 +130,7 @@ export const update = async (data) => {
     if (updateData.location) {
         const { coordinates } = updateData.location;
         if (!Array.isArray(coordinates) || coordinates.length !== 2) {
-            throw new Error(
-                'Tọa độ cửa hàng không hợp lệ! Phải gồm 2 số [kinh độ, vĩ độ]',
-            );
+            throw new Error('INVALID_STORE_COORDINATES');
         }
         updateData.location = {
             type: 'Point',
@@ -166,7 +152,7 @@ export const update = async (data) => {
             $or: duplicateOrConditions,
         });
         if (existing) {
-            throw new Error('Tên, số điện thoại hoặc email đã tồn tại!');
+            throw new Error('STORE_NAME_PHONE_EMAIL_EXISTS');
         }
     }
 
@@ -186,7 +172,7 @@ export const getStore = async (store_id) => {
         _id: store_id,
         ...getActiveStoreFilter(),
     }).populate('manager_by');
-    if (!store) throw new Error('Không tìm thấy cửa hàng!');
+    if (!store) throw new Error('STORE_NOT_FOUND');
     return store;
 };
 
@@ -227,11 +213,11 @@ export const getAllStore = async (query = {}) => {
 
 export const deletedStore = async (store_id) => {
     if (!store_id) {
-        throw new Error('Thiếu store_id!');
+        throw new Error('MISSING_STORE_ID');
     }
     const store = await Store.findById(store_id);
     if (!store) {
-        throw new Error('Không tìm thấy cửa hàng để xoá!');
+        throw new Error('STORE_NOT_FOUND');
     }
     const result = await Store.findByIdAndUpdate(
         store_id,

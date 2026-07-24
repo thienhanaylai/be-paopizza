@@ -10,12 +10,12 @@ export const create = async (data) => {
         !Array.isArray(variants) ||
         variants.length === 0
     ) {
-        throw new Error('Thiếu thông tin sản phẩm hoặc variants!');
+        throw new Error('MISSING_PRODUCT_OR_VARIANTS');
     }
 
     const existing = await Product.findOne({ name, isDeleted: false });
     if (existing) {
-        throw new Error('Sản phẩm với tên này đã tồn tại!');
+        throw new Error('PRODUCT_NAME_EXISTS');
     }
     console.log(data);
     const product = await Product.create({
@@ -30,7 +30,7 @@ export const create = async (data) => {
 export const update = async (data) => {
     const { product_id, ...updateData } = data;
     if (!product_id) {
-        throw new Error('Thiếu product_id!');
+        throw new Error('MISSING_PRODUCT_ID');
     }
 
     if (!updateData.category && updateData.category_id) {
@@ -41,7 +41,7 @@ export const update = async (data) => {
 
     const product = await Product.findById(product_id);
     if (!product || product.isDeleted) {
-        throw new Error('Không tìm thấy sản phẩm!');
+        throw new Error('PRODUCT_NOT_FOUND');
     }
 
     if (updateData.name) {
@@ -51,7 +51,7 @@ export const update = async (data) => {
             isDeleted: false,
         });
         if (existing) {
-            throw new Error('Tên sản phẩm đã tồn tại!');
+            throw new Error('PRODUCT_NAME_EXISTS');
         }
     }
 
@@ -95,8 +95,7 @@ export const getById = async (product_id) => {
             select: 'name unit',
         })
         .lean();
-    if (!product || product.isDeleted)
-        throw new Error('Không tìm thấy sản phẩm!');
+    if (!product || product.isDeleted) throw new Error('PRODUCT_NOT_FOUND');
     return product;
 };
 
@@ -109,7 +108,7 @@ export const deletedProduct = async (product_id) => {
         },
         { new: true },
     );
-    if (!product) throw new Error('Không tìm thấy sản phẩm!');
+    if (!product) throw new Error('PRODUCT_NOT_FOUND');
     return product;
 };
 
@@ -129,7 +128,7 @@ export const getByCategory = async (category_id) => {
 
 export const updateStatusProduct = async (product_id) => {
     const product = await Product.findById(product_id);
-    if (!product) throw new Error('Không tìm thấy sản phẩm!');
+    if (!product) throw new Error('PRODUCT_NOT_FOUND');
     product.isActive = !product.isActive;
 
     await product.save();

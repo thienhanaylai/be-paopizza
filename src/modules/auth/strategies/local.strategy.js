@@ -16,7 +16,7 @@ export const localStrategy = new LocalStrategy(
             if (!user) {
                 //ko tìm thấy
                 return done(null, false, {
-                    message: 'Không tìm thấy tài khoản!',
+                    message: 'ACCOUNT_NOT_FOUND',
                 });
             }
 

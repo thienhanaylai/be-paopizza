@@ -18,7 +18,7 @@ export const createEmployee = async (data) => {
 
     const existingUser = await User.findOne({ username });
     if (existingUser) {
-        throw new Error('Tên đăng nhập đã tồn tại trong hệ thống');
+        throw new Error('USERNAME_ALREADY_EXISTS');
     }
 
     let newEmployee;
@@ -69,20 +69,20 @@ export const updateEmployee = async (data) => {
             { new: true },
         );
         if (!employee) {
-            throw new Error('Không tìm thấy nhân viên !');
+            throw new Error('EMPLOYEE_NOT_FOUND');
         }
 
         return {
             profile: employee,
         };
     } catch (error) {
-        throw new Error(error);
+        throw error;
     }
 };
 
 export const getEmployee = async (employee_id) => {
     const employee = await Employee.findById(employee_id);
-    if (!employee) throw new Error('Không tìm thấy nhân viên');
+    if (!employee) throw new Error('EMPLOYEE_NOT_FOUND');
     return employee;
 };
 export const getAllEmployee = async () => {
@@ -94,13 +94,13 @@ export const getListEmployeeByRole = async (role) => {
     const listEmployee = await User.find({ role })
         .populate('ref_id')
         .select(['-password']);
-    if (!listEmployee) throw new Error('Không có nhân viên thuộc role này!');
+    if (!listEmployee) throw new Error('NO_EMPLOYEE_WITH_ROLE');
     return listEmployee;
 };
 
 export const getEmployeeOfStore = async (store_id) => {
     if (!store_id) {
-        throw new Error('Thiếu store_id!');
+        throw new Error('MISSING_STORE_ID');
     }
 
     return await Employee.find({ store_id, isDeleted: false });
@@ -109,7 +109,7 @@ export const getEmployeeOfStore = async (store_id) => {
 export const deleteEmployee = async (employee_id) => {
     const emp = Employee.findById(employee_id);
     if (!emp) {
-        throw new Error('Không tìm thấy nhân viên!');
+        throw new Error('EMPLOYEE_NOT_FOUND');
     }
     return await Employee.findByIdAndUpdate(employee_id, { isDeleted: true });
 };

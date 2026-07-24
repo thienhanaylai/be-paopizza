@@ -32,17 +32,17 @@ const parseBoolean = (value, fieldName) => {
         if (normalized === 'true') return true;
         if (normalized === 'false') return false;
     }
-    throw new Error(`${fieldName} phải là boolean!`);
+    throw new Error(`INVALID_${fieldName.toUpperCase().replace(/\s+/g, '_')}`);
 };
 
 const normalizeProducts = (products) => {
     if (!Array.isArray(products)) {
-        throw new Error('products phải là mảng!');
+        throw new Error('PRODUCTS_MUST_BE_ARRAY');
     }
 
     return products.map((item, index) => {
         if (!item) {
-            throw new Error(`Product #${index + 1} không hợp lệ!`);
+            throw new Error('INVALID_PRODUCT');
         }
 
         let product;
@@ -53,7 +53,7 @@ const normalizeProducts = (products) => {
         }
 
         if (!product) {
-            throw new Error(`Thiếu product ở product #${index + 1}!`);
+            throw new Error('MISSING_PRODUCT');
         }
 
         return product;
@@ -62,12 +62,12 @@ const normalizeProducts = (products) => {
 
 const normalizeCombos = (combos) => {
     if (!Array.isArray(combos)) {
-        throw new Error('combos phải là mảng!');
+        throw new Error('COMBOS_MUST_BE_ARRAY');
     }
 
     return combos.map((item, index) => {
         if (!item) {
-            throw new Error(`Combo #${index + 1} không hợp lệ!`);
+            throw new Error('INVALID_COMBO');
         }
 
         let combo;
@@ -80,11 +80,11 @@ const normalizeCombos = (combos) => {
                 combo = combo._id || combo.id;
             }
         } else {
-            throw new Error(`Combo #${index + 1} không hợp lệ!`);
+            throw new Error('INVALID_COMBO');
         }
 
         if (!combo) {
-            throw new Error(`Thiếu combo ở combo #${index + 1}!`);
+            throw new Error('MISSING_COMBO');
         }
 
         return { combo };
@@ -94,18 +94,18 @@ const normalizeCombos = (combos) => {
 export const create = async (data) => {
     const { store, products = [], combos = [], status } = data;
     if (!store) {
-        throw new Error('Thiếu store!');
+        throw new Error('MISSING_STORE_ID');
     }
 
     const normalizedProducts = normalizeProducts(products);
     const normalizedCombos = normalizeCombos(combos);
     if (normalizedProducts.length === 0 && normalizedCombos.length === 0) {
-        throw new Error('Menu phải có ít nhất 1 sản phẩm hoặc combo!');
+        throw new Error('MENU_MISSING_ITEMS');
     }
 
     const existing = await Menu.findOne({ store });
     if (existing) {
-        throw new Error('Menu của cửa hàng đã tồn tại!');
+        throw new Error('MENU_ALREADY_EXISTS');
     }
 
     const payload = {
@@ -124,12 +124,12 @@ export const create = async (data) => {
 export const update = async (data) => {
     const { menu_id, ...updateData } = data;
     if (!menu_id) {
-        throw new Error('Thiếu menu_id!');
+        throw new Error('MISSING_MENU_ID');
     }
 
     const menu = await Menu.findById(menu_id);
     if (!menu) {
-        throw new Error('Không tìm thấy menu!');
+        throw new Error('MENU_NOT_FOUND');
     }
 
     if (updateData.store) {
@@ -138,7 +138,7 @@ export const update = async (data) => {
             _id: { $ne: menu_id },
         });
         if (existing) {
-            throw new Error('Menu của cửa hàng đã tồn tại!');
+            throw new Error('MENU_ALREADY_EXISTS');
         }
     }
 
@@ -178,31 +178,31 @@ export const getById = async (menu_id) => {
         .populate(comboPopulate)
         .lean();
     if (!menu) {
-        throw new Error('Không tìm thấy menu!');
+        throw new Error('MENU_NOT_FOUND');
     }
     return menu;
 };
 
 export const deleted = async (menu_id) => {
     if (!menu_id) {
-        throw new Error('Thiếu menu_id!');
+        throw new Error('MISSING_MENU_ID');
     }
 
     const menu = await Menu.findByIdAndDelete(menu_id);
     if (!menu) {
-        throw new Error('Không tìm thấy menu để xoá!');
+        throw new Error('MENU_NOT_FOUND');
     }
     return menu;
 };
 
 export const updateStatus = async (menu_id, status) => {
     if (!menu_id) {
-        throw new Error('Thiếu menu_id!');
+        throw new Error('MISSING_MENU_ID');
     }
 
     const menu = await Menu.findById(menu_id);
     if (!menu) {
-        throw new Error('Không tìm thấy menu!');
+        throw new Error('MENU_NOT_FOUND');
     }
 
     const nextStatus = parseBoolean(status, 'status');
@@ -219,7 +219,7 @@ export const getByStore = async (store_id) => {
         .populate(comboPopulate)
         .lean();
     if (!menu) {
-        throw new Error('Không tìm thấy menu!');
+        throw new Error('MENU_NOT_FOUND');
     }
     return menu;
 };

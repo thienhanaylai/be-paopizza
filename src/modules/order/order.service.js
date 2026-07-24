@@ -58,7 +58,7 @@ export const create = async (data) => {
         !paymentMethod ||
         !contact_info
     ) {
-        throw new Error('Thiếu thông tin đơn hàng bắt buộc!');
+        throw new Error('MISSING_ORDER_INFO');
     }
 
     let subTotal = 0;
@@ -78,7 +78,7 @@ export const create = async (data) => {
         } = item;
 
         if (quantity < 1) {
-            throw new Error('Số lượng item phải lớn hơn 0!');
+            throw new Error('INVALID_ITEM_QUANTITY');
         }
 
         let price;
@@ -87,24 +87,22 @@ export const create = async (data) => {
 
         if (item_type === 'product') {
             if (!size) {
-                throw new Error('Thiếu size cho sản phẩm!');
+                throw new Error('MISSING_SIZE');
             }
             if (!product_id) {
-                throw new Error('Thiếu product_id cho sản phẩm');
+                throw new Error('MISSING_PRODUCT_ID');
             }
             const product =
                 await Product.findById(product_id).select('variants name');
             if (!product) {
-                throw new Error('Không tìm thấy sản phẩm!');
+                throw new Error('PRODUCT_NOT_FOUND');
             }
 
             const variant = product.variants.find(
                 (v) => v.size.toLowerCase() === size.toLowerCase(),
             );
             if (!variant) {
-                throw new Error(
-                    `Size "${size}" không tồn tại cho sản phẩm này`,
-                );
+                throw new Error('SIZE_NOT_AVAILABLE');
             }
 
             price = variant.price;
@@ -133,7 +131,7 @@ export const create = async (data) => {
             });
         } else if (item_type === 'combo') {
             if (!combo) {
-                throw new Error('Thiếu combo_id cho combo');
+                throw new Error('MISSING_COMBO_ID');
             }
 
             finalSize = 'combo';
@@ -142,9 +140,7 @@ export const create = async (data) => {
                 !Array.isArray(combo_selections) ||
                 combo_selections.length === 0
             ) {
-                throw new Error(
-                    'Combo phải có ít nhất 1 lựa chọn (combo_selections)!',
-                );
+                throw new Error('COMBO_MISSING_SELECTIONS');
             }
 
             const selectionProductIds = combo_selections
@@ -170,29 +166,23 @@ export const create = async (data) => {
             for (let i = 0; i < combo_selections.length; i++) {
                 const sel = combo_selections[i];
                 if (!sel.product_id) {
-                    throw new Error(
-                        `Thiếu product_id trong combo_selections #${i + 1}!`,
-                    );
+                    throw new Error('MISSING_COMBO_SELECTION_PRODUCT_ID');
                 }
                 if (!sel.size) {
-                    throw new Error(
-                        `Thiếu size trong combo_selections #${i + 1}!`,
-                    );
+                    throw new Error('MISSING_COMBO_SELECTION_SIZE');
                 }
                 // Chỉ kiểm tra crust nếu sản phẩm là pizza
                 if (
                     pizzaProductIds.has(sel.product_id.toString()) &&
                     !sel.crust
                 ) {
-                    throw new Error(
-                        `Thiếu crust trong combo_selections #${i + 1} (pizza)!`,
-                    );
+                    throw new Error('MISSING_COMBO_SELECTION_CRUST');
                 }
             }
 
             const comboDoc = await Combo.findById(combo).select('price');
             if (!comboDoc) {
-                throw new Error('Không tìm thấy combo');
+                throw new Error('COMBO_NOT_FOUND');
             }
             price = comboDoc.price;
             sku = `COMBO-${combo}`;
@@ -215,7 +205,7 @@ export const create = async (data) => {
                 combo_selections: normalizedSelections,
             });
         } else {
-            throw new Error(`Loại item không hợp lệ: ${item_type}`);
+            throw new Error('INVALID_ITEM_TYPE');
         }
 
         subTotal += price * quantity;
@@ -295,7 +285,7 @@ export const getById = async (order_id) => {
         isDeleted: false,
     }).populate(POPULATE_ORDER);
     if (!order) {
-        throw new Error('Không tìm thấy đơn hàng!');
+        throw new Error('ORDER_NOT_FOUND');
     }
     return order;
 };
@@ -327,7 +317,7 @@ export const updateStatus = async (order_id, status) => {
     );
 
     if (!currentOrder) {
-        throw new Error('Không tìm thấy đơn hàng!');
+        throw new Error('ORDER_NOT_FOUND');
     }
 
     if (
@@ -386,13 +376,11 @@ export const cancelOrder = async (order_id) => {
     const order = await Order.findById(order_id);
 
     if (!order) {
-        throw new Error('Không tìm thấy đơn hàng!');
+        throw new Error('ORDER_NOT_FOUND');
     }
 
     if (order.status === 'completed' || order.paymentStatus === 'success') {
-        throw new Error(
-            'Đơn hàng đã hoàn thành hoặc đã thanh toán không thể huỷ!',
-        );
+        throw new Error('ORDER_CANNOT_CANCEL');
     }
 
     return await Order.findByIdAndUpdate(
@@ -409,11 +397,11 @@ export const updatePaymentStatusOrder = async (order_id) => {
     const order = await Order.findById(order_id);
 
     if (!order) {
-        throw new Error('Không tìm thấy đơn hàng!');
+        throw new Error('ORDER_NOT_FOUND');
     }
 
     if (order.paymentStatus === 'success') {
-        throw new Error('Đơn hàng đã thanh toán!');
+        throw new Error('ORDER_ALREADY_PAID');
     }
 
     return await Order.findByIdAndUpdate(
@@ -432,7 +420,7 @@ export const deleted = async (order_id) => {
         { new: true },
     );
     if (!order) {
-        throw new Error('Không tìm thấy đơn hàng để xoá!');
+        throw new Error('ORDER_NOT_FOUND');
     }
     return order;
 };
@@ -446,7 +434,7 @@ export const getHistoryOrder = async (user_id) => {
     }).populate(POPULATE_ORDER);
 
     if (!orders) {
-        throw new Error('Chưa có đơn hàng nào!');
+        throw new Error('NO_ORDERS_FOUND');
     }
     return orders;
 };
@@ -455,7 +443,7 @@ export const getAllHistoryOrder = async () => {
     const orders = await Order.find({}).populate(POPULATE_ORDER);
 
     if (!orders) {
-        throw new Error('Chưa có đơn hàng nào!');
+        throw new Error('NO_ORDERS_FOUND');
     }
     return orders;
 };
@@ -465,15 +453,13 @@ export const customerCancelOrder = async (data) => {
     const order = await Order.findById(order_id);
 
     if (!order) {
-        throw new Error('Không tìm thấy!');
+        throw new Error('ORDER_NOT_FOUND');
     }
     if (order.customer_id.toString() !== customer_id.toString()) {
-        throw new Error('Người dùng không có đơn hàng này');
+        throw new Error('ORDER_NOT_BELONG_TO_USER');
     }
     if (order.status === 'completed' || order.paymentStatus === 'success') {
-        throw new Error(
-            'Đơn hàng đã hoàn thành hoặc đã thanh toán không thể huỷ!',
-        );
+        throw new Error('ORDER_CANNOT_CANCEL');
     }
     return await Order.findByIdAndUpdate(
         order_id,

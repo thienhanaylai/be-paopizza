@@ -12,9 +12,7 @@ export const create = async (data) => {
     } = data;
 
     if (!code || !type || value === undefined || !startDate || !endDate) {
-        throw new Error(
-            'Thiếu thông tin mã khuyến mãi, loại, giá trị, ngày bắt đầu/kết thúc!',
-        );
+        throw new Error('MISSING_PROMOTION_INFO');
     }
 
     const existing = await Promotion.findOne({
@@ -22,7 +20,7 @@ export const create = async (data) => {
         isDeleted: false,
     });
     if (existing) {
-        throw new Error('Mã khuyến mãi này đã tồn tại!');
+        throw new Error('PROMOTION_CODE_EXISTS');
     }
 
     const result = await Promotion.create({
@@ -50,7 +48,7 @@ export const getById = async (promotion_id) => {
         isDeleted: false,
     }).populate('applicableStore');
     if (!promotion) {
-        throw new Error('Không tìm thấy khuyến mãi!');
+        throw new Error('PROMOTION_NOT_FOUND');
     }
     return promotion;
 };
@@ -67,12 +65,12 @@ export const update = async (data) => {
         applicableStore,
     } = data;
     if (!promotion_id) {
-        throw new Error('Thiếu promotion_id!');
+        throw new Error('MISSING_PROMOTION_ID');
     }
 
     const promotion = await Promotion.findById(promotion_id);
     if (!promotion || promotion.isDeleted) {
-        throw new Error('Không tìm thấy khuyến mãi!');
+        throw new Error('PROMOTION_NOT_FOUND');
     }
 
     const updateData = {};
@@ -92,7 +90,7 @@ export const update = async (data) => {
             isDeleted: false,
         });
         if (existing) {
-            throw new Error('Mã khuyến mãi đã tồn tại!');
+            throw new Error('PROMOTION_CODE_EXISTS');
         }
     }
 
@@ -106,7 +104,7 @@ export const update = async (data) => {
 export const updateStatus = async (data) => {
     const { promotion_id, status } = data;
     if (!promotion_id || !status) {
-        throw new Error('Thiếu promotion_id hoặc status!');
+        throw new Error('MISSING_PROMOTION_ID_OR_STATUS');
     }
 
     const result = await Promotion.findByIdAndUpdate(
@@ -115,14 +113,14 @@ export const updateStatus = async (data) => {
         { new: true, runValidators: true },
     ).populate('applicableStore');
     if (!result) {
-        throw new Error('Không tìm thấy khuyến mãi!');
+        throw new Error('PROMOTION_NOT_FOUND');
     }
     return result;
 };
 
 export const deleted = async (promotion_id) => {
     if (!promotion_id) {
-        throw new Error('Thiếu promotion_id!');
+        throw new Error('MISSING_PROMOTION_ID');
     }
 
     const promotion = await Promotion.findByIdAndUpdate(
@@ -131,7 +129,7 @@ export const deleted = async (promotion_id) => {
         { new: true },
     );
     if (!promotion) {
-        throw new Error('Không tìm thấy khuyến mãi để xoá!');
+        throw new Error('PROMOTION_NOT_FOUND');
     }
     return promotion;
 };
@@ -145,12 +143,12 @@ export const deleted = async (promotion_id) => {
  */
 export const applyPromotion = async (code, orderTotal, storeId) => {
     if (!code || orderTotal === undefined || orderTotal === null) {
-        throw new Error('Thiếu mã khuyến mãi hoặc tổng đơn hàng!');
+        throw new Error('MISSING_CODE_OR_ORDER_TOTAL');
     }
 
     const parsedTotal = Number(orderTotal);
     if (Number.isNaN(parsedTotal) || parsedTotal < 0) {
-        throw new Error('Tổng đơn hàng không hợp lệ!');
+        throw new Error('INVALID_ORDER_TOTAL');
     }
 
     // Tìm mã khuyến mãi
@@ -166,7 +164,7 @@ export const applyPromotion = async (code, orderTotal, storeId) => {
             discountType: 'fixed',
             discountValue: 0,
             discountAmount: 0,
-            message: 'Mã khuyến mãi không tồn tại!',
+            message: 'PROMOTION_NOT_FOUND',
         };
     }
 
@@ -178,7 +176,7 @@ export const applyPromotion = async (code, orderTotal, storeId) => {
             discountType: promotion.type === 'percentage' ? 'percent' : 'fixed',
             discountValue: promotion.value,
             discountAmount: 0,
-            message: 'Mã khuyến mãi không còn hiệu lực!',
+            message: 'PROMOTION_INACTIVE',
         };
     }
 
@@ -191,7 +189,7 @@ export const applyPromotion = async (code, orderTotal, storeId) => {
             discountType: promotion.type === 'percentage' ? 'percent' : 'fixed',
             discountValue: promotion.value,
             discountAmount: 0,
-            message: 'Mã khuyến mãi chưa đến thời gian áp dụng!',
+            message: 'PROMOTION_NOT_STARTED',
         };
     }
     if (now > promotion.endDate) {
@@ -201,7 +199,7 @@ export const applyPromotion = async (code, orderTotal, storeId) => {
             discountType: promotion.type === 'percentage' ? 'percent' : 'fixed',
             discountValue: promotion.value,
             discountAmount: 0,
-            message: 'Mã khuyến mãi đã hết hạn!',
+            message: 'PROMOTION_EXPIRED',
         };
     }
 
@@ -217,7 +215,7 @@ export const applyPromotion = async (code, orderTotal, storeId) => {
                     promotion.type === 'percentage' ? 'percent' : 'fixed',
                 discountValue: promotion.value,
                 discountAmount: 0,
-                message: 'Mã khuyến mãi không áp dụng cho cửa hàng này!',
+                message: 'PROMOTION_NOT_APPLICABLE',
             };
         }
     }

@@ -10,7 +10,9 @@ const parseDate = (value, fieldName) => {
     const date = new Date(value);
 
     if (Number.isNaN(date.getTime())) {
-        throw new Error(`${fieldName} không hợp lệ`);
+        throw new Error(
+            `INVALID_${fieldName.toUpperCase().replace(/\s+/g, '_')}`,
+        );
     }
 
     return date;
@@ -35,7 +37,7 @@ const parseDateRange = (query = {}) => {
     startDate.setHours(0, 0, 0, 0);
 
     if (startDate > endDate) {
-        throw new Error('startDate phải nhỏ hơn hoặc bằng endDate');
+        throw new Error('START_DATE_AFTER_END_DATE');
     }
 
     return {
@@ -50,7 +52,9 @@ const validateEnumFilter = (value, allowed, fieldName) => {
     }
 
     if (!allowed.includes(value)) {
-        throw new Error(`${fieldName} không hợp lệ`);
+        throw new Error(
+            `INVALID_${fieldName.toUpperCase().replace(/\s+/g, '_')}`,
+        );
     }
 
     return value;
@@ -58,7 +62,9 @@ const validateEnumFilter = (value, allowed, fieldName) => {
 
 const toObjectId = (value, fieldName) => {
     if (!mongoose.Types.ObjectId.isValid(value)) {
-        throw new Error(`${fieldName} không hợp lệ`);
+        throw new Error(
+            `INVALID_${fieldName.toUpperCase().replace(/\s+/g, '_')}`,
+        );
     }
 
     return new mongoose.Types.ObjectId(value);
@@ -66,12 +72,12 @@ const toObjectId = (value, fieldName) => {
 
 const resolveStoreScope = async (user, queryStoreId) => {
     if (!user) {
-        throw new Error('Vui lòng đăng nhập để tiếp tục');
+        throw new Error('LOGIN_REQUIRED');
     }
 
     if (user.role === 'manager' || user.role === 'staff') {
         if (!user.ref_id) {
-            throw new Error('Không tìm thấy thông tin nhân viên');
+            throw new Error('EMPLOYEE_NOT_FOUND');
         }
 
         const employee = await Employee.findOne({
@@ -82,7 +88,7 @@ const resolveStoreScope = async (user, queryStoreId) => {
             .lean();
 
         if (!employee?.store_id) {
-            throw new Error('Nhân viên chưa được gán cửa hàng');
+            throw new Error('EMPLOYEE_NO_STORE_ASSIGNED');
         }
 
         return employee.store_id;
@@ -92,7 +98,7 @@ const resolveStoreScope = async (user, queryStoreId) => {
         return queryStoreId ? toObjectId(queryStoreId, 'store_id') : null;
     }
 
-    throw new Error('Bạn không có quyền truy cập báo cáo doanh thu');
+    throw new Error('REVENUE_ACCESS_DENIED');
 };
 
 const buildMatchStage = ({
@@ -271,7 +277,7 @@ const buildBreakdownPipeline = (match, dimension) => {
 export const getBreakdown = async ({ user, query = {} }) => {
     const dimension = query.dimension || 'store';
     if (!BREAKDOWN_DIMENSIONS.includes(dimension)) {
-        throw new Error('dimension không hợp lệ');
+        throw new Error('INVALID_DIMENSION');
     }
 
     const filters = await parseCommonFilters(user, query);

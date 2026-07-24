@@ -10,7 +10,7 @@ export const createOrUpdate = async (data) => {
         min_stock_level = 10,
     } = data;
     if (!store_id || !ingredient_id) {
-        throw new Error('Thiếu store_id hoặc ingredient_id!');
+        throw new Error('MISSING_STORE_OR_INGREDIENT_ID');
     }
 
     const updateFields = {};
@@ -59,19 +59,19 @@ export const createOrUpdate = async (data) => {
 export const updateStock = async (data) => {
     const { store_id, ingredient_id, quantity, type = 'add' } = data;
     if (!store_id || !ingredient_id) {
-        throw new Error('Thiếu thông tin!');
+        throw new Error('MISSING_INFO');
     }
 
     const inventory = await Inventory.findOne({ store_id });
     if (!inventory) {
-        throw new Error('Không tìm thấy inventory!');
+        throw new Error('INVENTORY_NOT_FOUND');
     }
 
     const targetItem = inventory.ingredients.find((item) =>
         item.ingredient_id.equals(ingredient_id),
     );
     if (!targetItem) {
-        throw new Error('Không tìm thấy ingredient trong inventory!');
+        throw new Error('INGREDIENT_NOT_IN_INVENTORY');
     }
 
     let newStock = targetItem.current_stock;
@@ -196,6 +196,6 @@ export const getLowStock = async () => {
 
 export const deletedInventory = async (inventory_id) => {
     const result = await Inventory.findByIdAndDelete(inventory_id);
-    if (!result) throw new Error('Không tìm thấy inventory!');
+    if (!result) throw new Error('INVENTORY_NOT_FOUND');
     return result;
 };

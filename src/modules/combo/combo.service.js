@@ -9,7 +9,9 @@ const parseDate = (value, fieldName) => {
     if (value === undefined || value === null || value === '') return undefined;
     const date = value instanceof Date ? value : new Date(value);
     if (Number.isNaN(date.getTime())) {
-        throw new Error(`${fieldName} không hợp lệ!`);
+        throw new Error(
+            `INVALID_${fieldName.toUpperCase().replace(/\s+/g, '_')}`,
+        );
     }
     return date;
 };
@@ -18,7 +20,9 @@ const parseNumber = (value, fieldName) => {
     if (value === undefined || value === null || value === '') return undefined;
     const num = Number(value);
     if (Number.isNaN(num)) {
-        throw new Error(`${fieldName} phải là số!`);
+        throw new Error(
+            `INVALID_${fieldName.toUpperCase().replace(/\s+/g, '_')}`,
+        );
     }
     return num;
 };
@@ -31,7 +35,7 @@ const parseBoolean = (value, fieldName) => {
         if (normalized === 'true') return true;
         if (normalized === 'false') return false;
     }
-    throw new Error(`${fieldName} phải là boolean!`);
+    throw new Error(`INVALID_${fieldName.toUpperCase().replace(/\s+/g, '_')}`);
 };
 
 const validateCategoryHasProducts = async (rules) => {
@@ -64,9 +68,7 @@ const validateCategoryHasProducts = async (rules) => {
         if (rule.applicableCategories && rule.applicableCategories.length > 0) {
             for (const catId of rule.applicableCategories) {
                 if (!hasProductSet.has(catId.toString())) {
-                    throw new Error(
-                        `Danh mục "${rule.groupName}" không có sản phẩm nào đang hoạt động!`,
-                    );
+                    throw new Error('CATEGORY_HAS_NO_ACTIVE_PRODUCTS');
                 }
             }
         }
@@ -75,17 +77,17 @@ const validateCategoryHasProducts = async (rules) => {
 
 const normalizeRules = (rules) => {
     if (!Array.isArray(rules)) {
-        throw new Error('rules phải là mảng!');
+        throw new Error('RULES_MUST_BE_ARRAY');
     }
 
     return rules.map((rule, index) => {
         if (!rule || typeof rule !== 'object') {
-            throw new Error(`Rule #${index + 1} không hợp lệ!`);
+            throw new Error('INVALID_RULE');
         }
 
         const groupName = String(rule.groupName || '').trim();
         if (!groupName) {
-            throw new Error(`Thiếu groupName ở rule #${index + 1}!`);
+            throw new Error('MISSING_RULE_GROUP_NAME');
         }
 
         const requiredQuantity = parseNumber(
@@ -93,9 +95,7 @@ const normalizeRules = (rules) => {
             `requiredQuantity ở rule #${index + 1}`,
         );
         if (requiredQuantity === undefined || requiredQuantity < 1) {
-            throw new Error(
-                `requiredQuantity ở rule #${index + 1} không hợp lệ!`,
-            );
+            throw new Error('INVALID_RULE_REQUIRED_QUANTITY');
         }
 
         const applicableCategories =
@@ -110,27 +110,19 @@ const normalizeRules = (rules) => {
             rule.applicableSizes === undefined ? [] : rule.applicableSizes;
 
         if (!Array.isArray(applicableCategories)) {
-            throw new Error(
-                `applicableCategories ở rule #${index + 1} phải là mảng!`,
-            );
+            throw new Error('RULE_CATEGORIES_MUST_BE_ARRAY');
         }
         if (!Array.isArray(applicableProducts)) {
-            throw new Error(
-                `applicableProducts ở rule #${index + 1} phải là mảng!`,
-            );
+            throw new Error('RULE_PRODUCTS_MUST_BE_ARRAY');
         }
         if (!Array.isArray(applicableSizes)) {
-            throw new Error(
-                `applicableSizes ở rule #${index + 1} phải là mảng!`,
-            );
+            throw new Error('RULE_SIZES_MUST_BE_ARRAY');
         }
         if (
             applicableCategories.length === 0 &&
             applicableProducts.length === 0
         ) {
-            throw new Error(
-                `Rule #${index + 1} phải có applicableCategories hoặc applicableProducts!`,
-            );
+            throw new Error('RULE_MISSING_CATEGORIES_OR_PRODUCTS');
         }
 
         return {
@@ -157,7 +149,7 @@ const parseDiscountType = (value) => {
     if (value === undefined || value === null || value === '') return undefined;
     const normalized = String(value).trim().toLowerCase();
     if (!DISCOUNT_TYPES.has(normalized)) {
-        throw new Error('discountType phải là percent hoặc amount!');
+        throw new Error('INVALID_DISCOUNT_TYPE');
     }
     return normalized;
 };
@@ -166,7 +158,7 @@ const parsePricingType = (value) => {
     if (value === undefined || value === null || value === '') return 'static';
     const normalized = String(value).trim().toLowerCase();
     if (!PRICING_TYPES.has(normalized)) {
-        throw new Error('pricingType phải là static hoặc dynamic!');
+        throw new Error('INVALID_PRICING_TYPE');
     }
     return normalized;
 };
@@ -186,9 +178,7 @@ export const create = async (data, file) => {
     const pricingType = parsePricingType(data.pricingType);
 
     if (!name || !dateStart || !dateEnd || !discountType) {
-        throw new Error(
-            'Thiếu thông tin name, discountType hoặc ngày bắt đầu/kết thúc!',
-        );
+        throw new Error('MISSING_COMBO_INFO');
     }
 
     const discountValue = parseNumber(getDiscountValue(data) ?? 0, 'discount');
@@ -196,18 +186,18 @@ export const create = async (data, file) => {
     // price chỉ bắt buộc khi pricingType là static
     const price = parseNumber(data.price, 'price');
     if (pricingType === 'static' && price === undefined) {
-        throw new Error('Thiếu price combo! (bắt buộc với pricingType=static)');
+        throw new Error('MISSING_COMBO_PRICE');
     }
 
     const startDate = parseDate(dateStart, 'dateStart');
     const endDate = parseDate(dateEnd, 'dateEnd');
     if (startDate && endDate && startDate > endDate) {
-        throw new Error('Ngày bắt đầu phải trước ngày kết thúc!');
+        throw new Error('START_DATE_AFTER_END_DATE');
     }
 
     const normalizedRules = normalizeRules(rules || []);
     if (normalizedRules.length === 0) {
-        throw new Error('Combo phải có ít nhất 1 rule!');
+        throw new Error('COMBO_MISSING_RULES');
     }
 
     // Kiểm tra category trong rule phải có ít nhất 1 sản phẩm
@@ -215,7 +205,7 @@ export const create = async (data, file) => {
 
     const existing = await Combo.findOne({ name, isDeleted: false });
     if (existing) {
-        throw new Error('Combo với tên này đã tồn tại!');
+        throw new Error('COMBO_NAME_EXISTS');
     }
 
     // Ưu tiên ảnh upload qua file, nếu không có thì dùng image từ body
@@ -244,12 +234,12 @@ export const create = async (data, file) => {
 export const update = async (data, file) => {
     const { combo_id, ...updateData } = data;
     if (!combo_id) {
-        throw new Error('Thiếu combo_id!');
+        throw new Error('MISSING_COMBO_ID');
     }
 
     const combo = await Combo.findById(combo_id);
     if (!combo || combo.isDeleted) {
-        throw new Error('Không tìm thấy combo!');
+        throw new Error('COMBO_NOT_FOUND');
     }
 
     if (updateData.name) {
@@ -259,7 +249,7 @@ export const update = async (data, file) => {
             isDeleted: false,
         });
         if (existing) {
-            throw new Error('Tên combo đã tồn tại!');
+            throw new Error('COMBO_NAME_EXISTS');
         }
     }
 
@@ -296,7 +286,7 @@ export const update = async (data, file) => {
         updateData.price === undefined &&
         !combo.price
     ) {
-        throw new Error('Phải cung cấp price khi pricingType là static!');
+        throw new Error('MISSING_PRICE_FOR_STATIC_PRICING');
     }
     if (updateData.rules !== undefined) {
         updateData.rules = normalizeRules(updateData.rules);
@@ -313,7 +303,7 @@ export const update = async (data, file) => {
     const startDate = updateData.dateStart || combo.dateStart;
     const endDate = updateData.dateEnd || combo.dateEnd;
     if (startDate && endDate && startDate > endDate) {
-        throw new Error('Ngày bắt đầu phải trước ngày kết thúc!');
+        throw new Error('START_DATE_AFTER_END_DATE');
     }
 
     const result = await Combo.findByIdAndUpdate(combo_id, updateData, {
@@ -351,14 +341,14 @@ export const getById = async (combo_id) => {
         .populate('rules.applicableProducts', 'name variants')
         .lean();
     if (!combo) {
-        throw new Error('Không tìm thấy combo!');
+        throw new Error('COMBO_NOT_FOUND');
     }
     return combo;
 };
 
 export const deleted = async (combo_id) => {
     if (!combo_id) {
-        throw new Error('Thiếu combo_id!');
+        throw new Error('MISSING_COMBO_ID');
     }
 
     const combo = await Combo.findByIdAndUpdate(
@@ -367,19 +357,19 @@ export const deleted = async (combo_id) => {
         { new: true },
     );
     if (!combo) {
-        throw new Error('Không tìm thấy combo để xoá!');
+        throw new Error('COMBO_NOT_FOUND');
     }
     return combo;
 };
 
 export const updateStatus = async (combo_id, isActive) => {
     if (!combo_id) {
-        throw new Error('Thiếu combo_id!');
+        throw new Error('MISSING_COMBO_ID');
     }
 
     const combo = await Combo.findById(combo_id);
     if (!combo || combo.isDeleted) {
-        throw new Error('Không tìm thấy combo!');
+        throw new Error('COMBO_NOT_FOUND');
     }
 
     const nextStatus = parseBoolean(isActive, 'isActive');
@@ -391,20 +381,20 @@ export const updateStatus = async (combo_id, isActive) => {
 
 export const updateImage = async (combo_id, file) => {
     if (!combo_id) {
-        throw new Error('Thiếu combo_id!');
+        throw new Error('MISSING_COMBO_ID');
     }
     if (!file) {
-        throw new Error('Không tìm thấy file tải lên!');
+        throw new Error('FILE_NOT_FOUND');
     }
 
     const combo = await Combo.findById(combo_id);
     if (!combo || combo.isDeleted) {
-        throw new Error('Không tìm thấy combo!');
+        throw new Error('COMBO_NOT_FOUND');
     }
 
     const imageUrl = file.path || file.url || '';
     if (!imageUrl) {
-        throw new Error('Không tìm thấy đường dẫn ảnh!');
+        throw new Error('IMAGE_PATH_NOT_FOUND');
     }
 
     combo.image = imageUrl;

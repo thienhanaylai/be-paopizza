@@ -5,12 +5,12 @@ import { User } from '../user/user.model.js';
 const getCustomerByUserId = async (userId) => {
     const user = await User.findById(userId);
     if (!user || !user.ref_id) {
-        throw new Error('Không tìm thấy user hoặc ref_id!');
+        throw new Error('USER_OR_REF_NOT_FOUND');
     }
 
     const customer = await Customer.findById(user.ref_id);
     if (!customer || customer.isDeleted) {
-        throw new Error('Không tìm thấy customer để cập nhật!');
+        throw new Error('CUSTOMER_NOT_FOUND');
     }
 
     return customer;
@@ -150,7 +150,7 @@ export const deleteAddress = async (req, res) => {
     );
 
     if (addressIndex === -1) {
-        throw new Error('Không tìm thấy địa chỉ cần xoá!');
+        throw new Error('ADDRESS_NOT_FOUND');
     }
 
     customer.listAddress.splice(addressIndex, 1);

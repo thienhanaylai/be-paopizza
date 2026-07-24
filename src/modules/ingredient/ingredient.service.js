@@ -8,7 +8,7 @@ export const create = async (data) => {
     const { name, unit, category, costPerUnit, price, isActive, image } = data;
     const ingredient = await Ingredient.findOne({ name });
     if (ingredient) {
-        throw new Error(`Đã có nguyên liệu: ${name} trong danh sách!`);
+        throw new Error('INGREDIENT_ALREADY_EXISTS');
     }
 
     const createData = {
@@ -56,7 +56,7 @@ export const update = async (data) => {
     });
 
     if (!ingredient) {
-        throw new Error(`Không tìm thấy nguyên liệu!`);
+        throw new Error('INGREDIENT_NOT_FOUND');
     }
 
     const updateData = {
@@ -98,7 +98,7 @@ export const updateActive = async (data) => {
     });
 
     if (!ingredient) {
-        throw new Error(`Không tìm thấy nguyên liệu!`);
+        throw new Error('INGREDIENT_NOT_FOUND');
     }
 
     return Ingredient.findByIdAndUpdate(
@@ -118,7 +118,7 @@ export const deletedIngredient = async (data) => {
     });
 
     if (!ingredient) {
-        throw new Error(`Không tìm thấy nguyên liệu!`);
+        throw new Error('INGREDIENT_NOT_FOUND');
     }
 
     return Ingredient.findByIdAndUpdate(
@@ -148,6 +148,6 @@ export const getIngredient = async (ingredient_id) => {
         isDeleted: false,
     }).lean();
 
-    if (!ingredient) throw new Error('Không tìm thấy nguyên liệu !');
+    if (!ingredient) throw new Error('INGREDIENT_NOT_FOUND');
     return ingredient;
 };

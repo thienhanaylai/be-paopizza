@@ -46,17 +46,17 @@ export const addToCart = async (data) => {
     } = data;
     console.log(data);
     if (quantity < 1) {
-        throw new Error('Quantity không hợp lệ');
+        throw new Error('INVALID_QUANTITY');
     }
 
     if (item_type === 'product' && !product_id) {
-        throw new Error('Thiếu product_id cho sản phẩm');
+        throw new Error('MISSING_PRODUCT_ID');
     }
     if (item_type === 'combo' && !combo) {
-        throw new Error('Thiếu combo');
+        throw new Error('MISSING_COMBO_ID');
     }
     if (item_type === 'product' && !size) {
-        throw new Error('Thiếu size');
+        throw new Error('MISSING_SIZE');
     }
 
     let cart = await Cart.findOne({ user_id: userId });
@@ -71,14 +71,14 @@ export const addToCart = async (data) => {
         const product =
             await Product.findById(product_id).select('variants name');
         if (!product) {
-            throw new Error('Không tìm thấy sản phẩm');
+            throw new Error('PRODUCT_NOT_FOUND');
         }
 
         const variant = product.variants.find(
             (item) => item.size.toLowerCase() === size.toLowerCase(),
         );
         if (!variant) {
-            throw new Error(`Size "${size}" không tồn tại cho sản phẩm này`);
+            throw new Error('SIZE_NOT_AVAILABLE');
         }
 
         price = variant.price;
@@ -86,7 +86,7 @@ export const addToCart = async (data) => {
     } else if (item_type === 'combo') {
         const comboDoc = await Combo.findById(combo).select('price');
         if (!comboDoc) {
-            throw new Error('Không tìm thấy combo');
+            throw new Error('COMBO_NOT_FOUND');
         }
         price = comboDoc.price;
 
@@ -164,7 +164,7 @@ export const removeFromCart = async (data) => {
     } = data;
     const cart = await Cart.findOne({ user_id: userId });
     if (!cart) {
-        throw new Error('Không tìm thấy giỏ hàng');
+        throw new Error('CART_NOT_FOUND');
     }
 
     cart.items = cart.items.filter((item) => {
@@ -201,7 +201,7 @@ export const updateCartItem = async (data) => {
     } = data;
     const cart = await Cart.findOne({ user_id: userId });
     if (!cart) {
-        throw new Error('Không tìm thấy giỏ hàng');
+        throw new Error('CART_NOT_FOUND');
     }
 
     const itemIndex = cart.items.findIndex((item) => {
@@ -222,7 +222,7 @@ export const updateCartItem = async (data) => {
     });
 
     if (itemIndex === -1) {
-        throw new Error('Không tìm thấy item trong giỏ hàng');
+        throw new Error('CART_ITEM_NOT_FOUND');
     }
 
     if (quantity !== undefined) {

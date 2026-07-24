@@ -26,12 +26,12 @@ export const refreshAuthTokens = async (oldRefreshToken) => {
 
         const user = await User.findById(decoded.id);
         if (!user) {
-            throw new Error('Tài khoản không tồn tại');
+            throw new Error('ACCOUNT_NOT_FOUND');
         }
 
         return generateAuthTokens(user);
     } catch (_) {
-        throw new Error('Refresh Token không hợp lệ hoặc đã hết hạn');
+        throw new Error('INVALID_OR_EXPIRED_REFRESH_TOKEN');
     }
 };
 
@@ -39,23 +39,23 @@ export const changePassword = async (userId, oldPass, newPass) => {
     try {
         const user = await User.findById(userId);
         if (!user) {
-            throw new Error('Không tìm thấy thông tin');
+            throw new Error('USER_NOT_FOUND');
         }
         if (!oldPass || !newPass) {
-            throw new Error('Thiếu mật khẩu cũ hoặc mới');
+            throw new Error('MISSING_OLD_OR_NEW_PASSWORD');
         }
         const isMatch = await bcrypt.compare(oldPass, user.password);
         if (!isMatch) {
-            throw new Error('Mật khẩu cũ không đúng!');
+            throw new Error('INCORRECT_OLD_PASSWORD');
         }
         if (newPass.length < 6) {
-            throw new Error('Mật khẩu mới phải có ít nhất 6 ký tự');
+            throw new Error('NEW_PASSWORD_TOO_SHORT');
         }
         user.password = newPass;
         const updatedUser = await user.save({ validateModifiedOnly: true });
 
         return updatedUser;
     } catch (error) {
-        throw new Error(error);
+        throw error;
     }
 };

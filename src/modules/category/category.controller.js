@@ -3,7 +3,7 @@ import * as categoryService from './category.service.js';
 export const createCategory = async (req, res) => {
     const { name, slug, icon } = req.body;
     if (!name || !slug) {
-        throw new Error('Thiếu thông tin tên và slug!');
+        throw new Error('MISSING_NAME_OR_SLUG');
     }
     const result = await categoryService.create({
         name,
@@ -21,7 +21,7 @@ export const updateCategory = async (req, res) => {
         req.params.category_id || req.body.category_id || req.body.id;
     const { name, slug, icon } = req.body;
     if (!category_id) {
-        throw new Error('Thiếu category_id!');
+        throw new Error('MISSING_CATEGORY_ID');
     }
     const result = await categoryService.update({
         category_id,
@@ -38,7 +38,7 @@ export const updateCategory = async (req, res) => {
 export const updateActive = async (req, res) => {
     const { category_id, isActive } = req.body;
     if (!category_id) {
-        throw new Error('Thiếu thông tin!');
+        throw new Error('MISSING_INFO');
     }
     const result = await categoryService.updateActive({
         category_id,
@@ -54,7 +54,7 @@ export const deletedCategory = async (req, res) => {
     const category_id =
         req.params.category_id || req.body.category_id || req.params.id;
     if (!category_id) {
-        throw new Error('Thiếu category_id!');
+        throw new Error('MISSING_CATEGORY_ID');
     }
     const result = await categoryService.deletedCategory({
         category_id,

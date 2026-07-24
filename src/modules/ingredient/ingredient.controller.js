@@ -6,7 +6,7 @@ export const createIngredient = async (req, res, next) => {
             req.body;
 
         if (!name || !unit) {
-            throw new Error('Thiếu thông tin!');
+            throw new Error('MISSING_INFO');
         }
         const result = await ingredientService.create({
             name,
@@ -38,7 +38,7 @@ export const updateIngredient = async (req, res, next) => {
             image,
         } = req.body;
         if (!ingredient_id || !name || !unit) {
-            throw new Error('Thiếu thông tin!');
+            throw new Error('MISSING_INFO');
         }
         const result = await ingredientService.update({
             ingredient_id,
@@ -62,7 +62,7 @@ export const updateActive = async (req, res, next) => {
     try {
         const { ingredient_id, isActive } = req.body;
         if (!ingredient_id || typeof isActive === 'undefined') {
-            throw new Error('Thiếu thông tin!');
+            throw new Error('MISSING_INFO');
         }
         const result = await ingredientService.updateActive({
             ingredient_id,
@@ -81,7 +81,7 @@ export const deletedIngredient = async (req, res, next) => {
     try {
         const { ingredient_id } = req.body;
         if (!ingredient_id) {
-            throw new Error('Thiếu thông tin!');
+            throw new Error('MISSING_INFO');
         }
         const result = await ingredientService.deletedIngredient({
             ingredient_id,

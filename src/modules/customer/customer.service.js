@@ -8,7 +8,7 @@ export const registerCustomer = async (data) => {
 
     const existingUser = await User.findOne({ username: phone });
     if (existingUser) {
-        throw new Error('Tài khoản đã tồn tại trong hệ thống');
+        throw new Error('ACCOUNT_ALREADY_EXISTS');
     }
 
     const existingCustomer = await Customer.findOne({
@@ -16,7 +16,7 @@ export const registerCustomer = async (data) => {
         isDeleted: false,
     });
     if (existingCustomer) {
-        throw new Error('Số điện thoại đã tồn tại trong hệ thống');
+        throw new Error('PHONE_ALREADY_EXISTS');
     }
 
     let newCustomer = null;
@@ -58,18 +58,18 @@ export const updateCustomer = async (data) => {
     const { user_id, name, phone, email } = data;
     const user = await User.findById(user_id);
     if (!user || !user.ref_id) {
-        throw new Error('Không tìm thấy user hoặc ref_id!');
+        throw new Error('USER_OR_REF_NOT_FOUND');
     }
 
     const customer = await Customer.findById(user.ref_id);
     if (!customer || customer.isDeleted) {
-        throw new Error('Không tìm thấy customer để cập nhật!');
+        throw new Error('CUSTOMER_NOT_FOUND');
     }
 
     if (phone !== undefined && phone !== user.username) {
         const existingUser = await User.findOne({ username: phone });
         if (existingUser && String(existingUser._id) !== String(user_id)) {
-            throw new Error('Số điện thoại đã tồn tại trong hệ thống');
+            throw new Error('PHONE_ALREADY_EXISTS');
         }
 
         const existingCustomer = await Customer.findOne({
@@ -78,7 +78,7 @@ export const updateCustomer = async (data) => {
             isDeleted: false,
         });
         if (existingCustomer) {
-            throw new Error('Số điện thoại đã tồn tại trong hệ thống');
+            throw new Error('PHONE_ALREADY_EXISTS');
         }
 
         user.username = phone;
@@ -96,7 +96,7 @@ export const updateCustomer = async (data) => {
         { new: true, runValidators: true },
     );
     if (!customerInfo) {
-        throw new Error('Không tìm thấy customer để cập nhật!');
+        throw new Error('CUSTOMER_NOT_FOUND');
     }
     return {
         profile: customerInfo,
@@ -108,11 +108,11 @@ export const addAddress = async (contactInfo) => {
 
     const user = await User.findById(user_id);
     if (!user || !user.ref_id) {
-        throw new Error('Không tìm thấy user hoặc ref_id!');
+        throw new Error('USER_OR_REF_NOT_FOUND');
     }
     const customer = await Customer.findById(user.ref_id);
     if (!customer || customer.isDeleted) {
-        throw new Error('Không tìm thấy customer để cập nhật!');
+        throw new Error('CUSTOMER_NOT_FOUND');
     }
     const currentListAddress = customer.listAddress;
     const updateData = {};
@@ -136,18 +136,18 @@ export const updateAddress = async (contactInfo) => {
 
     const user = await User.findById(user_id);
     if (!user || !user.ref_id) {
-        throw new Error('Không tìm thấy user hoặc ref_id!');
+        throw new Error('USER_OR_REF_NOT_FOUND');
     }
     const customer = await Customer.findById(user.ref_id);
     if (!customer || customer.isDeleted) {
-        throw new Error('Không tìm thấy customer để cập nhật!');
+        throw new Error('CUSTOMER_NOT_FOUND');
     }
     const crrAddress = customer.listAddress.find(
         (item) => item._id.toString() === address_id.toString(),
     );
 
     if (!crrAddress) {
-        throw new Error('Không tìm thấy địa chỉ cần cập nhật!');
+        throw new Error('ADDRESS_NOT_FOUND');
     }
 
     if (name !== undefined) crrAddress.name = name;
@@ -170,18 +170,18 @@ export const setDefaultAddress = async (contactInfo) => {
 
     const user = await User.findById(user_id);
     if (!user || !user.ref_id) {
-        throw new Error('Không tìm thấy user hoặc ref_id!');
+        throw new Error('USER_OR_REF_NOT_FOUND');
     }
     const customer = await Customer.findById(user.ref_id);
     if (!customer || customer.isDeleted) {
-        throw new Error('Không tìm thấy customer để cập nhật!');
+        throw new Error('CUSTOMER_NOT_FOUND');
     }
     const crrAddress = customer.listAddress.find(
         (item) => item._id.toString() === address_id.toString(),
     );
 
     if (!crrAddress) {
-        throw new Error('Không tìm thấy địa chỉ cần cập nhật!');
+        throw new Error('ADDRESS_NOT_FOUND');
     }
 
     customer.listAddress.forEach((item) => {
