@@ -23,24 +23,18 @@ const FOOD_SIZE_CONFIGS = [
     },
 ];
 
-// Drink volume sizes
+// Drink volume sizes — chỉ 330ml (chai nhỏ) và 1.5L (chai lớn)
 const DRINK_SIZE_CONFIGS = [
     {
         size: '330ml',
         skuSuffix: '330ML',
         priceMultiplier: 0.5,
-        recipeMultiplier: 0.5,
-    },
-    {
-        size: '1L',
-        skuSuffix: '1L',
-        priceMultiplier: 1,
-        recipeMultiplier: 1,
+        recipeMultiplier: 0.33,
     },
     {
         size: '1.5L',
         skuSuffix: '1.5L',
-        priceMultiplier: 1.5,
+        priceMultiplier: 1.2,
         recipeMultiplier: 1.5,
     },
 ];

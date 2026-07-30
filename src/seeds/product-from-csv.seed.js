@@ -300,6 +300,10 @@ const DRINK_INGREDIENT_MAP = {
     'blueberry-lime lemonade': 'Sprite',
     'cherry fruit drink': 'Nuoc Cam Ep',
     'cranberry fruit drink': 'Nuoc Cam Ep',
+    'rich green tea mango': 'Tra Da',
+    'strawberry mojito': 'Sprite',
+    'taiga tea pack': 'Tra Da',
+    'watermelon lime lemonade': 'Sprite',
 };
 
 /**

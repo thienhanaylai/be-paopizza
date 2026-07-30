@@ -254,6 +254,10 @@ const DRINK_INGREDIENT_MAP = {
     'blueberry-lime lemonade': 'Sprite',
     'cherry fruit drink': 'Nuoc Cam Ep',
     'cranberry fruit drink': 'Nuoc Cam Ep',
+    'rich green tea mango': 'Tra Da',
+    'strawberry mojito': 'Sprite',
+    'taiga tea pack': 'Tra Da',
+    'watermelon lime lemonade': 'Sprite',
 };
 
 const generateRecipe = (productName, categorySlug, ingMap) => {
@@ -987,10 +991,24 @@ const seedSampleData = async () => {
         'barista',
     ];
 
+    // Admin employee — không trực thuộc cửa hàng nào, chỉ quản lý hệ thống
+    const adminEmployee = await Employee.create({
+        store_id: null,
+        name: 'Admin PaoPizza',
+        birthday: dateUtc(1990, 0, 1),
+        email: 'admin@paopizza.com',
+        phone: '0900000000',
+        address: 'PaoPizza Headquarters',
+        station: null,
+        salaryType: 'monthly',
+        salary: 25000000,
+        status: true,
+        isDeleted: false,
+    });
+
     const employees = await Employee.insertMany(
         Array.from({ length: TARGET_COUNT }, (_, index) => {
-            const station =
-                index === 0 ? 'store_manager' : pick(employeeStations, index);
+            const station = pick(employeeStations, index);
             const salaryType =
                 station === 'store_manager' || station === 'manager'
                     ? 'monthly'
@@ -1058,21 +1076,29 @@ const seedSampleData = async () => {
     const hashedDefaultPassword = await bcrypt.hash('12345678', 10);
     const hashedAdminPassword = await bcrypt.hash('BAO123@az', 10);
 
-    const employeeUserCount = 12;
-    const usersData = [];
+    // Admin user — tài khoản riêng, không gắn với employee thường
+    const usersData = [
+        {
+            username: 'admin',
+            password: hashedAdminPassword,
+            role: 'admin',
+            user_type: 'Employee',
+            ref_id: adminEmployee._id,
+            status: true,
+            isDeleted: false,
+        },
+    ];
 
+    const employeeUserCount = 12;
     for (let index = 0; index < employeeUserCount; index += 1) {
         const employee = employees[index];
-        const role =
-            index === 0
-                ? 'admin'
-                : ['store_manager', 'manager'].includes(employee.station)
-                  ? 'manager'
-                  : 'staff';
+        const role = ['store_manager', 'manager'].includes(employee.station)
+            ? 'manager'
+            : 'staff';
 
         usersData.push({
-            username: index === 0 ? 'admin' : `emp_${pad(index + 1)}`,
-            password: index === 0 ? hashedAdminPassword : hashedDefaultPassword,
+            username: `emp_${pad(index + 1)}`,
+            password: hashedDefaultPassword,
             role,
             user_type: 'Employee',
             ref_id: employee._id,
