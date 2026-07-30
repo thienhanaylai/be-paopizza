@@ -44,8 +44,11 @@ const customerSchema = new mongoose.Schema(
             type: String,
             trim: true,
             lowercase: true,
-
             sparse: true,
+            default: null,
+        },
+        birthday: {
+            type: Date,
             default: null,
         },
         currentPoint: {

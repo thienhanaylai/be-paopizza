@@ -28,7 +28,7 @@ export const getCart = async (data) => {
     if (!cart) {
         cart = await Cart.create({ user_id: userId });
     }
-    console.log(cart);
+
     return cart;
 };
 
@@ -44,7 +44,7 @@ export const addToCart = async (data) => {
         combo,
         combo_selections = [],
     } = data;
-    console.log(data);
+
     if (quantity < 1) {
         throw new Error('INVALID_QUANTITY');
     }

@@ -311,12 +311,12 @@ export const checkPaymentSuccess = async (order_id) => {
     };
 };
 
-/**
- * Trích xuất danh sách nguyên liệu cần trừ kho từ đơn hàng đã populate.
- * Duyệt qua tất cả items (product & combo) và combo_selections,
- * lấy recipe từ product variants tương ứng với size đã chọn.
- * @returns {Map<string, number>} ingredientId (string) → tổng quantity cần trừ
- */
+//
+//   Trích xuất danh sách nguyên liệu cần trừ kho từ đơn hàng đã populate.
+//   Duyệt qua tất cả items (product & combo) và combo_selections,
+//   lấy recipe từ product variants tương ứng với size đã chọn.
+//   @returns {Map<string, number>} ingredientId (string) → tổng quantity cần trừ
+//
 const extractIngredientsFromOrder = (order) => {
     const ingredientsMap = new Map();
 
@@ -366,20 +366,20 @@ const extractIngredientsFromOrder = (order) => {
                     }
                 }
 
-                // added_topping trong combo_selection
-                if (sel.added_topping?.length) {
-                    for (const topping of sel.added_topping) {
-                        const ingId =
-                            topping.ingredient?._id?.toString() ||
-                            topping.ingredient?.toString();
-                        if (!ingId) continue;
-                        const qty = (topping.quantity || 1) * itemQty;
-                        ingredientsMap.set(
-                            ingId,
-                            (ingredientsMap.get(ingId) || 0) + qty,
-                        );
-                    }
-                }
+                // // added_topping trong combo_selection
+                // if (sel.added_topping?.length) {
+                //     for (const topping of sel.added_topping) {
+                //         const ingId =
+                //             topping.ingredient?._id?.toString() ||
+                //             topping.ingredient?.toString();
+                //         if (!ingId) continue;
+                //         const qty = (topping.quantity || 1) * itemQty;
+                //         ingredientsMap.set(
+                //             ingId,
+                //             (ingredientsMap.get(ingId) || 0) + qty,
+                //         );
+                //     }
+                // }
             }
         }
 

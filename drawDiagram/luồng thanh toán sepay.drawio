@@ -1,0 +1,175 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Trang-1" id="-SyGxcI4nMW3sNGzOxzU">
+    <mxGraphModel dx="1202" dy="725" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="CZShMUPQurdDAISt3Z4T-7" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};fontSize=14;" value="Customer" vertex="1">
+          <mxGeometry height="580" width="100" x="64" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-13" parent="CZShMUPQurdDAISt3Z4T-7" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};fontSize=14;" value="" vertex="1">
+          <mxGeometry height="530" width="10" x="45" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-8" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};fontSize=14;" value="Frontend PaoPizza" vertex="1">
+          <mxGeometry height="580" width="100" x="299" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-15" parent="CZShMUPQurdDAISt3Z4T-8" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};fontSize=14;" value="" vertex="1">
+          <mxGeometry height="450" width="10" x="45" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-10" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};fontSize=14;" value="Backend PaoPizza" vertex="1">
+          <mxGeometry height="580" width="100" x="534" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-16" parent="CZShMUPQurdDAISt3Z4T-10" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};fontSize=14;" value="" vertex="1">
+          <mxGeometry height="70" width="10" x="45" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-31" parent="CZShMUPQurdDAISt3Z4T-10" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};fontSize=14;" value="" vertex="1">
+          <mxGeometry height="210" width="10" x="45" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-34" edge="1" parent="CZShMUPQurdDAISt3Z4T-10" source="CZShMUPQurdDAISt3Z4T-31" style="edgeStyle=orthogonalEdgeStyle;curved=0;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;innerLoopWaypoints=1;fontSize=14;startSize=8;endSize=8;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="110" y="330" />
+              <mxPoint x="110" y="370" />
+            </Array>
+            <mxPoint x="55" y="350" as="sourcePoint" />
+            <mxPoint x="55" y="370" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-35" connectable="0" parent="CZShMUPQurdDAISt3Z4T-34" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=14;" value="Cập nhật trạng thái&lt;br&gt;&amp;nbsp;thanh toán của đơn hàng" vertex="1">
+          <mxGeometry relative="1" x="-0.0213" y="-3" as="geometry">
+            <mxPoint x="73" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-11" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};fontSize=14;" value="Sepay" vertex="1">
+          <mxGeometry height="580" width="100" x="769" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-17" parent="CZShMUPQurdDAISt3Z4T-11" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};fontSize=14;" value="" vertex="1">
+          <mxGeometry height="100" width="10" x="45" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-12" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};fontSize=14;" value="Ngân hàng" vertex="1">
+          <mxGeometry height="580" width="100" x="1004" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-18" parent="CZShMUPQurdDAISt3Z4T-12" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};fontSize=14;" value="" vertex="1">
+          <mxGeometry height="50" width="10" x="45" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-19" edge="1" parent="1" source="CZShMUPQurdDAISt3Z4T-13" style="edgeStyle=none;curved=0;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=14;startSize=8;endSize=8;" target="CZShMUPQurdDAISt3Z4T-15">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="244" y="120" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-20" connectable="0" parent="CZShMUPQurdDAISt3Z4T-19" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=14;" value="Bấm thanh toán đơn hàng" vertex="1">
+          <mxGeometry relative="1" x="-0.3616" y="4" as="geometry">
+            <mxPoint x="33" y="-6" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-21" edge="1" parent="1" style="edgeStyle=none;curved=0;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=14;startSize=8;endSize=8;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="354" y="150" as="sourcePoint" />
+            <mxPoint x="579" y="150" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-22" connectable="0" parent="CZShMUPQurdDAISt3Z4T-21" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=14;labelBackgroundColor=default;fontColor=default;" value="POST /api/v1/orders (tạo đơn hàng)" vertex="1">
+          <mxGeometry relative="1" x="-0.1812" y="3" as="geometry">
+            <mxPoint x="18" y="-7" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-23" edge="1" parent="1" style="edgeStyle=none;curved=0;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=14;startSize=8;endSize=8;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="524" y="200" />
+            </Array>
+            <mxPoint x="579" y="200" as="sourcePoint" />
+            <mxPoint x="354" y="200" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-24" connectable="0" parent="CZShMUPQurdDAISt3Z4T-23" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=14;" value="Mã Qr thanh toán" vertex="1">
+          <mxGeometry relative="1" x="0.0385" y="-2" as="geometry">
+            <mxPoint y="-8" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-25" edge="1" parent="1" style="edgeStyle=none;curved=0;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=14;startSize=8;endSize=8;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="344" y="230" as="sourcePoint" />
+            <mxPoint x="118.99999999999989" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-26" connectable="0" parent="CZShMUPQurdDAISt3Z4T-25" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=14;" value="Hiển thị Qr&lt;br&gt;&amp;nbsp;và thời gian đếm ngược&amp;nbsp;" vertex="1">
+          <mxGeometry relative="1" x="0.3496" y="3" as="geometry">
+            <mxPoint x="32" y="-23" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-27" edge="1" parent="1" style="edgeStyle=none;curved=0;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=14;startSize=8;endSize=8;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="119" y="290" as="sourcePoint" />
+            <mxPoint x="1049" y="290" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-28" connectable="0" parent="CZShMUPQurdDAISt3Z4T-27" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=14;" value="Quét mã Qr chuyển khoản và xác nhận" vertex="1">
+          <mxGeometry relative="1" x="-0.2099" y="2" as="geometry">
+            <mxPoint x="68" y="-8" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-29" edge="1" parent="1" style="edgeStyle=none;curved=0;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=14;startSize=8;endSize=8;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1049" y="320" as="sourcePoint" />
+            <mxPoint x="824" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-30" connectable="0" parent="CZShMUPQurdDAISt3Z4T-29" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=14;" value="Thông báo giao dịch" vertex="1">
+          <mxGeometry relative="1" x="0.3031" y="-2" as="geometry">
+            <mxPoint x="32" y="-8" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-32" edge="1" parent="1" source="CZShMUPQurdDAISt3Z4T-17" style="edgeStyle=none;curved=0;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0;entryDx=0;entryDy=5;entryPerimeter=0;fontSize=14;startSize=8;endSize=8;" target="CZShMUPQurdDAISt3Z4T-31">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-33" connectable="0" parent="CZShMUPQurdDAISt3Z4T-32" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=14;" value="POST /api/v1/sepay-webhook" vertex="1">
+          <mxGeometry relative="1" x="0.2498" y="1" as="geometry">
+            <mxPoint x="31" y="-16" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-36" parent="1" style="shape=umlFrame;whiteSpace=wrap;html=1;pointerEvents=0;fontSize=14;" value="loop" vertex="1">
+          <mxGeometry height="70" width="300" x="314" y="417" as="geometry" />
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-37" edge="1" parent="1" style="edgeStyle=none;curved=0;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=14;startSize=8;endSize=8;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="354" y="472" as="sourcePoint" />
+            <mxPoint x="579" y="472" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-40" connectable="0" parent="CZShMUPQurdDAISt3Z4T-37" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=14;" value="GET /api/v1/status/:orderId" vertex="1">
+          <mxGeometry relative="1" x="-0.3884" y="-1" as="geometry">
+            <mxPoint x="31" y="-13" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-39" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=14;" value="Mỗi 5 giây" vertex="1">
+          <mxGeometry height="30" width="80" x="414" y="417" as="geometry" />
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-41" edge="1" parent="1" style="edgeStyle=none;curved=0;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=14;startSize=8;endSize=8;" target="CZShMUPQurdDAISt3Z4T-15">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="576.5" y="540" as="sourcePoint" />
+            <mxPoint x="351.5" y="540" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-42" connectable="0" parent="CZShMUPQurdDAISt3Z4T-41" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=14;" value="{paymentStatus: success}" vertex="1">
+          <mxGeometry relative="1" x="0.458" y="-4" as="geometry">
+            <mxPoint x="42" y="-6" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-43" edge="1" parent="1" style="edgeStyle=none;curved=0;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=14;startSize=8;endSize=8;entryX=0.5;entryY=0.925;entryDx=0;entryDy=0;entryPerimeter=0;" target="CZShMUPQurdDAISt3Z4T-13">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="354.68" y="570" as="sourcePoint" />
+            <mxPoint x="124.00352941176465" y="570" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CZShMUPQurdDAISt3Z4T-44" connectable="0" parent="CZShMUPQurdDAISt3Z4T-43" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=14;" value="Thanh toán thành công" vertex="1">
+          <mxGeometry relative="1" x="0.3852" y="-1" as="geometry">
+            <mxPoint x="40" y="-9" as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

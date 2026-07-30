@@ -41,7 +41,8 @@ export const register = async (req, res) => {
 };
 
 export const update = async (req, res) => {
-    const { user_id, name, phone, address, email, listAddress } = req.body;
+    const { user_id, name, phone, address, email, listAddress, birthday } =
+        req.body;
     if (!user_id) {
         throw new Error('user_id missing!');
     }
@@ -53,6 +54,7 @@ export const update = async (req, res) => {
         address,
         email,
         listAddress,
+        birthday,
     });
 
     return res.status(201).json({

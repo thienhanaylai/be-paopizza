@@ -1,7 +1,7 @@
 import * as categoryService from './category.service.js';
 
 export const createCategory = async (req, res) => {
-    const { name, slug, icon } = req.body;
+    const { name, slug, icon, order } = req.body;
     if (!name || !slug) {
         throw new Error('MISSING_NAME_OR_SLUG');
     }
@@ -9,6 +9,7 @@ export const createCategory = async (req, res) => {
         name,
         slug,
         icon,
+        order,
     });
     return res.status(201).json({
         message: 'Thêm danh mục thành công!',
@@ -19,7 +20,7 @@ export const createCategory = async (req, res) => {
 export const updateCategory = async (req, res) => {
     const category_id =
         req.params.category_id || req.body.category_id || req.body.id;
-    const { name, slug, icon } = req.body;
+    const { name, slug, icon, order } = req.body;
     if (!category_id) {
         throw new Error('MISSING_CATEGORY_ID');
     }
@@ -28,6 +29,7 @@ export const updateCategory = async (req, res) => {
         name,
         slug,
         icon,
+        order,
     });
     return res.status(200).json({
         message: 'Cập nhật danh mục thành công!',
@@ -76,6 +78,18 @@ export const getCategory = async (req, res) => {
     const { category_id } = req.params;
     const result = await categoryService.getCategory(category_id);
     return res.status(200).json({
+        data: result,
+    });
+};
+
+export const reorderCategories = async (req, res) => {
+    const { orders } = req.body;
+    if (!Array.isArray(orders) || orders.length === 0) {
+        throw new Error('INVALID_ORDERS');
+    }
+    const result = await categoryService.reorder(orders);
+    return res.status(200).json({
+        message: 'Cập nhật thứ tự danh mục thành công!',
         data: result,
     });
 };

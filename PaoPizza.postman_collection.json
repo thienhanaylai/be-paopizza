@@ -721,7 +721,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"user_id\": \"{{userId}}\",\n  \"name\": \"Updated Name\",\n  \"phone\": \"0900000002\",\n  \"email\": \"updated@example.com\"\n}",
+              "raw": "{\n  \"user_id\": \"{{userId}}\",\n  \"name\": \"Updated Name\",\n  \"phone\": \"0900000002\",\n  \"email\": \"updated@example.com\",\n  \"address\": \"123 Le Loi, Q1, HCM\",\n  \"birthday\": \"1995-06-15\",\n  \"listAddress\": []\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -729,7 +729,7 @@
               }
             },
             "url": "{{baseUrl}}/customers/update",
-            "description": "Update customer profile via user_id (finds ref_id). **Requires auth.** Supports updating name/phone/email. Use `Add Customer Address` to manage delivery addresses. Matches updated service."
+            "description": "Update customer profile via user_id (finds ref_id). **Requires auth.**\n\n**Body fields**:\n| Field | Type | Required | Notes |\n|-------|------|----------|-------|\n| user_id | string | Yes | User _id |\n| name | string | No | Display name |\n| phone | string | No | Also updates User.username |\n| email | string | No | |\n| address | string | No | Convenience: auto-syncs to default address in listAddress |\n| birthday | string | No | Date string (ISO), defaults to null on register |\n| listAddress | array | No | Override entire address list |"
           },
           "response": [
             {
@@ -1400,7 +1400,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"data\": [\n    {\n      \"_id\": \"67a8b123456789abcdef0200\",\n      \"name\": \"Pizza\",\n      \"slug\": \"pizza\",\n      \"isActive\": true,\n      \"isDeleted\": false,\n      \"icon\": \"pizza-icon\"\n    }\n  ]\n}"
+              "body": "{\n  \"data\": [\n    {\n      \"_id\": \"67a8b123456789abcdef0200\",\n      \"name\": \"Pizza\",\n      \"slug\": \"pizza\",\n      \"order\": 0,\n      \"isActive\": true,\n      \"isDeleted\": false,\n      \"icon\": \"pizza-icon\"\n    }\n  ]\n}"
             }
           ]
         },
@@ -1428,7 +1428,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0200\",\n    \"name\": \"Pizza\",\n    \"slug\": \"pizza\",\n    \"isActive\": true,\n    \"isDeleted\": false,\n    \"icon\": \"pizza-icon\"\n  }\n}"
+              "body": "{\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0200\",\n    \"name\": \"Pizza\",\n    \"slug\": \"pizza\",\n    \"order\": 0,\n    \"isActive\": true,\n    \"isDeleted\": false,\n    \"icon\": \"pizza-icon\"\n  }\n}"
             }
           ]
         },
@@ -1464,7 +1464,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Pizza Signature\",\n  \"slug\": \"pizza-signature\",\n  \"icon\": \"pizza-icon\"\n}",
+              "raw": "{\n  \"name\": \"Pizza Signature\",\n  \"slug\": \"pizza-signature\",\n  \"order\": 0,\n  \"icon\": \"pizza-icon\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1472,7 +1472,7 @@
               }
             },
             "url": "{{baseUrl}}/categories/create",
-            "description": "Create category. Required fields: `name`, `slug`. **Requires JWT + admin.**"
+            "description": "Create category. Required fields: `name`, `slug`. Optional: `order` (display order, default 0), `icon`. **Requires JWT + admin.**"
           },
           "response": [
             {
@@ -1485,7 +1485,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"message\": \"Thêm danh mục thành công!\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0210\",\n    \"name\": \"Pizza Signature\",\n    \"slug\": \"pizza-signature\",\n    \"icon\": \"pizza-icon\",\n    \"isActive\": true,\n    \"isDeleted\": false\n  }\n}"
+              "body": "{\n  \"message\": \"Thêm danh mục thành công!\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0210\",\n    \"name\": \"Pizza Signature\",\n    \"slug\": \"pizza-signature\",\n    \"order\": 0,\n    \"icon\": \"pizza-icon\",\n    \"isActive\": true,\n    \"isDeleted\": false\n  }\n}"
             }
           ]
         },
@@ -1505,7 +1505,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"category_id\": \"{{categoryId}}\",\n  \"name\": \"Pizza Signature Updated\",\n  \"slug\": \"pizza-signature-updated\",\n  \"icon\": \"category-icon\"\n}",
+              "raw": "{\n  \"category_id\": \"{{categoryId}}\",\n  \"name\": \"Pizza Signature Updated\",\n  \"slug\": \"pizza-signature-updated\",\n  \"order\": 0,\n  \"icon\": \"category-icon\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1513,7 +1513,7 @@
               }
             },
             "url": "{{baseUrl}}/categories/update",
-            "description": "Update category by `category_id` in body. **Requires JWT + admin.**"
+            "description": "Update category by `category_id` in body. Optional fields: `name`, `slug`, `order`, `icon`. **Requires JWT + admin.**"
           },
           "response": [
             {
@@ -1526,7 +1526,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"message\": \"Cập nhật danh mục thành công!\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0210\",\n    \"name\": \"Pizza Signature Updated\",\n    \"slug\": \"pizza-signature-updated\",\n    \"icon\": \"category-icon\"\n  }\n}"
+              "body": "{\n  \"message\": \"Cập nhật danh mục thành công!\",\n  \"data\": {\n    \"_id\": \"67a8b123456789abcdef0210\",\n    \"name\": \"Pizza Signature Updated\",\n    \"slug\": \"pizza-signature-updated\",\n    \"order\": 0,\n    \"icon\": \"category-icon\"\n  }\n}"
             }
           ]
         },

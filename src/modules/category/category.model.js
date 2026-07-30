@@ -14,6 +14,11 @@ const categorySchema = new mongoose.Schema(
             unique: true,
             lowercase: true,
         },
+        order: {
+            type: Number,
+            required: true,
+            min: 0,
+        },
         isActive: {
             type: Boolean,
             default: true,

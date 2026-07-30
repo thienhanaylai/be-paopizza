@@ -35,5 +35,11 @@ router.patch(
     requireAdmin,
     asyncHandler(categoryController.deletedCategory),
 );
+router.patch(
+    '/reorder',
+    requireAuth,
+    requireAdmin,
+    asyncHandler(categoryController.reorderCategories),
+);
 
 export default router;

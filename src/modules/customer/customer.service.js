@@ -55,7 +55,8 @@ export const registerCustomer = async (data) => {
 };
 
 export const updateCustomer = async (data) => {
-    const { user_id, name, phone, email } = data;
+    const { user_id, name, phone, email, address, listAddress, birthday } =
+        data;
     const user = await User.findById(user_id);
     if (!user || !user.ref_id) {
         throw new Error('USER_OR_REF_NOT_FOUND');
@@ -89,6 +90,35 @@ export const updateCustomer = async (data) => {
     if (name !== undefined) updateData.name = name;
     if (phone !== undefined) updateData.phone = phone;
     if (email !== undefined) updateData.email = email;
+    if (birthday !== undefined) updateData.birthday = birthday;
+
+    // Nếu có truyền listAddress thì ghi đè toàn bộ danh sách
+    if (listAddress !== undefined) {
+        updateData.listAddress = listAddress;
+    }
+
+    // Nếu có truyền address (địa chỉ đơn) thì cập nhật vào địa chỉ mặc định
+    // hoặc thêm mới vào listAddress nếu chưa có
+    if (address !== undefined) {
+        const currentList = customer.listAddress || [];
+        const defaultIdx = currentList.findIndex((item) => item.isDefault);
+        if (defaultIdx !== -1) {
+            currentList[defaultIdx].address = address;
+        } else if (currentList.length > 0) {
+            // Nếu chưa có địa chỉ mặc định, cập nhật địa chỉ đầu tiên
+            currentList[0].address = address;
+            currentList[0].isDefault = true;
+        } else {
+            // Nếu chưa có địa chỉ nào, tạo mới một địa chỉ mặc định
+            currentList.push({
+                name: customer.name || '',
+                phone: customer.phone || '',
+                address,
+                isDefault: true,
+            });
+        }
+        updateData.listAddress = currentList;
+    }
 
     const customerInfo = await Customer.findByIdAndUpdate(
         user.ref_id,
