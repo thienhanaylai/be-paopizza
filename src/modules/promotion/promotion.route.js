@@ -49,4 +49,10 @@ router.patch(
 
 router.post('/apply', asyncHandler(promotionController.applyPromoCode));
 
+router.post(
+    '/redeem',
+    requireAuth,
+    asyncHandler(promotionController.redeemPromotion),
+);
+
 export default router;

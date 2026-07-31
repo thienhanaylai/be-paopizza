@@ -68,3 +68,20 @@ export const applyPromoCode = async (req, res) => {
         data: result,
     });
 };
+
+export const redeemPromotion = async (req, res) => {
+    const userId = req.user._id;
+    const { promotion_id } = req.body;
+
+    if (!promotion_id) {
+        return res.status(400).json({
+            message: 'Vui lòng chọn khuyến mãi để đổi điểm',
+        });
+    }
+
+    const result = await promotionService.redeemByPoints(userId, promotion_id);
+    return res.status(200).json({
+        message: 'Đổi điểm lấy mã khuyến mãi thành công!',
+        data: result,
+    });
+};

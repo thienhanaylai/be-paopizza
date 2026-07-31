@@ -1,4 +1,6 @@
 import { Promotion } from './promotion.model.js';
+import { User } from '../user/user.model.js';
+import { Customer } from '../customer/customer.model.js';
 
 export const create = async (data) => {
     const {
@@ -59,6 +61,7 @@ export const update = async (data) => {
         code,
         type,
         value,
+        point,
         startDate,
         endDate,
         status,
@@ -77,6 +80,7 @@ export const update = async (data) => {
     if (code !== undefined) updateData.code = code.toUpperCase().trim();
     if (type !== undefined) updateData.type = type;
     if (value !== undefined) updateData.value = value;
+    if (point !== undefined) updateData.point = point;
     if (startDate !== undefined) updateData.startDate = startDate;
     if (endDate !== undefined) updateData.endDate = endDate;
     if (status !== undefined) updateData.status = status;
@@ -235,5 +239,75 @@ export const applyPromotion = async (code, orderTotal, storeId) => {
         discountValue: promotion.value,
         discountAmount,
         message: 'Áp dụng mã khuyến mãi thành công!',
+    };
+};
+
+/**
+ * Khách hàng đổi điểm lấy mã khuyến mãi
+ * @param {string} userId - ID của User (từ req.user._id)
+ * @param {string} promotionId - ID của khuyến mãi muốn đổi
+ * @returns {Object} Kết quả đổi điểm (mã khuyến mãi)
+ */
+export const redeemByPoints = async (userId, promotionId) => {
+    if (!userId || !promotionId) {
+        throw new Error('MISSING_USER_OR_PROMOTION');
+    }
+
+    // Lấy user và kiểm tra
+    const user = await User.findById(userId);
+    if (!user || user.isDeleted) {
+        throw new Error('USER_NOT_FOUND');
+    }
+    if (user.user_type !== 'Customer') {
+        throw new Error('ONLY_CUSTOMER_CAN_REDEEM');
+    }
+
+    // Lấy customer
+    const customer = await Customer.findById(user.ref_id);
+    if (!customer || customer.isDeleted) {
+        throw new Error('CUSTOMER_NOT_FOUND');
+    }
+
+    // Lấy promotion
+    const promotion = await Promotion.findOne({
+        _id: promotionId,
+        isDeleted: false,
+    });
+    if (!promotion) {
+        throw new Error('PROMOTION_NOT_FOUND');
+    }
+
+    // Kiểm tra promotion có hỗ trợ đổi điểm không
+    if (!promotion.point || promotion.point <= 0) {
+        throw new Error('PROMOTION_NOT_REDEEMABLE');
+    }
+
+    // Kiểm tra trạng thái
+    if (promotion.status !== 'active') {
+        throw new Error('PROMOTION_NOT_ACTIVE');
+    }
+
+    // Kiểm tra thời hạn
+    const now = new Date();
+    if (now < promotion.startDate || now > promotion.endDate) {
+        throw new Error('PROMOTION_EXPIRED');
+    }
+
+    // Kiểm tra điểm
+    if (customer.currentPoint < promotion.point) {
+        throw new Error('INSUFFICIENT_POINTS');
+    }
+
+    // Trừ điểm
+    customer.currentPoint -= promotion.point;
+    await customer.save();
+
+    return {
+        code: promotion.code,
+        type: promotion.type,
+        value: promotion.value,
+        pointCost: promotion.point,
+        remainingPoint: customer.currentPoint,
+        message: 'Đổi điểm thành công!',
     };
 };
