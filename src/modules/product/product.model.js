@@ -106,4 +106,5 @@ const productSchema = new mongoose.Schema(
     { timestamps: true },
 );
 
+productSchema.index({ isDeleted: 1, isActive: 1, category: 1 });
 export const Product = mongoose.model('Product', productSchema);

@@ -96,5 +96,6 @@ const comboSchema = new mongoose.Schema(
     },
     { timestamps: true },
 );
-
+comboSchema.index({ isDeleted: 1, name: 1 });
+comboSchema.index({ isDeleted: 1, isActive: 1 });
 export const Combo = mongoose.model('Combo', comboSchema);

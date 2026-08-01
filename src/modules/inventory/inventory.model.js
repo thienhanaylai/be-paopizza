@@ -29,5 +29,5 @@ const inventorySchema = new mongoose.Schema(
     },
     { timestamps: true },
 );
-
+inventorySchema.index({ store_id: 1, 'ingredients.ingredient_id': 1 });
 export const Inventory = mongoose.model('Inventory', inventorySchema);

@@ -3,7 +3,6 @@ import { paymentController } from './payment.controller.js';
 
 const router = express.Router();
 
-// Route cho Client (Frontend)
 router.post('/create', paymentController.createPayment);
 router.get('/status/:orderId', paymentController.checkStatus);
 

@@ -241,11 +241,10 @@ const orderSchema = new mongoose.Schema(
     { timestamps: true },
 );
 
-orderSchema.index({ store_id: 1, status: 1, createdAt: -1 });
-orderSchema.index({ store_id: 1, orderType: 1, createdAt: -1 });
-orderSchema.index({ paymentMethod: 1, createdAt: -1 });
-orderSchema.index({ paymentStatus: 1, createdAt: -1 });
+orderSchema.index({ store_id: 1, status: 1, createdAt: -1, isDeleted: 1 });
 orderSchema.index({ createdAt: -1 });
+orderSchema.index({ _id: 1, isDeleted: 1 });
+orderSchema.index({ isDeleted: 1, store_id: 1, createdAt: -1 });
 
 export const Order = mongoose.model('Order', orderSchema);
 export { ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES };

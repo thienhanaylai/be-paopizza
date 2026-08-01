@@ -71,7 +71,7 @@ export const paymentController = {
         try {
             await paymentService.processWebhook(req.body, req.headers);
 
-            // LUÔN LUÔN trả về HTTP Status 200 cho SePay để xác nhận đã nhận webhook thành công,
+            // trả về HTTP Status 200 cho SePay để xác nhận đã nhận webhook thành công,
             // tránh việc SePay gửi lại (retry) nhiều lần gây lỗi hệ thống.
             return res.status(200).json({ success: true });
         } catch (error) {
@@ -80,8 +80,7 @@ export const paymentController = {
                     .status(403)
                     .json({ success: false, message: 'Sai API Token' });
             }
-            // Mặc dù lỗi nội bộ, vẫn nên trả 200 cho SePay nếu không muốn họ retry,
-            // hoặc trả 500 nếu bạn cấu hình SePay retry khi có sự cố server.
+
             console.error('Webhook Error:', error);
             return res.status(500).json({ success: false });
         }
