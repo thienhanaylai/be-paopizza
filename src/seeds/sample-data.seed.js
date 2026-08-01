@@ -484,7 +484,7 @@ const seedSampleData = async () => {
         })),
     );
 
-    // Keep category dataset unchanged (8 categories) — added order for display sorting
+    // Keep 5 core categories — added order for display sorting
     const categories = await Category.insertMany([
         {
             name: 'Pizza',
@@ -511,42 +511,18 @@ const seedSampleData = async () => {
             isDeleted: false,
         },
         {
-            name: 'Dessert',
-            slug: 'dessert',
-            order: 3,
-            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWRlc3NlcnQtaWNvbiBsdWNpZGUtZGVzc2VydCI+PHBhdGggZD0iTTEwLjE2MiAzLjE2N0ExMCAxMCAwIDAgMCAyIDEzYTIgMiAwIDAgMCA0IDB2LTFhMiAyIDAgMCAxIDQgMHY0YTIgMiAwIDAgMCA0IDB2LTRhMiAyIDAgMCAxIDQgMHYxYTIgMiAwIDAgMCA0LS4wMDYgMTAgMTAgMCAwIDAtOC4xNjEtOS44MjYiLz48cGF0aCBkPSJNMjAuODA0IDE0Ljg2OWE5IDkgMCAwIDEtMTcuNjA4IDAiLz48Y2lyY2xlIGN4PSIxMiIgY3k9IjQiIHI9IjIiLz48L3N2Zz4=',
-            isActive: true,
-            isDeleted: false,
-        },
-        {
             name: 'Pasta',
             slug: 'pasta',
-            order: 4,
+            order: 3,
             icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXNoZWxsLWljb24gbHVjaWRlLXNoZWxsIj48cGF0aCBkPSJNMTQgMTFhMiAyIDAgMSAxLTQgMCA0IDQgMCAwIDEgOCAwIDYgNiAwIDAgMS0xMiAwIDggOCAwIDAgMSAxNiAwIDEwIDEwIDAgMSAxLTIwIDAgMTEuOTMgMTEuOTMgMCAwIDEgMi40Mi03LjIyIDIgMiAwIDEgMSAzLjE2IDIuNDQiLz48L3N2Zz4=',
-            isActive: true,
-            isDeleted: false,
-        },
-        {
-            name: 'Burger',
-            slug: 'burger',
-            order: 5,
-            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWhhbWJ1cmdlci1pY29uIGx1Y2lkZS1oYW1idXJnZXIiPjxwYXRoIGQ9Ik0xMiAxNkg0YTIgMiAwIDEgMSAwLTRoMTZhMiAyIDAgMSAxIDAgNGgtNC4yNSIvPjxwYXRoIGQ9Ik01IDEyYTIgMiAwIDAgMS0yLTIgOSA3IDAgMCAxIDE4IDAgMiAyIDAgMCAxLTIgMiIvPjxwYXRoIGQ9Ik01IDE2YTIgMiAwIDAgMC0yIDIgMyAzIDAgMCAwIDMgM2gxMmEzIDMgMCAwIDAgMy0zIDIgMiAwIDAgMC0yLTJxMCAwIDAgMCIvPjxwYXRoIGQ9Im02LjY3IDEyIDYuMTMgNC42YTIgMiAwIDAgMCAyLjgtLjRsMy4xNS00LjIiLz48L3N2Zz4=',
             isActive: true,
             isDeleted: false,
         },
         {
             name: 'Salad',
             slug: 'salad',
-            order: 6,
+            order: 4,
             icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWhvcC1pY29uIGx1Y2lkZS1ob3AiPjxwYXRoIGQ9Ik0xMC44MiAxNi4xMmMxLjY5LjYgMy45MS43OSA1LjE4Ljg1LjU1LjAzIDEtLjQyLjk3LS45Ny0uMDYtMS4yNy0uMjYtMy41LS44NS01LjE4Ii8+PHBhdGggZD0iTTExLjUgNi41YzEuNjQgMCA1LS4zOCA2LjcxLTEuMDcuNTItLjIuNTUtLjgyLjEyLTEuMTdBMTAgMTAgMCAwIDAgNC4yNiAxOC4zM2MuMzUuNDMuOTYuNCAxLjE3LS4xMi42OS0xLjcxIDEuMDctNS4wNyAxLjA3LTYuNzEgMS4zNC40NSAzLjEuOSA0Ljg4LjYyYS44OC44OCAwIDAgMCAuNzMtLjc0Yy4zLTIuMTQtLjE1LTMuNS0uNjEtNC44OCIvPjxwYXRoIGQ9Ik0xNS42MiAxNi45NWMuMi44NS42MiAyLjc2LjUgNC4yOGEuNzcuNzcgMCAwIDEtLjkuNyAxNi42NCAxNi42NCAwIDAgMS00LjA4LTEuMzYiLz48cGF0aCBkPSJNMTYuMTMgMjEuMDVjMS42NS42MyAzLjY4Ljg0IDQuODcuOTFhLjkuOSAwIDAgMCAuOTYtLjk2IDE3LjY4IDE3LjY4IDAgMCAwLS45LTQuODciLz48cGF0aCBkPSJNMTYuOTQgMTUuNjJjLjg2LjIgMi43Ny42MiA0LjI5LjVhLjc3Ljc3IDAgMCAwIC43LS45IDE2LjY0IDE2LjY0IDAgMCAwLTEuMzYtNC4wOCIvPjxwYXRoIGQ9Ik0xNy45OSA1LjUyYTIwLjgyIDIwLjgyIDAgMCAxIDMuMTUgNC41LjguOCAwIDAgMS0uNjggMS4xM2MtMi4zMy4yLTUuMy0uMzItOC4yNy0xLjU3Ii8+PHBhdGggZD0iTTQuOTMgNC45MyAzIDNhLjcuNyAwIDAgMSAwLTEiLz48cGF0aCBkPSJNOS41OCAxMi4xOGMxLjI0IDIuOTggMS43NyA1Ljk1IDEuNTcgOC4yOGEuOC44IDAgMCAxLTEuMTMuNjggMjAuODIgMjAuODIgMCAwIDEtNC41LTMuMTUiLz48L3N2Zz4=',
-            isActive: true,
-            isDeleted: false,
-        },
-        {
-            name: 'Soup',
-            slug: 'soup',
-            order: 7,
-            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXNvdXAtaWNvbiBsdWNpZGUtc291cCI+PHBhdGggZD0iTTEyIDIxYTkgOSAwIDAgMCA5LTlIM2E5IDkgMCAwIDAgOSA5WiIvPjxwYXRoIGQ9Ik03IDIxaDEwIi8+PHBhdGggZD0iTTE5LjUgMTIgMjIgNiIvPjxwYXRoIGQ9Ik0xNi4yNSAzYy4yNy4xLjguNTMuNzUgMS4zNi0uMDYuODMtLjkzIDEuMi0xIDIuMDItLjA1Ljc4LjM0IDEuMjQuNzMgMS42MiIvPjxwYXRoIGQ9Ik0xMS4yNSAzYy4yNy4xLjguNTMuNzQgMS4zNi0uMDUuODMtLjkzIDEuMi0uOTggMi4wMi0uMDYuNzguMzMgMS4yNC43MiAxLjYyIi8+PHBhdGggZD0iTTYuMjUgM2MuMjcuMS44LjUzLjc1IDEuMzYtLjA2LjgzLS45MyAxLjItMSAyLjAyLS4wNS43OC4zNCAxLjI0Ljc0IDEuNjIiLz48L3N2Zz4=',
             isActive: true,
             isDeleted: false,
         },
@@ -663,8 +639,8 @@ const seedSampleData = async () => {
                     lowerName.includes('cookie') ||
                     lowerName.includes('deset')
                 ) {
-                    categoryId = categoriesMap['dessert'];
-                    categorySlug = 'dessert';
+                    categoryId = categoriesMap['appetizer'];
+                    categorySlug = 'appetizer';
                 } else {
                     categoryId = categoriesMap['appetizer'];
                     categorySlug = 'appetizer';
@@ -716,7 +692,6 @@ const seedSampleData = async () => {
                 'pizza',
                 'drink',
                 'appetizer',
-                'dessert',
                 'pasta',
                 'salad',
             ];
@@ -983,12 +958,11 @@ const seedSampleData = async () => {
     );
 
     const employeeStations = [
-        'store_manager',
-        'manager',
         'cashier',
         'kitchen',
         'delivery',
         'barista',
+        'cashier',
     ];
 
     // Admin employee — không trực thuộc cửa hàng nào, chỉ quản lý hệ thống
@@ -1006,68 +980,71 @@ const seedSampleData = async () => {
         isDeleted: false,
     });
 
-    const employees = await Employee.insertMany(
-        Array.from({ length: TARGET_COUNT }, (_, index) => {
-            const station = pick(employeeStations, index);
-            const salaryType =
-                station === 'store_manager' || station === 'manager'
-                    ? 'monthly'
-                    : 'hourly';
-            const salary =
-                salaryType === 'monthly'
-                    ? 14000000 + index * 260000
-                    : 28000 + index * 700;
+    // Mỗi store: 1 cửa hàng trưởng (store_manager) + 5 nhân viên
+    const employees = [];
+    let globalEmpIdx = 0;
+    for (let storeIdx = 0; storeIdx < stores.length; storeIdx++) {
+        const store = stores[storeIdx];
+        const storeNum = pad(storeIdx + 1);
 
-            return {
-                store_id: stores[index % stores.length]._id,
-                name: `Employee ${pick(firstNames, index)} ${pick(lastNames, index + 4)} ${pad(index + 1)}`,
+        // 1 cửa hàng trưởng
+        globalEmpIdx++;
+        employees.push({
+            store_id: store._id,
+            name: `Manager Store ${storeNum}`,
+            birthday: dateUtc(
+                1988 + (storeIdx % 12),
+                (storeIdx * 2) % 12,
+                1 + (storeIdx % 27),
+            ),
+            email: `manager${storeNum}@paopizza.com`,
+            phone: `0937${pad(globalEmpIdx, 6)}`,
+            address: `${110 + storeIdx} Manager Lane, ${pick(cityPool, storeIdx)}`,
+            station: 'store_manager',
+            salaryType: 'monthly',
+            salary: 14000000 + storeIdx * 260000,
+            status: true,
+            isDeleted: false,
+        });
+
+        // 5 nhân viên
+        for (let s = 0; s < 5; s++) {
+            globalEmpIdx++;
+            employees.push({
+                store_id: store._id,
+                name: `Staff ${pick(firstNames, globalEmpIdx)} ${pick(lastNames, globalEmpIdx + 4)} ${pad(globalEmpIdx)}`,
                 birthday: dateUtc(
-                    1988 + (index % 12),
-                    (index * 2) % 12,
-                    1 + (index % 27),
+                    1990 + (globalEmpIdx % 10),
+                    (globalEmpIdx * 3) % 12,
+                    1 + (globalEmpIdx % 27),
                 ),
-                email: `employee${pad(index + 1)}@paopizza.com`,
-                phone: `0937${pad(index + 1, 6)}`,
-                address: `${110 + index} Staff Lane, ${pick(cityPool, index)}`,
-                station,
-                salaryType,
-                salary,
-                status: index % 10 !== 0,
+                email: `employee${pad(globalEmpIdx)}@paopizza.com`,
+                phone: `0937${pad(globalEmpIdx, 6)}`,
+                address: `${110 + globalEmpIdx} Staff Lane, ${pick(cityPool, globalEmpIdx)}`,
+                station: employeeStations[s],
+                salaryType: 'hourly',
+                salary: 28000 + globalEmpIdx * 700,
+                status: true,
                 isDeleted: false,
-            };
-        }),
-    );
+            });
+        }
+    }
 
+    const createdEmployees = await Employee.insertMany(employees);
+
+    // Mỗi store có đúng 1 store_manager → gán manager_by
     const managerByStore = new Map();
-    for (const employee of employees) {
-        const storeKey = employee.store_id?.toString();
-        if (!storeKey) continue;
-        if (
-            !managerByStore.has(storeKey) &&
-            ['store_manager', 'manager'].includes(employee.station)
-        ) {
-            managerByStore.set(storeKey, employee._id);
+    for (const emp of createdEmployees) {
+        if (emp.station === 'store_manager' && emp.store_id) {
+            managerByStore.set(emp.store_id.toString(), emp._id);
         }
     }
 
-    for (const employee of employees) {
-        const storeKey = employee.store_id?.toString();
-        if (!storeKey) continue;
-        if (!managerByStore.has(storeKey)) {
-            managerByStore.set(storeKey, employee._id);
-        }
-    }
-
-    const fallbackManagerId = employees[0]?._id;
     await Promise.all(
         stores.map((store) =>
             Store.findByIdAndUpdate(
                 store._id,
-                {
-                    manager_by:
-                        managerByStore.get(store._id.toString()) ||
-                        fallbackManagerId,
-                },
+                { manager_by: managerByStore.get(store._id.toString()) },
                 { new: false },
             ),
         ),
@@ -1089,12 +1066,10 @@ const seedSampleData = async () => {
         },
     ];
 
-    const employeeUserCount = 12;
+    const employeeUserCount = createdEmployees.length;
     for (let index = 0; index < employeeUserCount; index += 1) {
-        const employee = employees[index];
-        const role = ['store_manager', 'manager'].includes(employee.station)
-            ? 'manager'
-            : 'staff';
+        const employee = createdEmployees[index];
+        const role = employee.station === 'store_manager' ? 'manager' : 'staff';
 
         usersData.push({
             username: `emp_${pad(index + 1)}`,
@@ -1102,19 +1077,19 @@ const seedSampleData = async () => {
             role,
             user_type: 'Employee',
             ref_id: employee._id,
-            status: index % 8 !== 0,
+            status: true,
             isDeleted: false,
         });
     }
 
-    for (let index = 0; index < TARGET_COUNT - employeeUserCount; index += 1) {
+    for (let index = 0; index < customers.length; index += 1) {
         usersData.push({
             username: customers[index].phone,
             password: hashedDefaultPassword,
             role: null,
             user_type: 'Customer',
             ref_id: customers[index]._id,
-            status: index % 7 !== 0,
+            status: true,
             isDeleted: false,
         });
     }
@@ -1274,7 +1249,8 @@ const seedSampleData = async () => {
             return {
                 store_id: stores[index % stores.length]._id,
                 customer_id: customer?._id || null,
-                employee_id: employees[index % employees.length]._id,
+                employee_id:
+                    createdEmployees[index % createdEmployees.length]._id,
                 items,
                 subTotal: subTotal,
                 discount_amount: discountAmount,
@@ -1314,7 +1290,7 @@ const seedSampleData = async () => {
         menus: menus.length,
         inventory: inventoryData.length,
         customers: customers.length,
-        employees: employees.length,
+        employees: createdEmployees.length,
         users: users.length,
         carts: carts.length,
         promotions: promotions.length,
