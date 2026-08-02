@@ -3,10 +3,14 @@ import app from './app.js';
 import environment from './config/environment.js';
 import logger from './utils/logger.js';
 import { connectDatabase } from './config/database.js';
+import { startAutoCancelJob } from './jobs/autoCancelOrder.js';
 
 dotenv.config();
 
 await connectDatabase();
+
+// đặt cron job tự động huỷ đơn hàng khi timeout
+startAutoCancelJob();
 
 const server = app.listen(environment.port, '0.0.0.0', () => {
     logger.info(

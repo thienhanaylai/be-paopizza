@@ -74,6 +74,5 @@ const customerSchema = new mongoose.Schema(
     { timestamps: true },
 );
 customerSchema.index({ isDeleted: 1, phone: 1 });
-customerSchema.index({ phone: 1 });
 
 export const Customer = mongoose.model('Customer', customerSchema);

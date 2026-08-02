@@ -20,7 +20,7 @@ import { User } from '../modules/user/user.model.js';
 import { ingredientSeedCatalog } from './ingredient-catalog.js';
 import { buildSeedVariants } from './product-variant-builder.js';
 
-const TARGET_COUNT = 40;
+const TARGET_COUNT = 140;
 
 const connectDatabase = async () => {
     await mongoose.connect(environment.mongoUri, {
@@ -407,7 +407,7 @@ const resolveActorRole = (employee) =>
         ? 'manager'
         : 'staff';
 
-const ORDER_SAMPLE_COUNT = 500;
+const ORDER_SAMPLE_COUNT = 13500;
 const ORDER_MONTH_COUNT = 12;
 const ORDER_YEAR_MIN = 2024;
 const ORDER_YEAR_MAX = 2026;
