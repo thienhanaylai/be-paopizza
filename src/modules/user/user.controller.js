@@ -20,8 +20,11 @@ export const create = async (req, res) => {
 
 export const getAll = async (req, res) => {
     try {
-        const users = await userService.getAllUsers();
-        return res.status(200).json({ data: users });
+        const result = await userService.getAllUsers(req.query);
+        return res.status(200).json({
+            data: result.data,
+            pagination: result.pagination,
+        });
     } catch (error) {
         console.log(error);
         return res

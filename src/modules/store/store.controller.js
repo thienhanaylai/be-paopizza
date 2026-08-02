@@ -45,7 +45,8 @@ export const updateStore = async (req, res) => {
 export const getAllStore = async (req, res) => {
     const result = await storeService.getAllStore(req.query);
     return res.status(200).json({
-        data: result,
+        data: result.data,
+        pagination: result.pagination,
     });
 };
 

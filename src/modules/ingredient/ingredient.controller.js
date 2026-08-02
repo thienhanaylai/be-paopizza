@@ -97,8 +97,11 @@ export const deletedIngredient = async (req, res, next) => {
 
 export const getAllIngredient = async (req, res, next) => {
     try {
-        const result = await ingredientService.getAllIngredient();
-        return res.status(201).json({ result });
+        const result = await ingredientService.getAllIngredient(req.query);
+        return res.status(200).json({
+            data: result.data,
+            pagination: result.pagination,
+        });
     } catch (error) {
         next(error);
     }

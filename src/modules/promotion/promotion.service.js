@@ -38,10 +38,32 @@ export const create = async (data) => {
 };
 
 export const getAll = async (query = {}) => {
-    const filter = { isDeleted: false, ...query };
-    return await Promotion.find(filter)
-        .populate('applicableStore')
-        .sort({ createdAt: -1 });
+    const { page, limit, ...filterParams } = query;
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    const filter = { isDeleted: false, ...filterParams };
+
+    const [data, total] = await Promise.all([
+        Promotion.find(filter)
+            .populate('applicableStore')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limitNum),
+        Promotion.countDocuments(filter),
+    ]);
+
+    return {
+        data,
+        pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total,
+            totalPages: Math.ceil(total / limitNum),
+        },
+    };
 };
 
 export const getById = async (promotion_id) => {

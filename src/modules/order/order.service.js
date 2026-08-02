@@ -273,11 +273,32 @@ export const create = async (data) => {
 };
 
 export const getAll = async (query = {}) => {
-    const filter = { isDeleted: false, ...query };
+    const { page, limit, ...filterParams } = query;
 
-    return await Order.find(filter)
-        .populate(POPULATE_ORDER)
-        .sort({ createdAt: -1 });
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    const filter = { isDeleted: false, ...filterParams };
+
+    const [orders, total] = await Promise.all([
+        Order.find(filter)
+            .populate(POPULATE_ORDER)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limitNum),
+        Order.countDocuments(filter),
+    ]);
+
+    return {
+        orders,
+        pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total,
+            totalPages: Math.ceil(total / limitNum),
+        },
+    };
 };
 
 export const getById = async (order_id) => {

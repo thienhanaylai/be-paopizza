@@ -85,8 +85,29 @@ export const getEmployee = async (employee_id) => {
     if (!employee) throw new Error('EMPLOYEE_NOT_FOUND');
     return employee;
 };
-export const getAllEmployee = async () => {
-    return await Employee.find({});
+export const getAllEmployee = async (query = {}) => {
+    const { page, limit, ...filterParams } = query;
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    const [data, total] = await Promise.all([
+        Employee.find({ ...filterParams })
+            .skip(skip)
+            .limit(limitNum),
+        Employee.countDocuments({ ...filterParams }),
+    ]);
+
+    return {
+        data,
+        pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total,
+            totalPages: Math.ceil(total / limitNum),
+        },
+    };
 };
 
 export const getListEmployeeByRole = async (role) => {

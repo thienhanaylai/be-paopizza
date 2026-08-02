@@ -26,7 +26,8 @@ export const updateCombo = async (req, res) => {
 export const getAllCombos = async (req, res) => {
     const result = await comboService.getAll(req.query);
     return res.status(200).json({
-        data: result,
+        data: result.data,
+        pagination: result.pagination,
     });
 };
 

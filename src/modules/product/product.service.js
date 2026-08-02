@@ -67,14 +67,37 @@ export const update = async (data) => {
     return result;
 };
 
-export const getAll = async () => {
-    return await Product.find({ isDeleted: false })
-        .populate('category', 'name slug')
-        .populate({
-            path: 'variants.recipe.ingredient',
-            select: 'name unit',
-        })
-        .lean();
+export const getAll = async (query = {}) => {
+    const { page, limit, ...filterParams } = query;
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    const filter = { isDeleted: false, ...filterParams };
+
+    const [data, total] = await Promise.all([
+        Product.find(filter)
+            .populate('category', 'name slug')
+            .populate({
+                path: 'variants.recipe.ingredient',
+                select: 'name unit',
+            })
+            .skip(skip)
+            .limit(limitNum)
+            .lean(),
+        Product.countDocuments(filter),
+    ]);
+
+    return {
+        data,
+        pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total,
+            totalPages: Math.ceil(total / limitNum),
+        },
+    };
 };
 
 export const getAllProductsActive = async () => {

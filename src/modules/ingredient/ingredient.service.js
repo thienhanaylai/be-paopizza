@@ -131,8 +131,29 @@ export const deletedIngredient = async (data) => {
     );
 };
 
-export const getAllIngredient = async () => {
-    return Ingredient.find({ isDeleted: false }).lean();
+export const getAllIngredient = async (query = {}) => {
+    const { page, limit, ...filterParams } = query;
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    const filter = { isDeleted: false, ...filterParams };
+
+    const [data, total] = await Promise.all([
+        Ingredient.find(filter).skip(skip).limit(limitNum).lean(),
+        Ingredient.countDocuments(filter),
+    ]);
+
+    return {
+        data,
+        pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total,
+            totalPages: Math.ceil(total / limitNum),
+        },
+    };
 };
 
 export const getCategoryIngredient = async () => {

@@ -149,9 +149,10 @@ export const updateProduct = async (req, res) => {
 };
 
 export const getAllProducts = async (req, res) => {
-    const result = await productService.getAll();
+    const result = await productService.getAll(req.query);
     return res.status(200).json({
-        data: result,
+        data: result.data,
+        pagination: result.pagination,
     });
 };
 

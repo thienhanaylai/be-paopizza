@@ -8,7 +8,7 @@ const ORDER_STATUSES = [
     'cancelled',
     'delivering',
 ];
-const PAYMENT_METHODS = ['cash', 'card', 'qrCode', 'ewallet'];
+const PAYMENT_METHODS = ['cash', 'qrCode'];
 const PAYMENT_STATUSES = ['pending', 'success', 'failed'];
 const ORDER_TYPE = ['carry_out', 'dine_in', 'delivery'];
 

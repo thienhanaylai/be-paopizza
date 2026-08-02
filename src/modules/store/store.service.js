@@ -177,25 +177,38 @@ export const getStore = async (store_id) => {
 };
 
 export const getAllStore = async (query = {}) => {
+    const { page, limit, ...filterParams } = query;
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+    const skip = (pageNum - 1) * limitNum;
+
     const filter = {
         ...getActiveStoreFilter(),
     };
 
-    if (query.city) {
-        filter['address.city'] = { $regex: new RegExp(query.city, 'i') };
+    if (filterParams.city) {
+        filter['address.city'] = { $regex: new RegExp(filterParams.city, 'i') };
     }
-    if (query.district) {
+    if (filterParams.district) {
         filter['address.district'] = {
-            $regex: new RegExp(query.district, 'i'),
+            $regex: new RegExp(filterParams.district, 'i'),
         };
     }
-    if (query.status) {
-        filter.status = query.status;
+    if (filterParams.status) {
+        filter.status = filterParams.status;
     }
 
-    const stores = await Store.find(filter).populate('manager_by').lean();
+    const [stores, total] = await Promise.all([
+        Store.find(filter)
+            .populate('manager_by')
+            .skip(skip)
+            .limit(limitNum)
+            .lean(),
+        Store.countDocuments(filter),
+    ]);
 
-    const storesFinal = await Promise.all(
+    const data = await Promise.all(
         stores.map(async (store) => {
             const employee_count = await Employee.countDocuments({
                 store_id: store._id,
@@ -208,7 +221,15 @@ export const getAllStore = async (query = {}) => {
         }),
     );
 
-    return storesFinal;
+    return {
+        data,
+        pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total,
+            totalPages: Math.ceil(total / limitNum),
+        },
+    };
 };
 
 export const deletedStore = async (store_id) => {

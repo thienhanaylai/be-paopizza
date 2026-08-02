@@ -68,9 +68,10 @@ export const deletedCategory = async (req, res) => {
 };
 
 export const getAllCategory = async (req, res) => {
-    const result = await categoryService.getAllCategory();
+    const result = await categoryService.getAllCategory(req.query);
     return res.status(200).json({
-        data: result,
+        data: result.data,
+        pagination: result.pagination,
     });
 };
 

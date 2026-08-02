@@ -77,10 +77,11 @@ export const getEmployee = async (req, res) => {
 };
 
 export const getAllEmployee = async (req, res) => {
-    const result = await employeeService.getAllEmployee();
+    const result = await employeeService.getAllEmployee(req.query);
 
     return res.status(200).json({
-        data: result,
+        data: result.data,
+        pagination: result.pagination,
     });
 };
 

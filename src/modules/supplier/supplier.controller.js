@@ -45,10 +45,11 @@ export const updateSupplier = async (req, res, next) => {
 
 export const getAllSuppliers = async (req, res, next) => {
     try {
-        const result = await supplierService.getAll();
+        const result = await supplierService.getAll(req.query);
 
         return res.status(200).json({
-            data: result,
+            data: result.data,
+            pagination: result.pagination,
         });
     } catch (error) {
         next(error);

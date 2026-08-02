@@ -163,12 +163,33 @@ export const update = async (data) => {
 };
 
 export const getAll = async (query = {}) => {
-    return await Menu.find(query)
-        .populate('store', 'name')
-        .populate(productPopulate)
-        .populate(comboPopulate)
-        .sort({ createdAt: -1 })
-        .lean();
+    const { page, limit, ...filterParams } = query;
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    const [data, total] = await Promise.all([
+        Menu.find(filterParams)
+            .populate('store', 'name')
+            .populate(productPopulate)
+            .populate(comboPopulate)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limitNum)
+            .lean(),
+        Menu.countDocuments(filterParams),
+    ]);
+
+    return {
+        data,
+        pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total,
+            totalPages: Math.ceil(total / limitNum),
+        },
+    };
 };
 
 export const getById = async (menu_id) => {

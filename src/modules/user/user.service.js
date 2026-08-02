@@ -18,7 +18,30 @@ export const createUser = async (userData) => {
 };
 
 export const getAllUsers = async (query = {}) => {
-    return await User.find(query).select('-password').populate('ref_id');
+    const { page, limit, ...filterParams } = query;
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    const [data, total] = await Promise.all([
+        User.find(filterParams)
+            .select('-password')
+            .populate('ref_id')
+            .skip(skip)
+            .limit(limitNum),
+        User.countDocuments(filterParams),
+    ]);
+
+    return {
+        data,
+        pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total,
+            totalPages: Math.ceil(total / limitNum),
+        },
+    };
 };
 
 export const getUserById = async (userId) => {

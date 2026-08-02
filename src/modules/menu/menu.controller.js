@@ -23,7 +23,8 @@ export const updateMenu = async (req, res) => {
 export const getAllMenus = async (req, res) => {
     const result = await menuService.getAll(req.query);
     return res.status(200).json({
-        data: result,
+        data: result.data,
+        pagination: result.pagination,
     });
 };
 

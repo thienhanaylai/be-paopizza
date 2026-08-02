@@ -11,7 +11,8 @@ export const createPromotion = async (req, res) => {
 export const getAllPromotions = async (req, res) => {
     const result = await promotionService.getAll(req.query);
     return res.status(200).json({
-        data: result,
+        data: result.data,
+        pagination: result.pagination,
     });
 };
 
