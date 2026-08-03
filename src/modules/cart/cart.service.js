@@ -169,19 +169,25 @@ export const removeFromCart = async (data) => {
 
     cart.items = cart.items.filter((item) => {
         if (item.item_type !== item_type) return true;
-        if (item.size.toLowerCase() !== size.toLowerCase()) return true;
+
+        const itemSize = (item.size || '').toLowerCase();
+        const targetSize = (size || '').toLowerCase();
+        if (itemSize !== targetSize) return true;
 
         if (item_type === 'product') {
+            if (!item.product_id || !product_id) return true;
             return item.product_id.toString() !== product_id.toString();
         } else {
             // Nếu có sku thì xóa theo sku (phân biệt các selection khác nhau của cùng combo)
             if (sku) {
                 return item.sku !== sku;
             }
+            if (!item.combo || !combo) return true;
             return item.combo.toString() !== combo.toString();
         }
     });
 
+    cart.markModified('items');
     await cart.save();
     return await getCart({ userId });
 };
