@@ -21,8 +21,6 @@ const updateMenuStatusSchema = z.object({
     status: z.boolean(),
 });
 
-// ─── Controller ────────────────────────────────────────────────────────
-
 export const createMenu = async (req, res) => {
     const validation = validate(req, res, createMenuSchema);
     if (!validation.success) return;

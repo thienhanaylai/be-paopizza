@@ -31,8 +31,6 @@ const updateComboStatusSchema = z.object({
     isActive: booleanSchema,
 });
 
-// ─── Controller ────────────────────────────────────────────────────────
-
 export const createCombo = async (req, res) => {
     const validation = validate(req, res, createComboSchema);
     if (!validation.success) return;

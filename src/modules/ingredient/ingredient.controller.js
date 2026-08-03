@@ -36,8 +36,6 @@ const deleteIngredientSchema = z.object({
     ingredient_id: objectIdSchema,
 });
 
-// ─── Controller ────────────────────────────────────────────────────────
-
 export const createIngredient = async (req, res, next) => {
     try {
         const validation = validate(req, res, createIngredientSchema);

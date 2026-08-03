@@ -60,8 +60,6 @@ const getCustomerByUserId = async (userId) => {
     return customer;
 };
 
-// ─── Controller ────────────────────────────────────────────────────────
-
 export const register = async (req, res) => {
     const validation = validate(req, res, registerSchema);
     if (!validation.success) return;

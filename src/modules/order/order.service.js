@@ -453,7 +453,35 @@ const rewardCustomerPoints = async (order) => {
         { new: true },
     );
 
+    //  Tự động nâng tier dựa trên tổng điểm tích luỹ totalPoint
+    if (updatedCustomer) {
+        const newTotalPoint = updatedCustomer.totalPoint || 0;
+        const newTier = computeTier(newTotalPoint);
+
+        if (newTier !== updatedCustomer.tier) {
+            updatedCustomer.tier = newTier;
+            await updatedCustomer.save();
+        }
+    }
+
     return updatedCustomer;
+};
+
+// điểm để lên hạng
+const TIER_THRESHOLDS = [
+    { tier: 'silver', minPoints: 500 },
+    { tier: 'gold', minPoints: 2000 },
+    { tier: 'diamond', minPoints: 5000 },
+];
+
+const computeTier = (totalPoint) => {
+    let tier = 'member';
+    for (const t of TIER_THRESHOLDS) {
+        if (totalPoint >= t.minPoints) {
+            tier = t.tier;
+        }
+    }
+    return tier;
 };
 
 export const updateStatus = async (order_id, status) => {

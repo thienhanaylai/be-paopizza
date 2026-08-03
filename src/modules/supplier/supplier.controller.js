@@ -26,8 +26,6 @@ const updateSupplierSchema = z.object({
     isActive: booleanSchema.optional(),
 });
 
-// ─── Controller ────────────────────────────────────────────────────────
-
 export const createSupplier = async (req, res, next) => {
     try {
         const validation = validate(req, res, createSupplierSchema);

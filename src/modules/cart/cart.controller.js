@@ -42,8 +42,6 @@ const updateCartItemSchema = z.object({
     combo_selections: z.array(z.any()).optional(),
 });
 
-// ─── Controller ────────────────────────────────────────────────────────
-
 export const getCart = async (req, res) => {
     const { userId } = req.params || req.query || req.body;
     if (!userId) {

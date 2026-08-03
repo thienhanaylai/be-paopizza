@@ -30,8 +30,6 @@ const deleteCategorySchema = z.object({
     category_id: objectIdSchema,
 });
 
-// ─── Controller ────────────────────────────────────────────────────────
-
 export const createCategory = async (req, res) => {
     const validation = validate(req, res, createCategorySchema);
     if (!validation.success) return;

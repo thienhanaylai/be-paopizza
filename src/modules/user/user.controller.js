@@ -7,8 +7,6 @@ const updateStatusSchema = z.object({
     status: z.boolean({ message: 'status phải là true hoặc false' }),
 });
 
-// ─── Controller ────────────────────────────────────────────────────────
-
 export const create = async (req, res) => {
     // dành cho admin
     try {

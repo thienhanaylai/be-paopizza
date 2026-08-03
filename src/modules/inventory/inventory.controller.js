@@ -22,8 +22,6 @@ const updateStockSchema = z.object({
     reason: z.string().optional(),
 });
 
-// ─── Controller ────────────────────────────────────────────────────────
-
 export const createOrUpdateInventory = async (req, res) => {
     const validation = validate(req, res, createOrUpdateInventorySchema);
     if (!validation.success) return;

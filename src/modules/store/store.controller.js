@@ -54,8 +54,6 @@ const updateStoreSchema = z.object({
     manager_by: z.string().optional(),
 });
 
-// ─── Controller ────────────────────────────────────────────────────────
-
 export const createStore = async (req, res) => {
     const validation = validate(req, res, createStoreSchema);
     if (!validation.success) return;

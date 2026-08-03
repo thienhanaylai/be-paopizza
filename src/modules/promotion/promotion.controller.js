@@ -40,8 +40,6 @@ const applyPromoCodeSchema = z.object({
     storeId: z.string().min(1, 'storeId không được để trống'),
 });
 
-// ─── Controller ────────────────────────────────────────────────────────
-
 export const createPromotion = async (req, res) => {
     const validation = validate(req, res, createPromotionSchema);
     if (!validation.success) return;
