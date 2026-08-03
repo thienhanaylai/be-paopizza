@@ -14,8 +14,8 @@ const promotionSchema = new mongoose.Schema(
         },
         point: {
             type: Number,
-            min: 0,
-            default: 0,
+            min: -1,
+            default: -1, //mặc định -1 không thể quy đổi, 0 là quy đổi miễn phí, >0 là dùng điểm để đổi
         },
         type: {
             type: String,

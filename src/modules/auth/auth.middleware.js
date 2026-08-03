@@ -20,10 +20,7 @@ export const authorize = (allowedRoles = []) => {
     };
 };
 
-/**
- * Middleware xác thực tuỳ chọn – nếu có token hợp lệ thì gán req.user,
- * nếu không có token hoặc token không hợp lệ thì vẫn cho đi tiếp (guest).
- */
+// nếu có jwt thì xác nhận là user, còn nếu là khách vãng lai thì vẫn cho đi tiếp để dặt hàng
 export const optionalAuth = (req, res, next) => {
     passport.authenticate('jwt', { session: false }, (err, user) => {
         if (err) {

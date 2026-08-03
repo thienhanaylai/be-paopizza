@@ -3,6 +3,7 @@ import passport from 'passport';
 import * as orderController from './order.controller.js';
 import { authorize, optionalAuth } from '../auth/auth.middleware.js';
 import { asyncHandler } from '../../middlewares/index.js';
+import { orderLimit } from '../../middlewares/rateLimit.js';
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 const requireAdmin = authorize(['admin']);
@@ -10,7 +11,12 @@ const requireStaff = authorize(['admin', 'manager', 'staff']);
 
 const router = express.Router();
 
-router.post('/', optionalAuth, asyncHandler(orderController.createOrder));
+router.post(
+    '/',
+    optionalAuth,
+    orderLimit,
+    asyncHandler(orderController.createOrder),
+);
 router.patch(
     '/customer/cancel/:order_id',
     requireAuth,

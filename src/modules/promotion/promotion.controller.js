@@ -10,6 +10,7 @@ const createPromotionSchema = z.object({
     code: z.string().min(1, 'Mã khuyến mãi không được để trống'),
     type: z.enum(['percentage', 'fixed', 'free_shipping']),
     value: positiveNumberSchema,
+    point: z.coerce.number().int().min(-1).optional(),
     minOrderValue: positiveNumberSchema.default(0),
     maxDiscount: positiveNumberSchema.optional(),
     startDate: z.coerce.date(),
@@ -17,13 +18,13 @@ const createPromotionSchema = z.object({
     isActive: booleanSchema,
     usageLimit: z.coerce.number().int().min(0).optional(),
     storeIds: z.array(z.string()).optional(),
-    pointsRequired: z.coerce.number().int().min(0).optional(),
 });
 
 const updatePromotionSchema = z.object({
     code: z.string().optional(),
     type: z.enum(['percentage', 'fixed', 'free_shipping']).optional(),
     value: positiveNumberSchema.optional(),
+    point: z.coerce.number().int().min(-1).optional(),
     minOrderValue: positiveNumberSchema.optional(),
     maxDiscount: positiveNumberSchema.optional(),
     startDate: z.coerce.date().optional(),
@@ -31,7 +32,6 @@ const updatePromotionSchema = z.object({
     isActive: booleanSchema.optional(),
     usageLimit: z.coerce.number().int().min(0).optional(),
     storeIds: z.array(z.string()).optional(),
-    pointsRequired: z.coerce.number().int().min(0).optional(),
 });
 
 const applyPromoCodeSchema = z.object({
@@ -86,11 +86,15 @@ export const updatePromotionStatus = async (req, res) => {
     const { promotion_id } = req.params;
     const { status } = req.body;
 
-    if (typeof status !== 'boolean') {
+    const validStatuses = ['draft', 'active', 'inactive', 'expired'];
+    if (!status || !validStatuses.includes(status)) {
         return res.status(400).json({
             message: 'Dữ liệu không hợp lệ',
             errors: [
-                { field: 'status', message: 'status phải là true hoặc false' },
+                {
+                    field: 'status',
+                    message: `status phải là một trong: ${validStatuses.join(', ')}`,
+                },
             ],
         });
     }
