@@ -10,6 +10,8 @@ import { localStrategy } from './modules/auth/strategies/local.strategy.js';
 import { jwtStrategy } from './modules/auth/strategies/jwt.strategy.js';
 import errorHandler from './middlewares/errorHandler.js';
 import environment from './config/environment.js';
+import { globalLimiter } from './middlewares/rateLimit.js';
+
 const app = express();
 
 app.use(passport.initialize());
@@ -42,6 +44,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Routes
-app.use('/api/v1', router);
+app.use('/api/v1', globalLimiter, router);
 app.use(errorHandler);
 export default app;

@@ -17,6 +17,8 @@ import promotionRoutes from '../modules/promotion/promotion.route.js';
 import revenueRoutes from '../modules/revenue/revenue.route.js';
 import comboRoutes from '../modules/combo/combo.route.js';
 import menuRoutes from '../modules/menu/menu.route.js';
+import { authLimiter } from '../middlewares/rateLimit.js';
+
 const router = express.Router();
 
 router.get('/health', (_req, res) =>
@@ -26,7 +28,7 @@ router.get('/health', (_req, res) =>
     }),
 );
 
-router.use('/auth', authRoutes);
+router.use('/auth', authLimiter, authRoutes);
 router.use('/users', userRoutes);
 router.use('/customers', customerRoutes);
 router.use('/cart', cartRoutes);
