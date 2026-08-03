@@ -169,7 +169,7 @@ export const removeFromCart = async (data) => {
 
     cart.items = cart.items.filter((item) => {
         if (item.item_type !== item_type) return true;
-        if (item.size.toLowerCase() !== size.toLowerCase()) return false;
+        if (item.size.toLowerCase() !== size.toLowerCase()) return true;
 
         if (item_type === 'product') {
             return item.product_id.toString() !== product_id.toString();
