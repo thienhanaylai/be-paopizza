@@ -9,6 +9,7 @@ import 'dotenv/config';
 import { localStrategy } from './modules/auth/strategies/local.strategy.js';
 import { jwtStrategy } from './modules/auth/strategies/jwt.strategy.js';
 import errorHandler from './middlewares/errorHandler.js';
+import environment from './config/environment.js';
 const app = express();
 
 app.use(passport.initialize());
@@ -21,9 +22,16 @@ app.use(helmet());
 app.use(compression());
 
 // CORS
+
+const allowedOrigins = [
+    environment.clientUrl,
+    'https://pizza.pao.io.vn',
+    'https://paopizza.ngb.id.vn',
+].filter(Boolean);
+
 app.use(
     cors({
-        origin: '*',
+        origin: allowedOrigins,
         credentials: true,
     }),
 );

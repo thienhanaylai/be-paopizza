@@ -1,7 +1,55 @@
 import * as promotionService from './promotion.service.js';
+import { z } from 'zod';
+import {
+    objectIdSchema,
+    booleanSchema,
+    positiveNumberSchema,
+    validate,
+} from '../../utils/validation.js';
+
+// ─── Schema ───────────────────────────────────────────────────────────
+const createPromotionSchema = z.object({
+    code: z.string().min(1, 'Mã khuyến mãi không được để trống'),
+    type: z.enum(['percentage', 'fixed', 'free_shipping']),
+    value: positiveNumberSchema,
+    minOrderValue: positiveNumberSchema.default(0),
+    maxDiscount: positiveNumberSchema.optional(),
+    startDate: z.coerce.date(),
+    endDate: z.coerce.date(),
+    isActive: booleanSchema,
+    usageLimit: z.coerce.number().int().min(0).optional(),
+    storeIds: z.array(z.string()).optional(),
+    pointsRequired: z.coerce.number().int().min(0).optional(),
+});
+
+const updatePromotionSchema = z.object({
+    promotion_id: objectIdSchema,
+    code: z.string().optional(),
+    type: z.enum(['percentage', 'fixed', 'free_shipping']).optional(),
+    value: positiveNumberSchema.optional(),
+    minOrderValue: positiveNumberSchema.optional(),
+    maxDiscount: positiveNumberSchema.optional(),
+    startDate: z.coerce.date().optional(),
+    endDate: z.coerce.date().optional(),
+    isActive: booleanSchema.optional(),
+    usageLimit: z.coerce.number().int().min(0).optional(),
+    storeIds: z.array(z.string()).optional(),
+    pointsRequired: z.coerce.number().int().min(0).optional(),
+});
+
+const applyPromoCodeSchema = z.object({
+    code: z.string().min(1, 'Mã khuyến mãi không được để trống'),
+    orderTotal: positiveNumberSchema,
+    storeId: z.string().min(1, 'storeId không được để trống'),
+});
+
+// ─── Controller ────────────────────────────────────────────────────────
 
 export const createPromotion = async (req, res) => {
-    const result = await promotionService.create(req.body);
+    const validation = validate(req, res, createPromotionSchema);
+    if (!validation.success) return;
+
+    const result = await promotionService.create(validation.data);
     return res.status(201).json({
         message: 'Thêm khuyến mãi thành công!',
         data: result,
@@ -26,9 +74,12 @@ export const getPromotion = async (req, res) => {
 
 export const updatePromotion = async (req, res) => {
     const promotion_id = req.params.promotion_id || req.body.promotion_id;
+    const validation = validate(req, res, updatePromotionSchema, 'body');
+    if (!validation.success) return;
+
     const result = await promotionService.update({
-        promotion_id,
-        ...req.body,
+        promotion_id: promotion_id || validation.data.promotion_id,
+        ...validation.data,
     });
     return res.status(200).json({
         message: 'Cập nhật khuyến mãi thành công!',
@@ -39,6 +90,16 @@ export const updatePromotion = async (req, res) => {
 export const updatePromotionStatus = async (req, res) => {
     const { promotion_id } = req.params;
     const { status } = req.body;
+
+    if (typeof status !== 'boolean') {
+        return res.status(400).json({
+            message: 'Dữ liệu không hợp lệ',
+            errors: [
+                { field: 'status', message: 'status phải là true hoặc false' },
+            ],
+        });
+    }
+
     const result = await promotionService.updateStatus({
         promotion_id,
         status,
@@ -59,7 +120,10 @@ export const deletedPromotion = async (req, res) => {
 };
 
 export const applyPromoCode = async (req, res) => {
-    const { code, orderTotal, storeId } = req.body;
+    const validation = validate(req, res, applyPromoCodeSchema);
+    if (!validation.success) return;
+
+    const { code, orderTotal, storeId } = validation.data;
     const result = await promotionService.applyPromotion(
         code,
         orderTotal,

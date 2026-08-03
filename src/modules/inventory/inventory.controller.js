@@ -1,7 +1,35 @@
 import * as inventoryService from './inventory.service.js';
+import { z } from 'zod';
+import {
+    objectIdSchema,
+    positiveNumberSchema,
+    validate,
+} from '../../utils/validation.js';
+
+// ─── Schema ───────────────────────────────────────────────────────────
+const createOrUpdateInventorySchema = z.object({
+    store_id: objectIdSchema,
+    ingredient_id: objectIdSchema,
+    quantity: positiveNumberSchema,
+    unit: z.string().optional(),
+    low_stock_threshold: positiveNumberSchema.optional(),
+});
+
+const updateStockSchema = z.object({
+    store_id: objectIdSchema,
+    ingredient_id: objectIdSchema,
+    quantity: z.coerce.number(),
+    adjustment_type: z.enum(['in', 'out', 'set']).default('set'),
+    reason: z.string().optional(),
+});
+
+// ─── Controller ────────────────────────────────────────────────────────
 
 export const createOrUpdateInventory = async (req, res) => {
-    const result = await inventoryService.createOrUpdate(req.body);
+    const validation = validate(req, res, createOrUpdateInventorySchema);
+    if (!validation.success) return;
+
+    const result = await inventoryService.createOrUpdate(validation.data);
 
     return res.status(200).json({
         message: 'Cập nhật inventory thành công!',
@@ -10,7 +38,10 @@ export const createOrUpdateInventory = async (req, res) => {
 };
 
 export const updateStock = async (req, res) => {
-    const result = await inventoryService.updateStock(req.body);
+    const validation = validate(req, res, updateStockSchema);
+    if (!validation.success) return;
+
+    const result = await inventoryService.updateStock(validation.data);
 
     return res.status(200).json({
         message: 'Cập nhật stock thành công!',

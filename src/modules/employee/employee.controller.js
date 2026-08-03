@@ -1,5 +1,12 @@
 import * as employeeService from './employee.service.js';
 import { z } from 'zod';
+import {
+    objectIdSchema,
+    phoneSchema,
+    emailSchema,
+    nameSchema,
+    validate,
+} from '../../utils/validation.js';
 
 const createEmployeeSchema = z
     .object({
@@ -11,7 +18,7 @@ const createEmployeeSchema = z
             .optional(),
         name: z.string().min(2).max(100),
         birthday: z.coerce.date().refine((date) => date < new Date(), {
-            message: 'Birthday must be in the past',
+            message: 'Ngày sinh phải trong quá khứ',
         }),
         email: z.string().email(),
         phone: z.string().regex(/^[0-9]{10,11}$/),
@@ -30,21 +37,41 @@ const createEmployeeSchema = z
     })
     .strict();
 
+const updateEmployeeSchema = z
+    .object({
+        employee_id: objectIdSchema,
+        name: nameSchema.optional(),
+        email: emailSchema.optional(),
+        phone: phoneSchema.optional(),
+        station: z
+            .enum([
+                'manager',
+                'store_manager',
+                'cashier',
+                'kitchen',
+                'delivery',
+                'barista',
+            ])
+            .optional(),
+        salaryType: z.enum(['hourly', 'monthly']).optional(),
+        role: z.enum(['admin', 'manager', 'staff']).optional(),
+        address: z.string().optional(),
+        salary: z.coerce.number().min(0).optional(),
+        birthday: z.coerce
+            .date()
+            .refine((date) => date < new Date(), {
+                message: 'Ngày sinh phải trong quá khứ',
+            })
+            .optional(),
+        store_id: z.string().optional(),
+    })
+    .strict();
+
 export const create = async (req, res) => {
-    const result = createEmployeeSchema.safeParse(req.body);
+    const validation = validate(req, res, createEmployeeSchema);
+    if (!validation.success) return;
 
-    if (!result.success) {
-        return res.status(400).json({
-            message: 'Validation error',
-            errors: result.error.errors?.map((err) => ({
-                field: err.path.join('.'),
-                message: err.message,
-            })),
-        });
-    }
-
-    const validatedData = result.data;
-    const response = await employeeService.createEmployee(validatedData);
+    const response = await employeeService.createEmployee(validation.data);
 
     return res.status(201).json({
         message: 'Tạo nhân viên thành công',
@@ -53,10 +80,13 @@ export const create = async (req, res) => {
 };
 
 export const update = async (req, res) => {
-    const { employee_id } = req.body;
+    const validation = validate(req, res, updateEmployeeSchema);
+    if (!validation.success) return;
+
+    const { employee_id, ...updateData } = validation.data;
     const result = await employeeService.updateEmployee({
         employee_id,
-        ...req.body,
+        ...updateData,
     });
 
     return res.status(200).json({
@@ -66,9 +96,17 @@ export const update = async (req, res) => {
 };
 
 export const getEmployee = async (req, res) => {
-    const { employee_id } = req.params.employee_id;
+    const { employee_id } = req.params;
+    const validation = validate(
+        req,
+        res,
+        z.object({ employee_id: objectIdSchema }),
+        'params',
+    );
+    if (!validation.success) return;
+
     const result = await employeeService.getEmployee({
-        employee_id,
+        employee_id: validation.data.employee_id,
     });
 
     return res.status(200).json({

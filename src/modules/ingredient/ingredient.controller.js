@@ -1,22 +1,50 @@
 import * as ingredientService from './ingredient.service.js';
+import { z } from 'zod';
+import {
+    objectIdSchema,
+    booleanSchema,
+    validate,
+} from '../../utils/validation.js';
+
+// ─── Schema ───────────────────────────────────────────────────────────
+const createIngredientSchema = z.object({
+    name: z.string().min(1, 'Tên nguyên liệu không được để trống'),
+    unit: z.string().min(1, 'Đơn vị không được để trống'),
+    category: z.string().optional(),
+    costPerUnit: z.coerce.number().min(0).optional(),
+    price: z.coerce.number().min(0).optional(),
+    isActive: booleanSchema,
+    image: z.string().optional(),
+});
+
+const updateIngredientSchema = z.object({
+    ingredient_id: objectIdSchema,
+    name: z.string().min(1),
+    unit: z.string().min(1),
+    category: z.string().optional(),
+    costPerUnit: z.coerce.number().min(0).optional(),
+    price: z.coerce.number().min(0).optional(),
+    isActive: booleanSchema.optional(),
+    image: z.string().optional(),
+});
+
+const updateActiveSchema = z.object({
+    ingredient_id: objectIdSchema,
+    isActive: booleanSchema,
+});
+
+const deleteIngredientSchema = z.object({
+    ingredient_id: objectIdSchema,
+});
+
+// ─── Controller ────────────────────────────────────────────────────────
 
 export const createIngredient = async (req, res, next) => {
     try {
-        const { name, unit, category, costPerUnit, price, isActive, image } =
-            req.body;
+        const validation = validate(req, res, createIngredientSchema);
+        if (!validation.success) return;
 
-        if (!name || !unit) {
-            throw new Error('MISSING_INFO');
-        }
-        const result = await ingredientService.create({
-            name,
-            unit,
-            category,
-            costPerUnit,
-            price,
-            isActive,
-            image,
-        });
+        const result = await ingredientService.create(validation.data);
         return res.status(201).json({
             message: 'Thêm nguyên liệu thành công!',
             data: result,
@@ -25,31 +53,13 @@ export const createIngredient = async (req, res, next) => {
         next(error);
     }
 };
+
 export const updateIngredient = async (req, res, next) => {
     try {
-        const {
-            ingredient_id,
-            name,
-            unit,
-            category,
-            costPerUnit,
-            price,
-            isActive,
-            image,
-        } = req.body;
-        if (!ingredient_id || !name || !unit) {
-            throw new Error('MISSING_INFO');
-        }
-        const result = await ingredientService.update({
-            ingredient_id,
-            name,
-            unit,
-            category,
-            costPerUnit,
-            price,
-            isActive,
-            image,
-        });
+        const validation = validate(req, res, updateIngredientSchema);
+        if (!validation.success) return;
+
+        const result = await ingredientService.update(validation.data);
         return res.status(201).json({
             message: 'Cập nhật nguyên liệu thành công!',
             data: result,
@@ -58,16 +68,13 @@ export const updateIngredient = async (req, res, next) => {
         next(error);
     }
 };
+
 export const updateActive = async (req, res, next) => {
     try {
-        const { ingredient_id, isActive } = req.body;
-        if (!ingredient_id || typeof isActive === 'undefined') {
-            throw new Error('MISSING_INFO');
-        }
-        const result = await ingredientService.updateActive({
-            ingredient_id,
-            isActive,
-        });
+        const validation = validate(req, res, updateActiveSchema);
+        if (!validation.success) return;
+
+        const result = await ingredientService.updateActive(validation.data);
         return res.status(201).json({
             message: 'Cập nhật trạng thái nguyên liệu thành công!',
             data: result,
@@ -79,13 +86,12 @@ export const updateActive = async (req, res, next) => {
 
 export const deletedIngredient = async (req, res, next) => {
     try {
-        const { ingredient_id } = req.body;
-        if (!ingredient_id) {
-            throw new Error('MISSING_INFO');
-        }
-        const result = await ingredientService.deletedIngredient({
-            ingredient_id,
-        });
+        const validation = validate(req, res, deleteIngredientSchema);
+        if (!validation.success) return;
+
+        const result = await ingredientService.deletedIngredient(
+            validation.data,
+        );
         return res.status(201).json({
             message: 'Xoá nguyên liệu thành công!',
             data: result,

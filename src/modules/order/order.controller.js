@@ -1,13 +1,79 @@
 import * as orderService from './order.service.js';
+import { z } from 'zod';
+import { objectIdSchema, validate } from '../../utils/validation.js';
 
+// ─── Schema ───────────────────────────────────────────────────────────
+const createOrderSchema = z.object({
+    orderType: z.enum(['dine_in', 'carry_out', 'delivery']),
+    paymentMethod: z.enum(['cash', 'qrCode', 'card', 'ewallet']),
+    paymentStatus: z
+        .enum(['pending', 'success', 'cancelled'])
+        .default('pending'),
+    contact_info: z
+        .object({
+            full_name: z.string().optional(),
+            phone: z.string().optional(),
+            address: z.string().optional(),
+        })
+        .optional(),
+    store_id: z.string().min(1, 'store_id không được để trống'),
+    note: z.string().optional(),
+    customer_id: z.string().nullable().optional(),
+    employee_id: z.string().optional(),
+    items: z
+        .array(
+            z.object({
+                item_type: z.enum(['product', 'combo']),
+                product_id: z.string().optional(),
+                combo_id: z.string().optional(),
+                sku: z.string(),
+                price: z.coerce.number().min(0),
+                size: z.string().optional(),
+                crust: z.string().optional(),
+                quantity: z.coerce.number().int().min(1),
+                note: z.string().optional(),
+                added_topping: z.array(z.any()).optional(),
+                combo_selections: z
+                    .array(
+                        z.object({
+                            product_id: z.string(),
+                            sku: z.string(),
+                            size: z.string(),
+                            crust: z.string().optional(),
+                        }),
+                    )
+                    .optional(),
+            }),
+        )
+        .min(1, 'Đơn hàng phải có ít nhất 1 sản phẩm'),
+});
+
+const updateOrderStatusSchema = z.object({
+    order_id: objectIdSchema,
+    status: z.string().min(1, 'Trạng thái không được để trống'),
+});
+
+const updatePaymentStatusSchema = z.object({
+    order_id: objectIdSchema,
+    paymentStatus: z.string().min(1),
+});
+
+// ─── Helper ────────────────────────────────────────────────────────────
+
+// ─── Helper ────────────────────────────────────────────────────────────
 const buildActorInfo = (user) => ({
     actor_id: user?.ref_id || user?._id || null,
     actor_type: user?.user_type || 'User',
     actor_role: user?.role || '',
 });
 
+// ─── Controller ────────────────────────────────────────────────────────
+
 export const createOrder = async (req, res) => {
-    const orderData = { ...req.body };
+    const validation = validate(req, res, createOrderSchema);
+    if (!validation.success) return;
+
+    const orderData = { ...validation.data };
 
     // Nếu user đã đăng nhập và là Customer, tự động gán customer_id từ profile
     if (req.user && req.user.user_type === 'Customer' && req.user.ref_id) {
@@ -19,7 +85,7 @@ export const createOrder = async (req, res) => {
     return res.status(201).json({
         message: 'Tạo đơn hàng thành công!',
         data: result.order,
-        payment: result.payment_info, //nếu là qr code sẽ trả về qr để thanh toán
+        payment: result.payment_info, // nếu là qr code sẽ trả về qr để thanh toán
     });
 };
 
@@ -64,7 +130,14 @@ export const checkOrderPaymentSuccess = async (req, res, next) => {
 export const updateOrderStatus = async (req, res) => {
     const { order_id } = req.params;
     const { status } = req.body;
-    const result = await orderService.updateStatus(order_id, status);
+
+    const validation = validate(req, res, updateOrderStatusSchema, 'body');
+    if (!validation.success) return;
+
+    const result = await orderService.updateStatus(
+        order_id || validation.data.order_id,
+        validation.data.status,
+    );
     return res.status(200).json({
         message: 'Cập nhật trạng thái đơn hàng thành công!',
         data: result,
@@ -75,9 +148,18 @@ export const updateOrderPaymentStatus = async (req, res, next) => {
     try {
         const { order_id } = req.params;
         const { paymentStatus } = req.body;
+
+        const validation = validate(
+            req,
+            res,
+            updatePaymentStatusSchema,
+            'body',
+        );
+        if (!validation.success) return;
+
         const result = await orderService.updatePaymentStatus(
-            order_id,
-            paymentStatus,
+            order_id || validation.data.order_id,
+            validation.data.paymentStatus,
         );
 
         return res.status(200).json({
@@ -166,13 +248,6 @@ export const getHistoryOrder = async (req, res) => {
     const userId = req.user._id;
 
     const result = await orderService.getHistoryOrder(userId);
-    return res.status(200).json({
-        data: result,
-    });
-};
-
-export const getAllHistoryOrder = async (req, res) => {
-    const result = await orderService.getAllHistoryOrder();
     return res.status(200).json({
         data: result,
     });

@@ -561,15 +561,6 @@ export const getHistoryOrder = async (user_id) => {
     return orders;
 };
 
-export const getAllHistoryOrder = async () => {
-    const orders = await Order.find({}).populate(POPULATE_ORDER);
-
-    if (!orders) {
-        throw new Error('NO_ORDERS_FOUND');
-    }
-    return orders;
-};
-
 export const customerCancelOrder = async (data) => {
     const { order_id, customer_id } = data;
     const order = await Order.findById(order_id);

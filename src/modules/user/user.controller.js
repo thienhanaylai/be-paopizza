@@ -1,19 +1,41 @@
 import * as userService from './user.service.js';
+import { z } from 'zod';
+import { objectIdSchema, validate } from '../../utils/validation.js';
+
+// ─── Schema ───────────────────────────────────────────────────────────
+const updateStatusSchema = z.object({
+    id: objectIdSchema,
+    status: z.boolean({ message: 'status phải là true hoặc false' }),
+});
+
+// ─── Controller ────────────────────────────────────────────────────────
 
 export const create = async (req, res) => {
-    //dành cho admin
+    // dành cho admin
     try {
-        const userData = req.body;
+        const validation = validate(
+            req,
+            res,
+            z.object({
+                username: z
+                    .string()
+                    .min(3, 'Username phải có ít nhất 3 ký tự')
+                    .max(30),
+                password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
+                role: z.enum(['admin', 'manager', 'staff', 'customer']),
+                user_type: z.enum(['Employee', 'Customer']),
+                ref_id: z.string().optional(),
+            }),
+        );
+        if (!validation.success) return;
 
-        // Gọi service tạo user
-        const newUser = await userService.createUser(userData);
+        const newUser = await userService.createUser(validation.data);
 
         return res.status(201).json({
             message: 'Tạo tài khoản thành công',
             data: newUser,
         });
     } catch (error) {
-        // Bắt lỗi trùng username hoặc lỗi validate từ Mongoose
         return res.status(400).json({ message: error.message });
     }
 };
@@ -47,10 +69,15 @@ export const getById = async (req, res) => {
 export const updateStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status } = req.body; // status nên là true hoặc false
+        const { status } = req.body;
 
         if (typeof status !== 'boolean') {
-            return res.status(400).json({ message: 'Trạng thái không hợp lệ' });
+            return res.status(400).json({
+                message: 'Dữ liệu không hợp lệ',
+                errors: [
+                    { field: 'status', message: 'Trạng thái không hợp lệ' },
+                ],
+            });
         }
 
         const updatedUser = await userService.toggleUserStatus(id, status);
@@ -84,6 +111,7 @@ export const update = async (req, res) => {
         return res.status(400).json({ message: error.message });
     }
 };
+
 export const getMe = async (req, res) => {
     try {
         const userId = req.user._id;

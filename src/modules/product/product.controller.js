@@ -1,4 +1,6 @@
 import * as productService from './product.service.js';
+import { z } from 'zod';
+import { objectIdSchema, validate } from '../../utils/validation.js';
 
 const parseJsonField = (value) => {
     if (typeof value !== 'string') return value;
@@ -126,9 +128,31 @@ const normalizePayload = (req) => {
     return payload;
 };
 
+// ─── Schema cơ bản cho Product (validate các trường bắt buộc) ──────────
+const createProductSchema = z.object({
+    name: z.string().min(1, 'Tên sản phẩm không được để trống'),
+    category: z.string().min(1, 'Danh mục không được để trống'),
+    description: z.string().optional(),
+    isActive: z.boolean().default(true),
+});
+
+const updateProductSchema = z.object({
+    product_id: objectIdSchema,
+    name: z.string().optional(),
+    category: z.string().optional(),
+    description: z.string().optional(),
+    isActive: z.boolean().optional(),
+});
+
 export const createProduct = async (req, res) => {
     const payload = normalizePayload(req);
-    const result = await productService.create(payload);
+    const validation = validate(req, res, createProductSchema);
+    if (!validation.success) return;
+
+    const result = await productService.create({
+        ...validation.data,
+        ...payload,
+    });
     return res.status(201).json({
         message: 'Tạo sản phẩm thành công!',
         data: result,
@@ -138,8 +162,12 @@ export const createProduct = async (req, res) => {
 export const updateProduct = async (req, res) => {
     const product_id = req.params.product_id || req.body.product_id;
     const payload = normalizePayload(req);
+    const validation = validate(req, res, updateProductSchema, 'body');
+    if (!validation.success) return;
+
     const result = await productService.update({
-        product_id,
+        product_id: product_id || validation.data.product_id,
+        ...validation.data,
         ...payload,
     });
     return res.status(200).json({

@@ -1,20 +1,26 @@
 import { paymentService } from './payment.service.js';
+import { z } from 'zod';
+import { validate } from '../../utils/validation.js';
+
+// ─── Schema ───────────────────────────────────────────────────────────
+const createPaymentSchema = z.object({
+    orderId: z.string().min(1, 'orderId không được để trống'),
+});
+
+const mockWebhookSchema = z.object({
+    orderId: z.string().min(1, 'orderId không được để trống'),
+    transferAmount: z.coerce.number().min(0).optional(),
+});
 
 export const paymentController = {
     async createPayment(req, res, next) {
         try {
-            const { orderId } = req.body;
+            const validation = validate(req, res, createPaymentSchema);
+            if (!validation.success) return;
 
-            if (!orderId) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Thiếu orderId để tạo thanh toán',
-                });
-            }
-
-            const data = await paymentService.createPaymentRequest({
-                orderId,
-            });
+            const data = await paymentService.createPaymentRequest(
+                validation.data,
+            );
 
             return res.status(200).json({
                 success: true,
@@ -95,19 +101,12 @@ export const paymentController = {
                 });
             }
 
-            const { orderId, transferAmount } = req.body;
+            const validation = validate(req, res, mockWebhookSchema);
+            if (!validation.success) return;
 
-            if (!orderId) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Thiếu orderId để giả lập webhook',
-                });
-            }
-
-            const data = await paymentService.simulateSuccessWebhook({
-                orderId,
-                transferAmount,
-            });
+            const data = await paymentService.simulateSuccessWebhook(
+                validation.data,
+            );
 
             return res.status(200).json({
                 success: true,
