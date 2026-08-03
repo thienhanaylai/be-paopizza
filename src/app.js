@@ -15,6 +15,7 @@ import { globalLimiter } from './middlewares/rateLimit.js';
 const app = express();
 
 app.use(passport.initialize());
+app.set('trust proxy', 1);
 
 passport.use('local', localStrategy);
 passport.use('jwt', jwtStrategy);
