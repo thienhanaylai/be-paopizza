@@ -71,12 +71,13 @@ export const create = async (data) => {
         const {
             item_type = 'product',
             product_id,
+            combo_id,
             size,
             quantity = 1,
             note = '',
             added_topping = [],
-            combo,
             combo_selections = [],
+            price: requestPrice,
         } = item;
 
         if (quantity < 1) {
@@ -132,7 +133,7 @@ export const create = async (data) => {
                 added_topping: normalizeAddedTopping(added_topping),
             });
         } else if (item_type === 'combo') {
-            if (!combo) {
+            if (!combo_id) {
                 throw new Error('MISSING_COMBO_ID');
             }
 
@@ -182,12 +183,17 @@ export const create = async (data) => {
                 }
             }
 
-            const comboDoc = await Combo.findById(combo).select('price');
+            const comboDoc =
+                await Combo.findById(combo_id).select('price pricingType');
             if (!comboDoc) {
                 throw new Error('COMBO_NOT_FOUND');
             }
-            price = comboDoc.price;
-            sku = `COMBO-${combo}`;
+            // static: dùng giá từ DB: dynamic: dùng giá frontend đã tính từ combo_selections
+            price =
+                comboDoc.pricingType === 'dynamic'
+                    ? requestPrice || comboDoc.price
+                    : comboDoc.price;
+            sku = `COMBO-${combo_id}`;
 
             // Chuẩn hoá added_topping trong từng combo_selection
             const normalizedSelections = combo_selections.map((sel) => ({
@@ -203,7 +209,7 @@ export const create = async (data) => {
                 quantity,
                 note,
                 added_topping: normalizeAddedTopping(added_topping),
-                combo,
+                combo: combo_id,
                 combo_selections: normalizedSelections,
             });
         } else {
