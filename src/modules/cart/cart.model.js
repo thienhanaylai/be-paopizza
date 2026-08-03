@@ -60,7 +60,7 @@ const itemSchema = new mongoose.Schema(
         },
         sku: {
             type: String,
-            require: true,
+            required: true,
             trim: true,
         },
         price: {

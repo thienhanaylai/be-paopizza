@@ -63,13 +63,13 @@ const comboSchema = new mongoose.Schema(
         discountType: {
             type: String,
             enum: ['percent', 'amount'],
-            require: true,
+            required: true,
         },
         discount: {
             type: Number,
             default: 0,
             min: 0,
-            require: true,
+            required: true,
         },
         pricingType: {
             type: String,
