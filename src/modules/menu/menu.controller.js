@@ -3,18 +3,18 @@ import { z } from 'zod';
 import { objectIdSchema, validate } from '../../utils/validation.js';
 
 const createMenuSchema = z.object({
-    store_id: z.string().min(1, 'store_id không được để trống'),
+    store: z.string().min(1, 'store không được để trống'),
     products: z.array(z.string()).optional(),
     combos: z.array(z.string()).optional(),
-    isActive: z.boolean().default(true),
+    status: z.boolean().default(true),
 });
 
 const updateMenuSchema = z.object({
     menu_id: objectIdSchema,
-    store_id: z.string().optional(),
+    store: z.string().optional(),
     products: z.array(z.string()).optional(),
     combos: z.array(z.string()).optional(),
-    isActive: z.boolean().optional(),
+    status: z.boolean().optional(),
 });
 
 const updateMenuStatusSchema = z.object({

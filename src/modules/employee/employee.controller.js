@@ -64,6 +64,7 @@ const updateEmployeeSchema = z
             })
             .optional(),
         store_id: z.string().optional(),
+        status: z.boolean().optional(),
     })
     .strict();
 

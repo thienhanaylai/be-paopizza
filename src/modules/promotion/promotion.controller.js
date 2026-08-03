@@ -1,37 +1,27 @@
 import * as promotionService from './promotion.service.js';
 import { z } from 'zod';
-import {
-    booleanSchema,
-    positiveNumberSchema,
-    validate,
-} from '../../utils/validation.js';
+import { positiveNumberSchema, validate } from '../../utils/validation.js';
 
 const createPromotionSchema = z.object({
     code: z.string().min(1, 'Mã khuyến mãi không được để trống'),
-    type: z.enum(['percentage', 'fixed', 'free_shipping']),
+    type: z.enum(['percentage', 'fixed_amount']),
     value: positiveNumberSchema,
     point: z.coerce.number().int().min(-1).optional(),
-    minOrderValue: positiveNumberSchema.default(0),
-    maxDiscount: positiveNumberSchema.optional(),
     startDate: z.coerce.date(),
     endDate: z.coerce.date(),
-    isActive: booleanSchema,
-    usageLimit: z.coerce.number().int().min(0).optional(),
-    storeIds: z.array(z.string()).optional(),
+    status: z.enum(['draft', 'active', 'inactive', 'expired']).default('draft'),
+    applicableStore: z.array(z.string()).optional(),
 });
 
 const updatePromotionSchema = z.object({
     code: z.string().optional(),
-    type: z.enum(['percentage', 'fixed', 'free_shipping']).optional(),
+    type: z.enum(['percentage', 'fixed_amount']).optional(),
     value: positiveNumberSchema.optional(),
     point: z.coerce.number().int().min(-1).optional(),
-    minOrderValue: positiveNumberSchema.optional(),
-    maxDiscount: positiveNumberSchema.optional(),
     startDate: z.coerce.date().optional(),
     endDate: z.coerce.date().optional(),
-    isActive: booleanSchema.optional(),
-    usageLimit: z.coerce.number().int().min(0).optional(),
-    storeIds: z.array(z.string()).optional(),
+    status: z.enum(['draft', 'active', 'inactive', 'expired']).optional(),
+    applicableStore: z.array(z.string()).optional(),
 });
 
 const applyPromoCodeSchema = z.object({

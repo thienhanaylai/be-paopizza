@@ -537,10 +537,13 @@ const seedDemoScenarios = async () => {
                     requiredQuantity: 2,
                 },
             ],
-            disscountType: 'percent',
-            disscount: comboDiscountPercent,
+            discountType: 'percent',
+            discount: comboDiscountPercent,
+            pricingType: 'static',
+            dateStart: dateUtc(2026, 0, 1),
+            dateEnd: dateUtc(2026, 11, 31),
             price: comboPrice,
-            is_active: true,
+            isActive: true,
             isDeleted: false,
         });
         console.log(
@@ -559,10 +562,10 @@ const seedDemoScenarios = async () => {
             code: 'WELCOME10',
             type: 'percentage',
             value: 10,
-            start_date: dateUtc(2026, 0, 1),
-            end_date: dateUtc(2026, 11, 31),
+            startDate: dateUtc(2026, 0, 1),
+            endDate: dateUtc(2026, 11, 31),
             status: 'active',
-            applicable_store: [storeQ8._id, storeQ1._id],
+            applicableStore: [storeQ8._id, storeQ1._id],
             isDeleted: false,
         });
         console.log('   ✅ WELCOME10 (-10%) đã tạo');
@@ -576,10 +579,10 @@ const seedDemoScenarios = async () => {
             code: 'SILVER5',
             type: 'percentage',
             value: 5,
-            start_date: dateUtc(2026, 0, 1),
-            end_date: dateUtc(2026, 11, 31),
+            startDate: dateUtc(2026, 0, 1),
+            endDate: dateUtc(2026, 11, 31),
             status: 'active',
-            applicable_store: [storeQ8._id],
+            applicableStore: [storeQ8._id],
             isDeleted: false,
         });
         console.log('   ✅ SILVER5 (-5%) đã tạo');

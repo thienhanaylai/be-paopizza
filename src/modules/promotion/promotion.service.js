@@ -302,7 +302,7 @@ export const redeemByPoints = async (userId, promotionId) => {
     }
 
     // Kiểm tra promotion có hỗ trợ đổi điểm không
-    if (!promotion.point || promotion.point <= 0) {
+    if (promotion.point == null || promotion.point < 0) {
         throw new Error('PROMOTION_NOT_REDEEMABLE');
     }
 

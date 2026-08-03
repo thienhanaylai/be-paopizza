@@ -3449,7 +3449,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"PROMO15\",\n  \"type\": \"percentage\",\n  \"value\": 15,\n  \"startDate\": \"2026-01-01T00:00:00.000Z\",\n  \"endDate\": \"2026-12-31T23:59:59.000Z\",\n  \"status\": \"active\",\n  \"applicableStore\": [\n    \"{{storeId}}\"\n  ]\n}",
+              "raw": "{\n  \"code\": \"PROMO15\",\n  \"type\": \"percentage\",\n  \"value\": 15,\n  \"point\": 500,\n  \"startDate\": \"2026-01-01T00:00:00.000Z\",\n  \"endDate\": \"2026-12-31T23:59:59.000Z\",\n  \"status\": \"active\",\n  \"applicableStore\": [\n    \"{{storeId}}\"\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3457,7 +3457,7 @@
               }
             },
             "url": "{{baseUrl}}/promotions",
-            "description": "Create promotion. Requires JWT + admin."
+            "description": "Create promotion. Requires JWT + admin.\n\n**point**: -1 = không đổi được, 0 = miễn phí, >0 = số điểm cần để đổi."
           },
           "response": []
         },
@@ -3477,7 +3477,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"PROMO20\",\n  \"type\": \"percentage\",\n  \"value\": 20,\n  \"startDate\": \"2026-01-01T00:00:00.000Z\",\n  \"endDate\": \"2026-12-31T23:59:59.000Z\",\n  \"status\": \"active\",\n  \"applicableStore\": [\n    \"{{storeId}}\"\n  ]\n}",
+              "raw": "{\n  \"code\": \"PROMO20\",\n  \"type\": \"percentage\",\n  \"value\": 20,\n  \"point\": 1000,\n  \"startDate\": \"2026-01-01T00:00:00.000Z\",\n  \"endDate\": \"2026-12-31T23:59:59.000Z\",\n  \"status\": \"active\",\n  \"applicableStore\": [\n    \"{{storeId}}\"\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"

@@ -9,22 +9,30 @@ import {
 const createComboSchema = z.object({
     name: z.string().min(1, 'Tên combo không được để trống'),
     description: z.string().optional(),
+    dateStart: z.coerce.date(),
+    dateEnd: z.coerce.date(),
+    discountType: z.enum(['percent', 'amount']),
+    discount: z.coerce.number().min(0).default(0),
+    pricingType: z.enum(['static', 'dynamic']).default('static'),
     price: z.coerce.number().min(0, 'Giá combo phải lớn hơn hoặc bằng 0'),
     rules: z.array(z.any()).optional(),
     isActive: booleanSchema,
     image: z.string().optional(),
-    store_id: z.string().optional(),
 });
 
 const updateComboSchema = z.object({
     combo_id: objectIdSchema,
     name: z.string().optional(),
     description: z.string().optional(),
+    dateStart: z.coerce.date().optional(),
+    dateEnd: z.coerce.date().optional(),
+    discountType: z.enum(['percent', 'amount']).optional(),
+    discount: z.coerce.number().min(0).optional(),
+    pricingType: z.enum(['static', 'dynamic']).optional(),
     price: z.coerce.number().min(0).optional(),
     rules: z.array(z.any()).optional(),
     isActive: booleanSchema.optional(),
     image: z.string().optional(),
-    store_id: z.string().optional(),
 });
 
 const updateComboStatusSchema = z.object({

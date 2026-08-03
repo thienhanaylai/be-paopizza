@@ -9,16 +9,16 @@ import {
 const createOrUpdateInventorySchema = z.object({
     store_id: objectIdSchema,
     ingredient_id: objectIdSchema,
-    quantity: positiveNumberSchema,
+    current_stock: positiveNumberSchema,
     unit: z.string().optional(),
-    low_stock_threshold: positiveNumberSchema.optional(),
+    min_stock_level: positiveNumberSchema.optional(),
 });
 
 const updateStockSchema = z.object({
     store_id: objectIdSchema,
     ingredient_id: objectIdSchema,
     quantity: z.coerce.number(),
-    adjustment_type: z.enum(['in', 'out', 'set']).default('set'),
+    type: z.enum(['add', 'subtract', 'set']).default('set'),
     reason: z.string().optional(),
 });
 

@@ -5,14 +5,14 @@ import { validate } from '../../utils/validation.js';
 const createOrderSchema = z.object({
     orderType: z.enum(['dine_in', 'carry_out', 'delivery']),
     paymentMethod: z.enum(['cash', 'qrCode', 'card', 'ewallet']),
-    paymentStatus: z
-        .enum(['pending', 'success', 'cancelled'])
-        .default('pending'),
+    paymentStatus: z.enum(['pending', 'success', 'failed']).default('pending'),
+    promotion_code: z.string().optional(),
     contact_info: z
         .object({
             full_name: z.string().optional(),
             phone: z.string().optional(),
             address: z.string().optional(),
+            email: z.string().optional(),
         })
         .optional(),
     store_id: z.string().min(1, 'store_id không được để trống'),
