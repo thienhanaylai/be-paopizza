@@ -3,6 +3,7 @@ import { Product } from '../product/product.model.js';
 import { Combo } from '../combo/combo.model.js';
 import { Promotion } from '../promotion/promotion.model.js';
 import { User } from '../user/user.model.js';
+import { Customer } from '../customer/customer.model.js';
 import { paymentService } from '../payment/payment.service.js';
 import * as inventoryService from '../inventory/inventory.service.js';
 
@@ -423,6 +424,38 @@ const extractIngredientsFromOrder = (order) => {
     return ingredientsMap;
 };
 
+//   Cộng điểm cho tài khoản khách hàng khi đơn hàng completed.
+//   Tích điểm dựa trên tài khoản Customer (customer_id),
+//   10k = 1 đ
+
+const rewardCustomerPoints = async (order) => {
+    if (!order || order.total <= 0) return null;
+
+    let customerId = null;
+
+    if (order.customer_id) {
+        customerId = order.customer_id._id || order.customer_id;
+    }
+
+    if (!customerId) return null;
+
+    const pointsEarned = Math.floor(order.total / 10000);
+    if (pointsEarned <= 0) return null;
+
+    const updatedCustomer = await Customer.findOneAndUpdate(
+        { _id: customerId, isDeleted: false },
+        {
+            $inc: {
+                currentPoint: pointsEarned,
+                totalPoint: pointsEarned,
+            },
+        },
+        { new: true },
+    );
+
+    return updatedCustomer;
+};
+
 export const updateStatus = async (order_id, status) => {
     const payload = { status };
     const currentOrder = await Order.findById(order_id).select(
@@ -452,6 +485,18 @@ export const updateStatus = async (order_id, status) => {
         const ingredientsMap = extractIngredientsFromOrder(order);
         if (ingredientsMap.size > 0) {
             await inventoryService.deductForOrder(storeId, ingredientsMap);
+        }
+
+        // Tự động cộng điểm cho tài khoản khách hàng
+        try {
+            const rewardedCustomer = await rewardCustomerPoints(order);
+            if (rewardedCustomer) {
+                console.log(
+                    `[POINTS] +${Math.floor(order.total / 10000)} điểm cho tài khoản KH ${rewardedCustomer.phone} (Đơn: ${order._id})`,
+                );
+            }
+        } catch (err) {
+            console.error('[POINTS] Lỗi cộng điểm:', err.message);
         }
     }
 

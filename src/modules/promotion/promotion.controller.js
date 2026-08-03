@@ -1,13 +1,11 @@
 import * as promotionService from './promotion.service.js';
 import { z } from 'zod';
 import {
-    objectIdSchema,
     booleanSchema,
     positiveNumberSchema,
     validate,
 } from '../../utils/validation.js';
 
-// ─── Schema ───────────────────────────────────────────────────────────
 const createPromotionSchema = z.object({
     code: z.string().min(1, 'Mã khuyến mãi không được để trống'),
     type: z.enum(['percentage', 'fixed', 'free_shipping']),
@@ -23,7 +21,6 @@ const createPromotionSchema = z.object({
 });
 
 const updatePromotionSchema = z.object({
-    promotion_id: objectIdSchema,
     code: z.string().optional(),
     type: z.enum(['percentage', 'fixed', 'free_shipping']).optional(),
     value: positiveNumberSchema.optional(),
@@ -73,12 +70,12 @@ export const getPromotion = async (req, res) => {
 };
 
 export const updatePromotion = async (req, res) => {
-    const promotion_id = req.params.promotion_id || req.body.promotion_id;
+    const { promotion_id } = req.params;
     const validation = validate(req, res, updatePromotionSchema, 'body');
     if (!validation.success) return;
 
     const result = await promotionService.update({
-        promotion_id: promotion_id || validation.data.promotion_id,
+        promotion_id,
         ...validation.data,
     });
     return res.status(200).json({

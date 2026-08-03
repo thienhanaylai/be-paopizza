@@ -17,7 +17,7 @@ export const create = async (data) => {
     if (existing) {
         throw new Error('PRODUCT_NAME_EXISTS');
     }
-    console.log(data);
+
     const product = await Product.create({
         name,
         category,

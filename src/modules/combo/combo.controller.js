@@ -6,7 +6,6 @@ import {
     validate,
 } from '../../utils/validation.js';
 
-// ─── Schema ───────────────────────────────────────────────────────────
 const createComboSchema = z.object({
     name: z.string().min(1, 'Tên combo không được để trống'),
     description: z.string().optional(),
@@ -29,7 +28,6 @@ const updateComboSchema = z.object({
 });
 
 const updateComboStatusSchema = z.object({
-    combo_id: objectIdSchema,
     isActive: booleanSchema,
 });
 
@@ -97,12 +95,12 @@ export const deletedCombo = async (req, res) => {
 };
 
 export const updateComboStatus = async (req, res) => {
-    const combo_id = req.params.combo_id || req.body.combo_id;
+    const { combo_id } = req.params;
     const validation = validate(req, res, updateComboStatusSchema, 'body');
     if (!validation.success) return;
 
     const result = await comboService.updateStatus(
-        combo_id || validation.data.combo_id,
+        combo_id,
         validation.data.isActive,
     );
     return res.status(200).json({

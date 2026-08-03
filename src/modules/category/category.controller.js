@@ -6,7 +6,6 @@ import {
     validate,
 } from '../../utils/validation.js';
 
-// ─── Schema ───────────────────────────────────────────────────────────
 const createCategorySchema = z.object({
     name: z.string().min(1, 'Tên danh mục không được để trống'),
     slug: z.string().min(1, 'Slug không được để trống'),

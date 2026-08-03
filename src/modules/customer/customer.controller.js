@@ -4,7 +4,6 @@ import { User } from '../user/user.model.js';
 import { z } from 'zod';
 import { phoneSchema, nameSchema, validate } from '../../utils/validation.js';
 
-// ─── Schema ───────────────────────────────────────────────────────────
 const registerSchema = z.object({
     phone: z.string().min(1, 'Số điện thoại không được để trống'),
     password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),

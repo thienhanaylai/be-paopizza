@@ -2,7 +2,6 @@ import { paymentService } from './payment.service.js';
 import { z } from 'zod';
 import { validate } from '../../utils/validation.js';
 
-// ─── Schema ───────────────────────────────────────────────────────────
 const createPaymentSchema = z.object({
     orderId: z.string().min(1, 'orderId không được để trống'),
 });

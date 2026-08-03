@@ -6,7 +6,6 @@ import {
     validate,
 } from '../../utils/validation.js';
 
-// ─── Schema ───────────────────────────────────────────────────────────
 const createIngredientSchema = z.object({
     name: z.string().min(1, 'Tên nguyên liệu không được để trống'),
     unit: z.string().min(1, 'Đơn vị không được để trống'),

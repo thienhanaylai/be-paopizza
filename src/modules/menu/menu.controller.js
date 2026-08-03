@@ -2,7 +2,6 @@ import * as menuService from './menu.service.js';
 import { z } from 'zod';
 import { objectIdSchema, validate } from '../../utils/validation.js';
 
-// ─── Schema ───────────────────────────────────────────────────────────
 const createMenuSchema = z.object({
     store_id: z.string().min(1, 'store_id không được để trống'),
     products: z.array(z.string()).optional(),
@@ -19,7 +18,6 @@ const updateMenuSchema = z.object({
 });
 
 const updateMenuStatusSchema = z.object({
-    menu_id: objectIdSchema,
     status: z.boolean(),
 });
 
@@ -77,12 +75,12 @@ export const deletedMenu = async (req, res) => {
 };
 
 export const updateMenuStatus = async (req, res) => {
-    const menu_id = req.params.menu_id || req.body.menu_id;
+    const { menu_id } = req.params;
     const validation = validate(req, res, updateMenuStatusSchema, 'body');
     if (!validation.success) return;
 
     const result = await menuService.updateStatus(
-        menu_id || validation.data.menu_id,
+        menu_id,
         validation.data.status,
     );
     return res.status(200).json({

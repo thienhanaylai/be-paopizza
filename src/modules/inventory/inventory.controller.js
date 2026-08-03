@@ -6,7 +6,6 @@ import {
     validate,
 } from '../../utils/validation.js';
 
-// ─── Schema ───────────────────────────────────────────────────────────
 const createOrUpdateInventorySchema = z.object({
     store_id: objectIdSchema,
     ingredient_id: objectIdSchema,

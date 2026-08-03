@@ -2,7 +2,6 @@ import * as cartService from './cart.service.js';
 import { z } from 'zod';
 import { objectIdSchema, validate } from '../../utils/validation.js';
 
-// ─── Schema ───────────────────────────────────────────────────────────
 const userIdOnlySchema = z.object({
     userId: objectIdSchema,
 });

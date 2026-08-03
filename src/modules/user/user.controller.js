@@ -2,7 +2,6 @@ import * as userService from './user.service.js';
 import { z } from 'zod';
 import { objectIdSchema, validate } from '../../utils/validation.js';
 
-// ─── Schema ───────────────────────────────────────────────────────────
 const updateStatusSchema = z.object({
     id: objectIdSchema,
     status: z.boolean({ message: 'status phải là true hoặc false' }),

@@ -7,7 +7,6 @@ import {
     validate,
 } from '../../utils/validation.js';
 
-// ─── Schema ───────────────────────────────────────────────────────────
 const createStoreSchema = z.object({
     name: z.string().min(1, 'Tên cửa hàng không được để trống'),
     address: z

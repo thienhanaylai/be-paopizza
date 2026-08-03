@@ -13,7 +13,7 @@ export const validate = (req, res, schema, source = 'body') => {
     if (!result.success) {
         res.status(400).json({
             message: 'Dữ liệu không hợp lệ',
-            errors: result.error.errors.map((err) => ({
+            errors: result.error.issues.map((err) => ({
                 field: err.path.join('.'),
                 message: err.message,
             })),

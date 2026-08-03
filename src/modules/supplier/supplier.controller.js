@@ -9,7 +9,6 @@ import {
     validate,
 } from '../../utils/validation.js';
 
-// ─── Schema ───────────────────────────────────────────────────────────
 const createSupplierSchema = z.object({
     name: z.string().min(1, 'Tên nhà cung cấp không được để trống'),
     email: emailSchema.optional().or(z.literal('')),

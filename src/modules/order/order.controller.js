@@ -1,8 +1,7 @@
 import * as orderService from './order.service.js';
 import { z } from 'zod';
-import { objectIdSchema, validate } from '../../utils/validation.js';
+import { validate } from '../../utils/validation.js';
 
-// ─── Schema ───────────────────────────────────────────────────────────
 const createOrderSchema = z.object({
     orderType: z.enum(['dine_in', 'carry_out', 'delivery']),
     paymentMethod: z.enum(['cash', 'qrCode', 'card', 'ewallet']),
@@ -49,25 +48,12 @@ const createOrderSchema = z.object({
 });
 
 const updateOrderStatusSchema = z.object({
-    order_id: objectIdSchema,
     status: z.string().min(1, 'Trạng thái không được để trống'),
 });
 
 const updatePaymentStatusSchema = z.object({
-    order_id: objectIdSchema,
     paymentStatus: z.string().min(1),
 });
-
-// ─── Helper ────────────────────────────────────────────────────────────
-
-// ─── Helper ────────────────────────────────────────────────────────────
-const buildActorInfo = (user) => ({
-    actor_id: user?.ref_id || user?._id || null,
-    actor_type: user?.user_type || 'User',
-    actor_role: user?.role || '',
-});
-
-// ─── Controller ────────────────────────────────────────────────────────
 
 export const createOrder = async (req, res) => {
     const validation = validate(req, res, createOrderSchema);
@@ -129,13 +115,12 @@ export const checkOrderPaymentSuccess = async (req, res, next) => {
 
 export const updateOrderStatus = async (req, res) => {
     const { order_id } = req.params;
-    const { status } = req.body;
 
     const validation = validate(req, res, updateOrderStatusSchema, 'body');
     if (!validation.success) return;
 
     const result = await orderService.updateStatus(
-        order_id || validation.data.order_id,
+        order_id,
         validation.data.status,
     );
     return res.status(200).json({
@@ -147,7 +132,6 @@ export const updateOrderStatus = async (req, res) => {
 export const updateOrderPaymentStatus = async (req, res, next) => {
     try {
         const { order_id } = req.params;
-        const { paymentStatus } = req.body;
 
         const validation = validate(
             req,
@@ -158,7 +142,7 @@ export const updateOrderPaymentStatus = async (req, res, next) => {
         if (!validation.success) return;
 
         const result = await orderService.updatePaymentStatus(
-            order_id || validation.data.order_id,
+            order_id,
             validation.data.paymentStatus,
         );
 
