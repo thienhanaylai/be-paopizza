@@ -45,6 +45,19 @@ const promotionSchema = new mongoose.Schema(
             ref: 'Store',
             default: [],
         },
+        usageLimit: {
+            type: Number,
+            min: -1, // -1 là không giới hạn
+            default: null,
+        },
+        usedCount: {
+            type: Number,
+            default: 0,
+        },
+        maxUsagePerUser: {
+            type: Number,
+            default: 1,
+        },
         isDeleted: {
             type: Boolean,
             default: false,

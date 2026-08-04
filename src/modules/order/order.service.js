@@ -4,16 +4,13 @@ import { Combo } from '../combo/combo.model.js';
 import { Promotion } from '../promotion/promotion.model.js';
 import { User } from '../user/user.model.js';
 import { Customer } from '../customer/customer.model.js';
+import * as customerService from '../customer/customer.service.js';
 import { paymentService } from '../payment/payment.service.js';
 import * as inventoryService from '../inventory/inventory.service.js';
 
 const SEPAY_QR_PAYMENT_METHODS = new Set(['qrCode', 'ewallet']);
 const CASH_PAYMENT_METHODS = new Set(['cash']);
 
-/**
- * Chuẩn hoá added_topping: frontend có thể gửi mảng string (chỉ chứa ingredient ID)
- * hoặc mảng object { ingredient, quantity }. Luôn trả về mảng object.
- */
 const normalizeAddedTopping = (added_topping = []) => {
     return added_topping.map((item) => {
         if (typeof item === 'string') {
@@ -220,10 +217,15 @@ export const create = async (data) => {
     }
 
     let discount_amount = 0;
+    let appliedPromotionCode = null;
+    let appliedPromotionId = null;
+
     if (promotion_code) {
+        const code = promotion_code.toUpperCase().trim();
         const promo = await Promotion.findOne({
-            code: promotion_code.toUpperCase().trim(),
+            code,
             status: 'active',
+            isDeleted: false,
             startDate: { $lte: new Date() },
             endDate: { $gte: new Date() },
             $or: [
@@ -231,13 +233,72 @@ export const create = async (data) => {
                 { applicableStore: { $size: 0 } },
             ],
         });
-        if (promo) {
-            if (promo.type === 'percentage') {
-                discount_amount = Math.round(subTotal * (promo.value / 100));
-            } else if (promo.type === 'fixed_amount') {
-                discount_amount = Math.min(promo.value, subTotal);
+
+        if (!promo) {
+            throw new Error('PROMOTION_NOT_FOUND_OR_EXPIRED');
+        }
+
+        // Kiểm tra usageLimit
+        if (promo.usageLimit !== -1 && promo.usageLimit !== null) {
+            if (promo.usedCount >= promo.usageLimit) {
+                throw new Error('PROMOTION_USAGE_LIMIT_REACHED');
             }
         }
+
+        // Kiểm tra maxUsagePerUser nếu có customer_id
+        if (customer_id && promo.maxUsagePerUser > 0) {
+            const customer = await Customer.findById(customer_id);
+            if (customer) {
+                // Chỉ đếm những lần đã thực sự SỬ DỤNG (isUsed: true), không tính code chưa dùng
+                const userUsedCount = customer.redeemPromotion
+                    ? customer.redeemPromotion.filter(
+                          (rp) =>
+                              rp.promotion &&
+                              rp.promotion.toString() ===
+                                  promo._id.toString() &&
+                              rp.isUsed === true,
+                      ).length
+                    : 0;
+
+                if (userUsedCount >= promo.maxUsagePerUser) {
+                    throw new Error('PROMOTION_MAX_USAGE_PER_USER_REACHED');
+                }
+            }
+        }
+
+        // Tính discount
+        if (promo.type === 'percentage') {
+            discount_amount = Math.round(subTotal * (promo.value / 100));
+        } else if (promo.type === 'fixed_amount') {
+            discount_amount = Math.min(promo.value, subTotal);
+        }
+
+        // Tăng usedCount
+        promo.usedCount += 1;
+        await promo.save();
+
+        // Đánh dấu redeemed promotion đã sử dụng (nếu có customer)
+        if (customer_id) {
+            // Với promotion cần quy đổi (point >= 0), bắt buộc phải có bản ghi redeemPromotion chưa dùng
+            // Với promotion thường (point = -1), cho phép dùng trực tiếp không cần quy đổi
+            const isRedeemablePromo = promo.point != null && promo.point >= 0;
+
+            try {
+                await customerService.markRedeemedPromotionUsed(
+                    customer_id,
+                    promo._id.toString(),
+                );
+            } catch (markErr) {
+                if (isRedeemablePromo) {
+                    // Promotion yêu cầu quy đổi nhưng customer chưa redeem → chặn
+                    throw new Error('PROMOTION_NOT_REDEEMED');
+                }
+                // Promotion thường (point = -1): bỏ qua, cho phép dùng trực tiếp
+            }
+        }
+
+        appliedPromotionCode = code;
+        appliedPromotionId = promo._id;
     }
 
     const total = subTotal - discount_amount;
@@ -256,6 +317,7 @@ export const create = async (data) => {
         paymentMethod,
         paymentStatus: 'pending',
         contact_info,
+        promotion_code: appliedPromotionCode,
     };
 
     const order = await Order.create(orderData);

@@ -45,7 +45,6 @@ const defaultAddressSchema = z.object({
     address_id: z.string().min(1, 'address_id không được để trống'),
 });
 
-// ─── Helper ────────────────────────────────────────────────────────────
 const getCustomerByUserId = async (userId) => {
     const user = await User.findById(userId);
     if (!user || !user.ref_id) {
@@ -157,5 +156,15 @@ export const deleteAddress = async (req, res) => {
 
     return res.status(200).json({
         message: 'Xoá địa chỉ giao hàng thành công',
+    });
+};
+
+export const getRedeemedPromotions = async (req, res) => {
+    const userId = req.user._id;
+
+    const redeemedList = await customerService.getRedeemedPromotions(userId);
+
+    return res.status(200).json({
+        data: redeemedList,
     });
 };

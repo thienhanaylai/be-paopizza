@@ -232,6 +232,12 @@ const orderSchema = new mongoose.Schema(
         contact_info: {
             type: contactInfoSchema,
         },
+        promotion_code: {
+            type: String,
+            trim: true,
+            uppercase: true,
+            default: null,
+        },
         isDeleted: {
             type: Boolean,
             default: false,

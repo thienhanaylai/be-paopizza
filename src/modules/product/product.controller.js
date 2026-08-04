@@ -128,7 +128,6 @@ const normalizePayload = (req) => {
     return payload;
 };
 
-// ─── Schema cơ bản cho Product (validate các trường bắt buộc) ──────────
 const createProductSchema = z.object({
     name: z.string().min(1, 'Tên sản phẩm không được để trống'),
     category: z.string().min(1, 'Danh mục không được để trống'),

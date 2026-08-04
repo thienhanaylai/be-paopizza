@@ -56,9 +56,9 @@ const ingredientSchema = new mongoose.Schema(
             default: 0,
             min: 0,
         },
-        image: {
-            type: String,
-            default: '',
+        suppliers: {
+            type: [{ type: mongoose.Schema.ObjectId, ref: 'Supplier' }],
+            default: [],
         },
         isActive: {
             type: Boolean,

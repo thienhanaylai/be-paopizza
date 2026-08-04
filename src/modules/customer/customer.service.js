@@ -221,3 +221,94 @@ export const setDefaultAddress = async (contactInfo) => {
 
     await customer.save();
 };
+
+const TIER_THRESHOLDS = {
+    diamond: 10000,
+    gold: 5000,
+    silver: 2000,
+    member: 0,
+};
+
+const getTierByTotalPoint = (totalPoint) => {
+    if (totalPoint >= TIER_THRESHOLDS.diamond) return 'diamond';
+    if (totalPoint >= TIER_THRESHOLDS.gold) return 'gold';
+    if (totalPoint >= TIER_THRESHOLDS.silver) return 'silver';
+    return 'member';
+};
+
+export const addPoints = async (customerId, points) => {
+    if (!customerId || !points || points <= 0) {
+        throw new Error('INVALID_POINTS');
+    }
+
+    const customer = await Customer.findById(customerId);
+    if (!customer || customer.isDeleted) {
+        throw new Error('CUSTOMER_NOT_FOUND');
+    }
+
+    customer.currentPoint += points;
+    customer.totalPoint += points;
+    customer.tier = getTierByTotalPoint(customer.totalPoint);
+
+    await customer.save();
+    return customer;
+};
+
+export const markRedeemedPromotionUsed = async (customerId, promotionId) => {
+    const customer = await Customer.findById(customerId);
+    if (!customer || customer.isDeleted) {
+        throw new Error('CUSTOMER_NOT_FOUND');
+    }
+
+    const redeemed = customer.redeemPromotion.find(
+        (rp) =>
+            rp.promotion &&
+            rp.promotion.toString() === promotionId.toString() &&
+            !rp.isUsed,
+    );
+
+    if (!redeemed) {
+        throw new Error('REDEEMED_PROMOTION_NOT_FOUND');
+    }
+
+    redeemed.isUsed = true;
+    await customer.save();
+    return customer;
+};
+
+export const getCustomerByUserId = async (userId) => {
+    const user = await User.findById(userId);
+    if (!user || !user.ref_id) {
+        throw new Error('USER_OR_REF_NOT_FOUND');
+    }
+
+    const customer = await Customer.findById(user.ref_id);
+    if (!customer || customer.isDeleted) {
+        throw new Error('CUSTOMER_NOT_FOUND');
+    }
+
+    return customer;
+};
+
+/**
+ * Lấy danh sách khuyến mãi đã đổi của khách hàng (có populate thông tin promotion)
+ * @param {string} userId - _id của User
+ * @returns {Array} Danh sách redeemPromotion đã populate
+ */
+export const getRedeemedPromotions = async (userId) => {
+    const user = await User.findById(userId);
+    if (!user || !user.ref_id) {
+        throw new Error('USER_OR_REF_NOT_FOUND');
+    }
+
+    const customer = await Customer.findById(user.ref_id).populate({
+        path: 'redeemPromotion.promotion',
+        select: 'code type value point endDate status',
+    });
+
+    if (!customer || customer.isDeleted) {
+        throw new Error('CUSTOMER_NOT_FOUND');
+    }
+
+    return customer.redeemPromotion || [];
+};

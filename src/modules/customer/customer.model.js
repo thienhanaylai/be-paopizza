@@ -24,6 +24,18 @@ const listAddressSchema = new mongoose.Schema({
     },
 });
 
+const redeemPromotion = new mongoose.Schema({
+    promotion: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'Promotion',
+    },
+    isUsed: {
+        type: Boolean,
+        required: true,
+        default: false,
+    },
+});
+
 const customerSchema = new mongoose.Schema(
     {
         name: {
@@ -65,6 +77,10 @@ const customerSchema = new mongoose.Schema(
             type: String,
             enum: TYPE_MEMBER,
             default: 'member',
+        },
+        redeemPromotion: {
+            type: [redeemPromotion],
+            default: [],
         },
         isDeleted: {
             type: Boolean,

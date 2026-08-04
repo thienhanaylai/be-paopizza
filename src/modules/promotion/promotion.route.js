@@ -7,6 +7,16 @@ import { asyncHandler } from '../../middlewares/index.js';
 const requireAuth = passport.authenticate('jwt', { session: false });
 const requireAdmin = authorize(['admin']);
 
+// Optional auth: lấy user nếu có token, không bắt buộc
+const optionalAuth = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, (_err, user) => {
+        if (user) {
+            req.user = user;
+        }
+        next();
+    })(req, res, next);
+};
+
 const router = express.Router();
 
 router.get(
@@ -47,7 +57,11 @@ router.patch(
     asyncHandler(promotionController.deletedPromotion),
 );
 
-router.post('/apply', asyncHandler(promotionController.applyPromoCode));
+router.post(
+    '/apply',
+    optionalAuth,
+    asyncHandler(promotionController.applyPromoCode),
+);
 
 router.post(
     '/redeem',

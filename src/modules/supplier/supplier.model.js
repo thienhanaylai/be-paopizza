@@ -1,10 +1,13 @@
 import mongoose from 'mongoose';
 
 export const CATEGORY_LIST = [
-    'main_ingredient',
+    'dough',
     'drink',
     'seafood',
     'vegetable',
+    'meat',
+    'sauce',
+    'other',
 ];
 
 const supplierSchema = new mongoose.Schema(

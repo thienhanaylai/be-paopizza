@@ -11,6 +11,8 @@ const createPromotionSchema = z.object({
     endDate: z.coerce.date(),
     status: z.enum(['draft', 'active', 'inactive', 'expired']).default('draft'),
     applicableStore: z.array(z.string()).optional(),
+    usageLimit: z.coerce.number().int().min(-1).optional(),
+    maxUsagePerUser: z.coerce.number().int().min(1).optional(),
 });
 
 const updatePromotionSchema = z.object({
@@ -22,6 +24,8 @@ const updatePromotionSchema = z.object({
     endDate: z.coerce.date().optional(),
     status: z.enum(['draft', 'active', 'inactive', 'expired']).optional(),
     applicableStore: z.array(z.string()).optional(),
+    usageLimit: z.coerce.number().int().min(-1).optional(),
+    maxUsagePerUser: z.coerce.number().int().min(1).optional(),
 });
 
 const applyPromoCodeSchema = z.object({
@@ -113,10 +117,18 @@ export const applyPromoCode = async (req, res) => {
     if (!validation.success) return;
 
     const { code, orderTotal, storeId } = validation.data;
+
+    // Lấy customerId nếu user đã đăng nhập
+    let customerId = null;
+    if (req.user && req.user.user_type === 'Customer' && req.user.ref_id) {
+        customerId = req.user.ref_id;
+    }
+
     const result = await promotionService.applyPromotion(
         code,
         orderTotal,
         storeId,
+        customerId,
     );
     return res.status(200).json({
         data: result,

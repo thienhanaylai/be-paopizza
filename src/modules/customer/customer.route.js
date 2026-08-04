@@ -34,4 +34,11 @@ router.post(
     requireAuth,
     asyncHandler(customerController.setDefaultAddress),
 );
+
+router.get(
+    '/redeemed-promotions',
+    requireAuth,
+    asyncHandler(customerController.getRedeemedPromotions),
+);
+
 export default router;
