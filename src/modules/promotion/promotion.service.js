@@ -272,6 +272,18 @@ export const applyPromotion = async (code, orderTotal, storeId, customerId) => {
         }
     }
 
+    // Khách vãng lai chỉ được áp dụng mã có point = 0 (miễn phí)
+    if (!customerId && promotion.point != null && promotion.point > 0) {
+        return {
+            valid: false,
+            code: promotion.code,
+            discountType: promotion.type === 'percentage' ? 'percent' : 'fixed',
+            discountValue: promotion.value,
+            discountAmount: 0,
+            message: 'PROMOTION_REQUIRES_POINTS',
+        };
+    }
+
     // Kiểm tra maxUsagePerUser (nếu có customerId)
     if (customerId && promotion.maxUsagePerUser > 0) {
         const customer = await Customer.findById(customerId);

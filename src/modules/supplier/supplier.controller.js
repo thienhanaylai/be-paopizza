@@ -15,6 +15,7 @@ const createSupplierSchema = z.object({
     phone: phoneSchema.optional().or(z.literal('')),
     supplier_category: z.string().optional(),
     isActive: booleanSchema,
+    supplierIngredients: z.array(z.string()).optional(),
 });
 
 const updateSupplierSchema = z.object({
@@ -24,6 +25,7 @@ const updateSupplierSchema = z.object({
     phone: phoneSchema.optional().or(z.literal('')),
     supplier_category: z.string().optional(),
     isActive: booleanSchema.optional(),
+    supplierIngredients: z.array(z.string()).optional(),
 });
 
 export const createSupplier = async (req, res, next) => {

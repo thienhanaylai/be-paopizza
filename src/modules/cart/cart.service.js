@@ -43,7 +43,28 @@ export const addToCart = async (data) => {
         added_topping = [],
         combo,
         combo_selections = [],
+        price: clientPrice,
     } = data;
+
+    // Chuẩn hoá added_topping: nếu là string[] thì chuyển thành [{ ingredient, quantity: 1 }]
+    const normalizedToppings = added_topping.map((item) => {
+        if (typeof item === 'string') {
+            return { ingredient: item, quantity: 1 };
+        }
+        return item;
+    });
+
+    // Chuẩn hoá added_topping bên trong từng combo_selections
+    const normalizedComboSelections = combo_selections.map((sel) => ({
+        ...sel,
+        added_topping: Array.isArray(sel.added_topping)
+            ? sel.added_topping.map((item) =>
+                  typeof item === 'string'
+                      ? { ingredient: item, quantity: 1 }
+                      : item,
+              )
+            : sel.added_topping || [],
+    }));
 
     if (quantity < 1) {
         throw new Error('INVALID_QUANTITY');
@@ -81,14 +102,14 @@ export const addToCart = async (data) => {
             throw new Error('SIZE_NOT_AVAILABLE');
         }
 
-        price = variant.price;
+        price = clientPrice > 0 ? clientPrice : variant.price;
         sku = variant.sku;
     } else if (item_type === 'combo') {
         const comboDoc = await Combo.findById(combo).select('price');
         if (!comboDoc) {
             throw new Error('COMBO_NOT_FOUND');
         }
-        price = comboDoc.price;
+        price = clientPrice > 0 ? clientPrice : comboDoc.price;
 
         // Đếm số lượng item combo cùng loại đã có trong giỏ (cùng combo_id)
         const sameComboCount = cart.items.filter(
@@ -115,7 +136,10 @@ export const addToCart = async (data) => {
             // Cùng combo và cùng selection mới tính là trùng
             return (
                 item.combo.toString() === combo.toString() &&
-                isSameComboSelection(item.combo_selections, combo_selections)
+                isSameComboSelection(
+                    item.combo_selections,
+                    normalizedComboSelections,
+                )
             );
         }
     });
@@ -125,8 +149,8 @@ export const addToCart = async (data) => {
         cart.items[existingIndex].price = price;
         cart.items[existingIndex].sku = sku;
         if (note) cart.items[existingIndex].note = note;
-        if (added_topping.length > 0) {
-            cart.items[existingIndex].added_topping = added_topping;
+        if (normalizedToppings.length > 0) {
+            cart.items[existingIndex].added_topping = normalizedToppings;
         }
     } else {
         const newItem = {
@@ -136,14 +160,14 @@ export const addToCart = async (data) => {
             size,
             quantity,
             note,
-            added_topping,
+            added_topping: normalizedToppings,
         };
 
         if (item_type === 'product') {
             newItem.product_id = product_id;
         } else {
             newItem.combo = combo;
-            newItem.combo_selections = combo_selections;
+            newItem.combo_selections = normalizedComboSelections;
         }
 
         cart.items.push(newItem);
@@ -242,10 +266,29 @@ export const updateCartItem = async (data) => {
         cart.items[itemIndex].note = note;
     }
     if (added_topping !== undefined) {
-        cart.items[itemIndex].added_topping = added_topping;
+        // Chuẩn hoá: nếu là string[] thì chuyển thành [{ ingredient, quantity: 1 }]
+        const normalized = Array.isArray(added_topping)
+            ? added_topping.map((item) =>
+                  typeof item === 'string'
+                      ? { ingredient: item, quantity: 1 }
+                      : item,
+              )
+            : added_topping;
+        cart.items[itemIndex].added_topping = normalized;
     }
     if (combo_selections !== undefined) {
-        cart.items[itemIndex].combo_selections = combo_selections;
+        // Chuẩn hoá added_topping bên trong combo_selections
+        const normalized = combo_selections.map((sel) => ({
+            ...sel,
+            added_topping: Array.isArray(sel.added_topping)
+                ? sel.added_topping.map((item) =>
+                      typeof item === 'string'
+                          ? { ingredient: item, quantity: 1 }
+                          : item,
+                  )
+                : sel.added_topping || [],
+        }));
+        cart.items[itemIndex].combo_selections = normalized;
     }
 
     await cart.save();

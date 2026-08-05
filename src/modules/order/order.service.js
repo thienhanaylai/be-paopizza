@@ -464,10 +464,18 @@ const extractIngredientsFromOrder = (order) => {
                             topping.ingredient?._id?.toString() ||
                             topping.ingredient?.toString();
                         if (!ingId) continue;
-                        const perToppingQty =
+                        const rawQty =
                             topping.ingredient?.quantityExtra ||
                             topping.quantity ||
                             1;
+                        // Quy ước: unit kg → quantityExtra tính theo gram, lit → ml
+                        const ingUnit = topping.ingredient?.unit;
+                        let perToppingQty =
+                            ingUnit === 'kg' || ingUnit === 'lit'
+                                ? rawQty / 1000
+                                : rawQty;
+                        // Làm tròn đến 3 chữ số thập phân
+                        perToppingQty = Math.round(perToppingQty * 1000) / 1000;
                         const qty = perToppingQty * itemQty;
                         ingredientsMap.set(
                             ingId,
@@ -485,8 +493,16 @@ const extractIngredientsFromOrder = (order) => {
                     topping.ingredient?._id?.toString() ||
                     topping.ingredient?.toString();
                 if (!ingId) continue;
-                const perToppingQty =
+                const rawQty =
                     topping.ingredient?.quantityExtra || topping.quantity || 1;
+                // Quy ước: unit kg → quantityExtra tính theo gram, lit → ml
+                const ingUnit = topping.ingredient?.unit;
+                let perToppingQty =
+                    ingUnit === 'kg' || ingUnit === 'lit'
+                        ? rawQty / 1000
+                        : rawQty;
+                // Làm tròn đến 3 chữ số thập phân
+                perToppingQty = Math.round(perToppingQty * 1000) / 1000;
                 const qty = perToppingQty * itemQty;
                 ingredientsMap.set(
                     ingId,

@@ -36,6 +36,10 @@ const supplierSchema = new mongoose.Schema(
             enum: CATEGORY_LIST,
             required: true,
         },
+        supplierIngredients: {
+            type: [{ type: mongoose.Schema.ObjectId, ref: 'Ingredient' }],
+            default: [],
+        },
         isDeleted: {
             type: Boolean,
             default: false,

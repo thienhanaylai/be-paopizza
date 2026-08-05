@@ -61,10 +61,6 @@ const ingredientSchema = new mongoose.Schema(
             default: 0,
             min: 0,
         },
-        suppliers: {
-            type: [{ type: mongoose.Schema.ObjectId, ref: 'Supplier' }],
-            default: [],
-        },
         isActive: {
             type: Boolean,
             default: true,

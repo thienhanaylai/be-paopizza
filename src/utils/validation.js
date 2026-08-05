@@ -29,10 +29,10 @@ export const objectIdSchema = z
     .string()
     .regex(/^[a-fA-F0-9]{24}$/, 'ID không hợp lệ');
 
-// chuẩn sdt VN
+// chuẩn sdt VN (di động & bàn)
 export const phoneSchema = z
     .string()
-    .regex(/^(0[3|5|7|8|9])[0-9]{8}$/, 'Số điện thoại không hợp lệ');
+    .regex(/^(0[2-9])[0-9]{8,9}$/, 'Số điện thoại không hợp lệ');
 
 // Email
 export const emailSchema = z.string().email('Email không hợp lệ');

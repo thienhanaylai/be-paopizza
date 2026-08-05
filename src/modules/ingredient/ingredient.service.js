@@ -12,8 +12,6 @@ export const create = async (data) => {
         costPerUnit,
         price,
         isActive,
-        image,
-        suppliers,
         quantityExtra,
     } = data;
     const ingredient = await Ingredient.findOne({ name });
@@ -42,14 +40,6 @@ export const create = async (data) => {
         createData.isActive = isActive;
     }
 
-    if (image !== undefined) {
-        createData.image = image;
-    }
-
-    if (suppliers !== undefined) {
-        createData.suppliers = suppliers;
-    }
-
     if (quantityExtra !== undefined) {
         createData.quantityExtra = quantityExtra;
     }
@@ -66,8 +56,6 @@ export const update = async (data) => {
         costPerUnit,
         price,
         isActive,
-        image,
-        suppliers,
         quantityExtra,
     } = data;
     const ingredient = await Ingredient.findOne({
@@ -98,14 +86,6 @@ export const update = async (data) => {
 
     if (isActive !== undefined) {
         updateData.isActive = isActive;
-    }
-
-    if (image !== undefined) {
-        updateData.image = image;
-    }
-
-    if (suppliers !== undefined) {
-        updateData.suppliers = suppliers;
     }
 
     if (quantityExtra !== undefined) {
@@ -169,11 +149,7 @@ export const getAllIngredient = async (query = {}) => {
     const filter = { isDeleted: false, ...filterParams };
 
     const [data, total] = await Promise.all([
-        Ingredient.find(filter)
-            .populate('suppliers')
-            .skip(skip)
-            .limit(limitNum)
-            .lean(),
+        Ingredient.find(filter).skip(skip).limit(limitNum).lean(),
         Ingredient.countDocuments(filter),
     ]);
 
@@ -199,9 +175,7 @@ export const getIngredient = async (ingredient_id) => {
     const ingredient = await Ingredient.findOne({
         _id: ingredient_id,
         isDeleted: false,
-    })
-        .populate('suppliers')
-        .lean();
+    }).lean();
 
     if (!ingredient) throw new Error('INGREDIENT_NOT_FOUND');
     return ingredient;

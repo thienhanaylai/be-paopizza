@@ -1,7 +1,14 @@
 import { Supplier, CATEGORY_LIST } from './supplier.model.js';
 
 export const create = async (data) => {
-    const { name, email = '', phone = '', supplier_category, isActive } = data;
+    const {
+        name,
+        email = '',
+        phone = '',
+        supplier_category,
+        isActive,
+        supplierIngredients,
+    } = data;
 
     if (!name || !supplier_category) {
         throw new Error('MISSING_INFO');
@@ -31,12 +38,20 @@ export const create = async (data) => {
         phone,
         supplier_category,
         ...(isActive !== undefined ? { isActive } : {}),
+        ...(supplierIngredients !== undefined ? { supplierIngredients } : {}),
     });
     return supplier;
 };
 export const update = async (data) => {
-    const { supplier_id, name, email, phone, supplier_category, isActive } =
-        data;
+    const {
+        supplier_id,
+        name,
+        email,
+        phone,
+        supplier_category,
+        isActive,
+        supplierIngredients,
+    } = data;
 
     if (!supplier_id) {
         throw new Error('MISSING_SUPPLIER_ID');
@@ -80,6 +95,8 @@ export const update = async (data) => {
     if (supplier_category !== undefined)
         updateData.supplier_category = supplier_category;
     if (isActive !== undefined) updateData.isActive = isActive;
+    if (supplierIngredients !== undefined)
+        updateData.supplierIngredients = supplierIngredients;
 
     const result = await Supplier.findByIdAndUpdate(supplier_id, updateData, {
         new: true,
@@ -99,7 +116,11 @@ export const getAll = async (query = {}) => {
     const filter = { isDeleted: false, ...filterParams };
 
     const [data, total] = await Promise.all([
-        Supplier.find(filter).skip(skip).limit(limitNum).lean(),
+        Supplier.find(filter)
+            .populate('supplierIngredients')
+            .skip(skip)
+            .limit(limitNum)
+            .lean(),
         Supplier.countDocuments(filter),
     ]);
 
@@ -115,7 +136,9 @@ export const getAll = async (query = {}) => {
 };
 
 export const getById = async (supplier_id) => {
-    const supplier = await Supplier.findById(supplier_id).lean();
+    const supplier = await Supplier.findById(supplier_id)
+        .populate('supplierIngredients')
+        .lean();
     if (!supplier || supplier.isDeleted) throw new Error('SUPPLIER_NOT_FOUND');
     return supplier;
 };
