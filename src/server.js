@@ -4,6 +4,7 @@ import environment from './config/environment.js';
 import logger from './utils/logger.js';
 import { connectDatabase } from './config/database.js';
 import { startAutoCancelJob } from './jobs/autoCancelOrder.js';
+import { startAutoActivateProductJob } from './jobs/autoActivateProduct.js';
 
 dotenv.config();
 
@@ -11,6 +12,9 @@ await connectDatabase();
 
 // đặt cron job tự động huỷ đơn hàng khi timeout
 startAutoCancelJob();
+
+// cron job tự động kích hoạt sản phẩm khi đến ngày ra mắt
+startAutoActivateProductJob();
 
 const server = app.listen(environment.port, '0.0.0.0', () => {
     logger.info(

@@ -124,9 +124,8 @@ export const paymentService = {
         };
     },
 
-    /**
-     * Xử lý Webhook từ SePay trả về
-     */
+    // Xử lý Webhook từ SePay trả về
+
     async processWebhook(payload, headers = {}, options = {}) {
         const { skipAuth = false } = options;
 

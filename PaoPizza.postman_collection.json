@@ -1827,7 +1827,7 @@
     },
     {
       "name": "Ingredient",
-      "description": "Ingredient management.\n\nFields: name, unit, category, costPerUnit, price, image, isActive, isDeleted.\nPublic endpoints: GET /ingredient, GET /ingredient/category, GET /ingredient/unit.\nProtected endpoints: GET /ingredient/:ingredient_id (JWT), create/update/updateActive/deleted (JWT + admin).",
+      "description": "Ingredient management.\n\nFields: name, unit, category, costPerUnit, quantityExtra, price, suppliers, image, isActive, isDeleted.\nquantityExtra: lượng trừ kho mỗi lần thêm extra topping (kg→gam, lit→ml).\nsuppliers: danh sách ObjectId nhà cung cấp.\nPublic endpoints: GET /ingredient, GET /ingredient/category, GET /ingredient/unit.\nProtected endpoints: GET /ingredient/:ingredient_id (JWT), create/update/updateActive/deleted (JWT + admin).",
       "item": [
         {
           "name": "Get All Ingredients",
@@ -1912,7 +1912,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Bột mì\",\n  \"unit\": \"kg\",\n  \"category\": \"dough\",\n  \"costPerUnit\": 12000,\n  \"price\": 16000,\n  \"isActive\": true\n}",
+              "raw": "{\n  \"name\": \"Bột mì\",\n  \"unit\": \"kg\",\n  \"category\": \"dough\",\n  \"costPerUnit\": 12000,\n  \"price\": 16000,\n  \"quantityExtra\": 0,\n  \"suppliers\": [\"{{supplierId}}\"],\n  \"isActive\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1920,7 +1920,7 @@
               }
             },
             "url": "{{baseUrl}}/ingredient/create",
-            "description": "Create new ingredient. Requires JWT + admin.\n\nBody: name, unit (required). Optional: category, costPerUnit, price, isActive, image.\nCategory slug: dough, seafood, meat, sauce, vegetable, drink, other.\nUnit slug: gram, kg, ml, lit, piece, box, can, bag, package.\nTest script sets ingredientId variable."
+            "description": "Create new ingredient. Requires JWT + admin.\n\nBody: name, unit (required). Optional: category, costPerUnit, price, quantityExtra, suppliers, isActive, image.\nCategory slug: dough, seafood, meat, sauce, vegetable, drink, other.\nUnit slug: gram, kg, ml, lit, piece, box, can, bag, package.\nquantityExtra: lượng trừ kho mỗi lần thêm extra topping (kg→gam, lit→ml).\nTest script sets ingredientId variable."
           },
           "response": [
             {
@@ -1953,7 +1953,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"ingredient_id\": \"{{ingredientId}}\",\n  \"name\": \"Bột mì Updated\",\n  \"unit\": \"kg\",\n  \"category\": \"dough\",\n  \"costPerUnit\": 15000,\n  \"price\": 20000,\n  \"isActive\": true\n}",
+              "raw": "{\n  \"ingredient_id\": \"{{ingredientId}}\",\n  \"name\": \"Bột mì Updated\",\n  \"unit\": \"kg\",\n  \"category\": \"dough\",\n  \"costPerUnit\": 15000,\n  \"price\": 20000,\n  \"quantityExtra\": 0,\n  \"suppliers\": [\"{{supplierId}}\"],\n  \"isActive\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1961,7 +1961,7 @@
               }
             },
             "url": "{{baseUrl}}/ingredient/update",
-            "description": "Update ingredient (ingredient_id in body). **Yêu cầu admin.** Required: ingredient_id, name, unit. Optional: category, costPerUnit, price, isActive, image."
+            "description": "Update ingredient (ingredient_id in body). **Yêu cầu admin.** Required: ingredient_id, name, unit. Optional: category, costPerUnit, price, quantityExtra, suppliers, isActive, image."
           },
           "response": [
             {
@@ -3449,7 +3449,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"PROMO15\",\n  \"type\": \"percentage\",\n  \"value\": 15,\n  \"point\": 500,\n  \"startDate\": \"2026-01-01T00:00:00.000Z\",\n  \"endDate\": \"2026-12-31T23:59:59.000Z\",\n  \"status\": \"active\",\n  \"applicableStore\": [\n    \"{{storeId}}\"\n  ]\n}",
+              "raw": "{\n  \"code\": \"PROMO15\",\n  \"type\": \"percentage\",\n  \"value\": 15,\n  \"point\": 500,\n  \"startDate\": \"2026-01-01T00:00:00.000Z\",\n  \"endDate\": \"2026-12-31T23:59:59.000Z\",\n  \"status\": \"active\",\n  \"applicableStore\": [\n    \"{{storeId}}\"\n  ],\n  \"usageLimit\": 100,\n  \"maxUsagePerUser\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3457,7 +3457,7 @@
               }
             },
             "url": "{{baseUrl}}/promotions",
-            "description": "Create promotion. Requires JWT + admin.\n\n**point**: -1 = không đổi được, 0 = miễn phí, >0 = số điểm cần để đổi."
+            "description": "Create promotion. Requires JWT + admin.\n\n**point**: -1 = không đổi được, 0 = miễn phí, >0 = số điểm cần để đổi.\n**usageLimit**: -1 = không giới hạn, null = mặc định, >0 = giới hạn lượt dùng.\n**maxUsagePerUser**: số lần tối đa 1 user được dùng mã (mặc định 1)."
           },
           "response": []
         },
@@ -3477,7 +3477,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"PROMO20\",\n  \"type\": \"percentage\",\n  \"value\": 20,\n  \"point\": 1000,\n  \"startDate\": \"2026-01-01T00:00:00.000Z\",\n  \"endDate\": \"2026-12-31T23:59:59.000Z\",\n  \"status\": \"active\",\n  \"applicableStore\": [\n    \"{{storeId}}\"\n  ]\n}",
+              "raw": "{\n  \"code\": \"PROMO20\",\n  \"type\": \"percentage\",\n  \"value\": 20,\n  \"point\": 1000,\n  \"startDate\": \"2026-01-01T00:00:00.000Z\",\n  \"endDate\": \"2026-12-31T23:59:59.000Z\",\n  \"status\": \"active\",\n  \"applicableStore\": [\n    \"{{storeId}}\"\n  ],\n  \"usageLimit\": 50,\n  \"maxUsagePerUser\": 2\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3529,7 +3529,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"PROMO15\",\n  \"orderTotal\": 200000,\n  \"store_id\": \"{{storeId}}\"\n}",
+              "raw": "{\n  \"code\": \"PROMO15\",\n  \"orderTotal\": 200000,\n  \"store_id\": \"{{storeId}}\",\n  \"customerId\": \"\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3537,7 +3537,7 @@
               }
             },
             "url": "{{baseUrl}}/promotions/apply",
-            "description": "Apply a promo code to check discount. Public endpoint. Body: code (required), orderTotal (required), store_id (optional)."
+            "description": "Apply a promo code to check discount. Public endpoint. Body: code (required), orderTotal (required), store_id (optional), customerId (optional - để kiểm tra maxUsagePerUser)."
           },
           "response": []
         },

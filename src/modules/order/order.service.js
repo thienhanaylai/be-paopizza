@@ -30,10 +30,13 @@ const POPULATE_ORDER = [
     { path: 'items.product_id', select: 'name variants' },
     { path: 'items.combo', select: 'name price image' },
     { path: 'items.combo_selections.product_id', select: 'name variants' },
-    { path: 'items.added_topping.ingredient', select: 'name price unit' },
+    {
+        path: 'items.added_topping.ingredient',
+        select: 'name price unit quantityExtra',
+    },
     {
         path: 'items.combo_selections.added_topping.ingredient',
-        select: 'name price unit',
+        select: 'name price unit quantityExtra',
     },
 ];
 
@@ -228,10 +231,7 @@ export const create = async (data) => {
             isDeleted: false,
             startDate: { $lte: new Date() },
             endDate: { $gte: new Date() },
-            $or: [
-                { applicableStore: { $in: [store_id] } },
-                { applicableStore: { $size: 0 } },
-            ],
+            applicableStore: { $in: [store_id] },
         });
 
         if (!promo) {
@@ -249,15 +249,16 @@ export const create = async (data) => {
         if (customer_id && promo.maxUsagePerUser > 0) {
             const customer = await Customer.findById(customer_id);
             if (customer) {
-                // Chỉ đếm những lần đã thực sự SỬ DỤNG (isUsed: true), không tính code chưa dùng
+                // Đếm tổng số lần đã sử dụng promotion (tổng usedCount)
                 const userUsedCount = customer.redeemPromotion
-                    ? customer.redeemPromotion.filter(
-                          (rp) =>
-                              rp.promotion &&
-                              rp.promotion.toString() ===
-                                  promo._id.toString() &&
-                              rp.isUsed === true,
-                      ).length
+                    ? customer.redeemPromotion
+                          .filter(
+                              (rp) =>
+                                  rp.promotion &&
+                                  rp.promotion.toString() ===
+                                      promo._id.toString(),
+                          )
+                          .reduce((sum, rp) => sum + (rp.usedCount || 0), 0)
                     : 0;
 
                 if (userUsedCount >= promo.maxUsagePerUser) {
@@ -456,20 +457,24 @@ const extractIngredientsFromOrder = (order) => {
                     }
                 }
 
-                // // added_topping trong combo_selection
-                // if (sel.added_topping?.length) {
-                //     for (const topping of sel.added_topping) {
-                //         const ingId =
-                //             topping.ingredient?._id?.toString() ||
-                //             topping.ingredient?.toString();
-                //         if (!ingId) continue;
-                //         const qty = (topping.quantity || 1) * itemQty;
-                //         ingredientsMap.set(
-                //             ingId,
-                //             (ingredientsMap.get(ingId) || 0) + qty,
-                //         );
-                //     }
-                // }
+                // added_topping trong combo_selection
+                if (sel.added_topping?.length) {
+                    for (const topping of sel.added_topping) {
+                        const ingId =
+                            topping.ingredient?._id?.toString() ||
+                            topping.ingredient?.toString();
+                        if (!ingId) continue;
+                        const perToppingQty =
+                            topping.ingredient?.quantityExtra ||
+                            topping.quantity ||
+                            1;
+                        const qty = perToppingQty * itemQty;
+                        ingredientsMap.set(
+                            ingId,
+                            (ingredientsMap.get(ingId) || 0) + qty,
+                        );
+                    }
+                }
             }
         }
 
@@ -480,7 +485,9 @@ const extractIngredientsFromOrder = (order) => {
                     topping.ingredient?._id?.toString() ||
                     topping.ingredient?.toString();
                 if (!ingId) continue;
-                const qty = (topping.quantity || 1) * itemQty;
+                const perToppingQty =
+                    topping.ingredient?.quantityExtra || topping.quantity || 1;
+                const qty = perToppingQty * itemQty;
                 ingredientsMap.set(
                     ingId,
                     (ingredientsMap.get(ingId) || 0) + qty,

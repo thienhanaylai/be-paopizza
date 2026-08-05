@@ -201,12 +201,11 @@ export const deletedInventory = async (inventory_id) => {
     return result;
 };
 
-/**
- * Trừ nguyên liệu tồn kho khi đơn hàng hoàn thành.
- * Cho phép âm kho (current_stock có thể xuống dưới 0).
- * @param {ObjectId} store_id - ID cửa hàng
- * @param {Map<string, number>} ingredientsMap - Map của ingredientId (string) → tổng quantity cần trừ
- */
+//   Trừ nguyên liệu tồn kho khi đơn hàng hoàn thành.
+//   Cho phép âm kho (current_stock có thể xuống dưới 0).
+//  @param {ObjectId} store_id - ID cửa hàng
+//   @param {Map<string, number>} ingredientsMap - Map của ingredientId (string) → tổng quantity cần trừ
+
 export const deductForOrder = async (store_id, ingredientsMap) => {
     if (!store_id || !ingredientsMap?.size) return;
 

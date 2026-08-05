@@ -562,10 +562,13 @@ const seedDemoScenarios = async () => {
             code: 'WELCOME10',
             type: 'percentage',
             value: 10,
+            point: -1,
             startDate: dateUtc(2026, 0, 1),
             endDate: dateUtc(2026, 11, 31),
             status: 'active',
             applicableStore: [storeQ8._id, storeQ1._id],
+            usageLimit: 100,
+            maxUsagePerUser: 1,
             isDeleted: false,
         });
         console.log('   ✅ WELCOME10 (-10%) đã tạo');
@@ -579,10 +582,13 @@ const seedDemoScenarios = async () => {
             code: 'SILVER5',
             type: 'percentage',
             value: 5,
+            point: -1,
             startDate: dateUtc(2026, 0, 1),
             endDate: dateUtc(2026, 11, 31),
             status: 'active',
             applicableStore: [storeQ8._id],
+            usageLimit: -1,
+            maxUsagePerUser: 3,
             isDeleted: false,
         });
         console.log('   ✅ SILVER5 (-5%) đã tạo');

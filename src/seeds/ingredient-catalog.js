@@ -437,9 +437,25 @@ export const ingredientSeedCatalog = [
     ...coreIngredientSeedData,
     ...illustrativeIngredientSeedData,
     ...drinkIngredientSeedData,
-].map(({ cost_per_unit, ...ingredient }) => ({
-    ...ingredient,
-    costPerUnit: cost_per_unit ?? 0,
-    isActive: true,
-    isDeleted: false,
-}));
+].map(({ cost_per_unit, ...ingredient }) => {
+    // quantityExtra: lượng trừ kho mỗi lần thêm extra topping
+    // Quy ước: kg → tính theo gam, lit → tính theo ml
+    const quantityExtra =
+        ingredient.quantityExtra ??
+        (ingredient.price > 0
+            ? ingredient.unit === 'kg'
+                ? 30 // ~30g cho thịt/phô mai
+                : ingredient.unit === 'lit'
+                  ? 15 // ~15ml cho sốt
+                  : 1
+            : 0);
+
+    return {
+        ...ingredient,
+        costPerUnit: cost_per_unit ?? 0,
+        quantityExtra,
+        suppliers: ingredient.suppliers ?? [],
+        isActive: true,
+        isDeleted: false,
+    };
+});

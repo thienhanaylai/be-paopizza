@@ -233,21 +233,28 @@ export const applyPromotion = async (code, orderTotal, storeId, customerId) => {
         };
     }
 
-    // Kiểm tra cửa hàng áp dụng
-    if (promotion.applicableStore && promotion.applicableStore.length > 0) {
-        const storeIds = promotion.applicableStore.map((id) => id.toString());
+    // Kiểm tra cửa hàng áp dụng: rỗng = không áp dụng cho cửa hàng nào
+    if (!promotion.applicableStore || promotion.applicableStore.length === 0) {
+        return {
+            valid: false,
+            code: promotion.code,
+            discountType: promotion.type === 'percentage' ? 'percent' : 'fixed',
+            discountValue: promotion.value,
+            discountAmount: 0,
+            message: 'PROMOTION_NOT_APPLICABLE',
+        };
+    }
 
-        if (storeId && !storeIds.includes(storeId.toString())) {
-            return {
-                valid: false,
-                code: promotion.code,
-                discountType:
-                    promotion.type === 'percentage' ? 'percent' : 'fixed',
-                discountValue: promotion.value,
-                discountAmount: 0,
-                message: 'PROMOTION_NOT_APPLICABLE',
-            };
-        }
+    const storeIds = promotion.applicableStore.map((id) => id.toString());
+    if (storeId && !storeIds.includes(storeId.toString())) {
+        return {
+            valid: false,
+            code: promotion.code,
+            discountType: promotion.type === 'percentage' ? 'percent' : 'fixed',
+            discountValue: promotion.value,
+            discountAmount: 0,
+            message: 'PROMOTION_NOT_APPLICABLE',
+        };
     }
 
     // Kiểm tra usageLimit
@@ -269,15 +276,16 @@ export const applyPromotion = async (code, orderTotal, storeId, customerId) => {
     if (customerId && promotion.maxUsagePerUser > 0) {
         const customer = await Customer.findById(customerId);
         if (customer) {
-            // Chỉ đếm những lần đã thực sự SỬ DỤNG (isUsed: true), không tính code chưa dùng
+            // Đếm tổng số lần đã sử dụng promotion (tổng usedCount)
             const userUsedCount = customer.redeemPromotion
-                ? customer.redeemPromotion.filter(
-                      (rp) =>
-                          rp.promotion &&
-                          rp.promotion.toString() ===
-                              promotion._id.toString() &&
-                          rp.isUsed === true,
-                  ).length
+                ? customer.redeemPromotion
+                      .filter(
+                          (rp) =>
+                              rp.promotion &&
+                              rp.promotion.toString() ===
+                                  promotion._id.toString(),
+                      )
+                      .reduce((sum, rp) => sum + (rp.usedCount || 0), 0)
                 : 0;
 
             if (userUsedCount >= promotion.maxUsagePerUser) {
@@ -293,7 +301,7 @@ export const applyPromotion = async (code, orderTotal, storeId, customerId) => {
             }
         }
 
-        // Kiểm tra promotion yêu cầu quy đổi (point >= 0) phải có bản ghi redeemPromotion chưa dùng
+        // Kiểm tra promotion yêu cầu quy đổi (point >= 0) phải có bản ghi redeemPromotion chưa dùng hết
         const isRedeemablePromo =
             promotion.point != null && promotion.point >= 0;
         if (isRedeemablePromo) {
@@ -301,7 +309,7 @@ export const applyPromotion = async (code, orderTotal, storeId, customerId) => {
                 (rp) =>
                     rp.promotion &&
                     rp.promotion.toString() === promotion._id.toString() &&
-                    !rp.isUsed,
+                    (rp.usedCount || 0) < promotion.maxUsagePerUser,
             );
             if (!hasUnusedRedemption) {
                 return {
@@ -389,11 +397,13 @@ export const redeemByPoints = async (userId, promotionId) => {
     // Kiểm tra maxUsagePerUser
     if (promotion.maxUsagePerUser > 0) {
         const userUsageCount = customer.redeemPromotion
-            ? customer.redeemPromotion.filter(
-                  (rp) =>
-                      rp.promotion &&
-                      rp.promotion.toString() === promotion._id.toString(),
-              ).length
+            ? customer.redeemPromotion
+                  .filter(
+                      (rp) =>
+                          rp.promotion &&
+                          rp.promotion.toString() === promotion._id.toString(),
+                  )
+                  .reduce((sum, rp) => sum + (rp.usedCount || 0), 0)
             : 0;
 
         if (userUsageCount >= promotion.maxUsagePerUser) {
@@ -412,7 +422,7 @@ export const redeemByPoints = async (userId, promotionId) => {
     // Thêm vào danh sách khuyến mãi đã đổi của customer
     customer.redeemPromotion.push({
         promotion: promotion._id,
-        isUsed: false,
+        usedCount: 0,
     });
 
     // Tăng usedCount của promotion

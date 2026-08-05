@@ -5,7 +5,17 @@ import {
 } from './ingredient.model.js';
 
 export const create = async (data) => {
-    const { name, unit, category, costPerUnit, price, isActive, image } = data;
+    const {
+        name,
+        unit,
+        category,
+        costPerUnit,
+        price,
+        isActive,
+        image,
+        suppliers,
+        quantityExtra,
+    } = data;
     const ingredient = await Ingredient.findOne({ name });
     if (ingredient) {
         throw new Error('INGREDIENT_ALREADY_EXISTS');
@@ -36,6 +46,14 @@ export const create = async (data) => {
         createData.image = image;
     }
 
+    if (suppliers !== undefined) {
+        createData.suppliers = suppliers;
+    }
+
+    if (quantityExtra !== undefined) {
+        createData.quantityExtra = quantityExtra;
+    }
+
     return Ingredient.create(createData);
 };
 
@@ -49,6 +67,8 @@ export const update = async (data) => {
         price,
         isActive,
         image,
+        suppliers,
+        quantityExtra,
     } = data;
     const ingredient = await Ingredient.findOne({
         _id: ingredient_id,
@@ -82,6 +102,14 @@ export const update = async (data) => {
 
     if (image !== undefined) {
         updateData.image = image;
+    }
+
+    if (suppliers !== undefined) {
+        updateData.suppliers = suppliers;
+    }
+
+    if (quantityExtra !== undefined) {
+        updateData.quantityExtra = quantityExtra;
     }
 
     return Ingredient.findByIdAndUpdate(ingredient_id, updateData, {
@@ -141,7 +169,11 @@ export const getAllIngredient = async (query = {}) => {
     const filter = { isDeleted: false, ...filterParams };
 
     const [data, total] = await Promise.all([
-        Ingredient.find(filter).skip(skip).limit(limitNum).lean(),
+        Ingredient.find(filter)
+            .populate('suppliers')
+            .skip(skip)
+            .limit(limitNum)
+            .lean(),
         Ingredient.countDocuments(filter),
     ]);
 
@@ -167,7 +199,9 @@ export const getIngredient = async (ingredient_id) => {
     const ingredient = await Ingredient.findOne({
         _id: ingredient_id,
         isDeleted: false,
-    }).lean();
+    })
+        .populate('suppliers')
+        .lean();
 
     if (!ingredient) throw new Error('INGREDIENT_NOT_FOUND');
     return ingredient;

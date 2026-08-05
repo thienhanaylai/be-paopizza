@@ -29,10 +29,11 @@ const redeemPromotion = new mongoose.Schema({
         type: mongoose.Schema.ObjectId,
         ref: 'Promotion',
     },
-    isUsed: {
-        type: Boolean,
+    usedCount: {
+        type: Number,
         required: true,
-        default: false,
+        min: 0,
+        default: 0,
     },
 });
 

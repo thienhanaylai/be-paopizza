@@ -14,6 +14,8 @@ const createIngredientSchema = z.object({
     price: z.coerce.number().min(0).optional(),
     isActive: booleanSchema,
     image: z.string().optional(),
+    suppliers: z.array(z.string()).optional(),
+    quantityExtra: z.coerce.number().min(0).optional(),
 });
 
 const updateIngredientSchema = z.object({
@@ -25,6 +27,8 @@ const updateIngredientSchema = z.object({
     price: z.coerce.number().min(0).optional(),
     isActive: booleanSchema.optional(),
     image: z.string().optional(),
+    suppliers: z.array(z.string()).optional(),
+    quantityExtra: z.coerce.number().min(0).optional(),
 });
 
 const updateActiveSchema = z.object({

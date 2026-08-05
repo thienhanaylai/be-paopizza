@@ -3,7 +3,7 @@ import '../category/category.model.js';
 import '../ingredient/ingredient.model.js';
 
 export const create = async (data) => {
-    const { name, category, description, variants = [] } = data;
+    const { name, category, description, variants = [], launchDate } = data;
     if (
         !name ||
         !category ||
@@ -18,10 +18,20 @@ export const create = async (data) => {
         throw new Error('PRODUCT_NAME_EXISTS');
     }
 
+    // Nếu có launchDate trong tương lai → isActive = false (chưa đến ngày ra mắt)
+    const now = new Date();
+    const parsedLaunchDate = launchDate ? new Date(launchDate) : null;
+    const isActive =
+        data.isActive !== undefined
+            ? data.isActive
+            : !parsedLaunchDate || parsedLaunchDate <= now;
+
     const product = await Product.create({
         name,
         category,
         description,
+        launchDate: parsedLaunchDate,
+        isActive,
         variants,
     });
     return product;
@@ -52,6 +62,19 @@ export const update = async (data) => {
         });
         if (existing) {
             throw new Error('PRODUCT_NAME_EXISTS');
+        }
+    }
+
+    // Nếu launchDate được cập nhật và là tương lai → tự động isActive = false
+    if (updateData.launchDate !== undefined) {
+        const now = new Date();
+        const parsedDate = updateData.launchDate
+            ? new Date(updateData.launchDate)
+            : null;
+        updateData.launchDate = parsedDate;
+        // Chỉ tự động set isActive nếu client không truyền isActive
+        if (data.isActive === undefined) {
+            updateData.isActive = !parsedDate || parsedDate <= now;
         }
     }
 
@@ -101,7 +124,11 @@ export const getAll = async (query = {}) => {
 };
 
 export const getAllProductsActive = async () => {
-    return await Product.find({ isDeleted: false, isActive: true })
+    return await Product.find({
+        isDeleted: false,
+        isActive: true,
+        $or: [{ launchDate: { $lte: new Date() } }, { launchDate: null }],
+    })
         .populate('category', 'name slug')
         .populate({
             path: 'variants.recipe.ingredient',
@@ -140,6 +167,7 @@ export const getByCategory = async (category_id) => {
         category: category_id,
         isDeleted: false,
         isActive: true,
+        $or: [{ launchDate: { $lte: new Date() } }, { launchDate: null }],
     })
         .populate('category', 'name slug')
         .populate({

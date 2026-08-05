@@ -530,12 +530,7 @@ const seedSampleData = async () => {
 
     const ingredients = await Ingredient.insertMany(ingredientSeedCatalog);
 
-    const supplierCategories = [
-        'main_ingredient',
-        'drink',
-        'seafood',
-        'vegetable',
-    ];
+    const supplierCategories = ['meat', 'drink', 'seafood', 'vegetable'];
 
     const suppliers = await Supplier.insertMany(
         Array.from({ length: TARGET_COUNT }, (_, index) => ({
@@ -1159,6 +1154,7 @@ const seedSampleData = async () => {
 
             return {
                 code: `PROMO${pad(index + 1)}`,
+                point: index % 3 === 0 ? (index + 1) * 50 : -1,
                 type,
                 value,
                 startDate: dateUtc(2026, 0, 1 + index),
@@ -1168,6 +1164,8 @@ const seedSampleData = async () => {
                     stores[index % stores.length]._id,
                     stores[(index + 6) % stores.length]._id,
                 ],
+                usageLimit: index % 5 === 0 ? -1 : 50 + index * 10,
+                maxUsagePerUser: index % 4 === 0 ? 3 : index % 3 === 0 ? 2 : 1,
                 isDeleted: false,
             };
         }),
@@ -1185,7 +1183,7 @@ const seedSampleData = async () => {
         'cancelled',
     ];
     const orderTypes = ['carry_out', 'dine_in', 'delivery'];
-    const paymentMethods = ['cash', 'card', 'qrCode', 'ewallet'];
+    const paymentMethods = ['cash', 'qrCode'];
 
     const orders = await Order.insertMany(
         Array.from({ length: ORDER_SAMPLE_COUNT }, (_, index) => {

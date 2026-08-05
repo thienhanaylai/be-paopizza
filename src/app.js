@@ -43,13 +43,6 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-let apiCallCount = 0;
-
-app.use((req, res, next) => {
-    apiCallCount++;
-    console.log(`[API Call #${apiCallCount}] ${req.method} ${req.originalUrl}`);
-    next();
-});
 
 // Routes
 app.use('/api/v1', globalLimiter, router);

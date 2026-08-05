@@ -262,16 +262,14 @@ export const markRedeemedPromotionUsed = async (customerId, promotionId) => {
 
     const redeemed = customer.redeemPromotion.find(
         (rp) =>
-            rp.promotion &&
-            rp.promotion.toString() === promotionId.toString() &&
-            !rp.isUsed,
+            rp.promotion && rp.promotion.toString() === promotionId.toString(),
     );
 
     if (!redeemed) {
         throw new Error('REDEEMED_PROMOTION_NOT_FOUND');
     }
 
-    redeemed.isUsed = true;
+    redeemed.usedCount += 1;
     await customer.save();
     return customer;
 };
@@ -290,11 +288,10 @@ export const getCustomerByUserId = async (userId) => {
     return customer;
 };
 
-/**
- * Lấy danh sách khuyến mãi đã đổi của khách hàng (có populate thông tin promotion)
- * @param {string} userId - _id của User
- * @returns {Array} Danh sách redeemPromotion đã populate
- */
+//  Lấy danh sách khuyến mãi đã đổi của khách hàng (có populate thông tin promotion)
+//   @param {string} userId - _id của User
+//   @returns {Array} Danh sách redeemPromotion đã populate
+
 export const getRedeemedPromotions = async (userId) => {
     const user = await User.findById(userId);
     if (!user || !user.ref_id) {

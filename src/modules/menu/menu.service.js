@@ -236,7 +236,17 @@ export const getByStore = async (store_id) => {
     const menu = await Menu.findOne({ store: store_id })
         .populate('store')
         .select('-combos._id')
-        .populate(productPopulate)
+        .populate({
+            ...productPopulate,
+            match: {
+                isDeleted: false,
+                isActive: true,
+                $or: [
+                    { launchDate: { $lte: new Date() } },
+                    { launchDate: null },
+                ],
+            },
+        })
         .populate(comboPopulate)
         .lean();
     if (!menu) {
