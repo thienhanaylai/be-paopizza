@@ -382,6 +382,29 @@ export const getById = async (order_id) => {
     return order;
 };
 
+export const trackOrders = async ({ phone, orderId }) => {
+    // Tìm đơn hàng trong vòng 24h gần nhất
+    const now = new Date();
+    const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    const filter = {
+        isDeleted: false,
+        createdAt: { $gte: last24h, $lte: now },
+    };
+
+    if (orderId) {
+        filter._id = orderId;
+    } else if (phone) {
+        filter['contact_info.phone'] = phone;
+    }
+
+    const orders = await Order.find(filter)
+        .populate(POPULATE_ORDER)
+        .sort({ createdAt: -1 });
+
+    return orders;
+};
+
 export const checkPaymentSuccess = async (order_id) => {
     const order = await Order.findOne({
         _id: order_id,

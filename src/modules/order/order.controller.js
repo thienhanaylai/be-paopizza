@@ -228,6 +228,22 @@ export const customerCancelOrder = async (req, res) => {
         data: result,
     });
 };
+export const trackOrders = async (req, res) => {
+    const { phone, orderId } = req.query;
+
+    if (!phone && !orderId) {
+        return res.status(400).json({
+            message: 'Vui lòng cung cấp số điện thoại hoặc mã đơn hàng',
+        });
+    }
+
+    const result = await orderService.trackOrders({ phone, orderId });
+
+    return res.status(200).json({
+        data: result,
+    });
+};
+
 export const getHistoryOrder = async (req, res) => {
     const userId = req.user._id;
 

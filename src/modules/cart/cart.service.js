@@ -145,7 +145,7 @@ export const addToCart = async (data) => {
     });
 
     if (existingIndex !== -1) {
-        cart.items[existingIndex].quantity += quantity;
+        cart.items[existingIndex].quantity = 1;
         cart.items[existingIndex].price = price;
         cart.items[existingIndex].sku = sku;
         if (note) cart.items[existingIndex].note = note;

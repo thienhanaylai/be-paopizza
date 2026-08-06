@@ -27,6 +27,7 @@ router.get(
     requireAuth,
     asyncHandler(orderController.getHistoryOrder),
 );
+router.get('/track', optionalAuth, asyncHandler(orderController.trackOrders));
 router.get('/', requireAuth, asyncHandler(orderController.getAllOrders));
 router.get(
     '/:order_id/payment-success',

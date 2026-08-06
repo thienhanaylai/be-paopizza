@@ -251,6 +251,7 @@ orderSchema.index({ store_id: 1, status: 1, createdAt: -1, isDeleted: 1 });
 orderSchema.index({ createdAt: -1 });
 orderSchema.index({ _id: 1, isDeleted: 1 });
 orderSchema.index({ isDeleted: 1, store_id: 1, createdAt: -1 });
+orderSchema.index({ 'contact_info.phone': 1 });
 
 export const Order = mongoose.model('Order', orderSchema);
 export { ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES };
