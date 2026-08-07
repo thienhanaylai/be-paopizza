@@ -3,6 +3,16 @@ import passport from 'passport';
 import { z } from 'zod';
 import { validate } from '../../utils/validation.js';
 
+const passwordResetRequestSchema = z.object({
+    email: z.string().email('Email không hợp lệ'),
+    userType: z.enum(['Employee', 'Customer']),
+});
+
+const passwordResetSchema = passwordResetRequestSchema.extend({
+    otp: z.string().regex(/^\d{6}$/, 'Mã OTP phải gồm 6 chữ số'),
+    newPassword: z.string().min(6, 'Mật khẩu mới phải có ít nhất 6 ký tự'),
+});
+
 export const EmployeeLogin = (req, res, next) => {
     passport.authenticate('local', { session: false }, (err, user, info) => {
         if (err) {
@@ -92,6 +102,57 @@ export const CustomerLogin = (req, res, next) => {
             });
         });
     })(req, res, next);
+};
+
+export const forgotPassword = async (req, res) => {
+    const validation = validate(req, res, passwordResetRequestSchema);
+    if (!validation.success) return;
+
+    await authService.requestPasswordReset(
+        validation.data.email,
+        validation.data.userType,
+    );
+
+    return res.status(200).json({
+        message: 'Nếu email thuộc tài khoản đang hoạt động, mã OTP đã được gửi.',
+    });
+};
+
+export const verifyPasswordResetOtp = async (req, res) => {
+    const validation = validate(
+        req,
+        res,
+        passwordResetRequestSchema.extend({
+            otp: z.string().regex(/^\d{6}$/, 'Mã OTP phải gồm 6 chữ số'),
+        }),
+    );
+    if (!validation.success) return;
+
+    await authService.verifyPasswordResetOtp(
+        validation.data.email,
+        validation.data.userType,
+        validation.data.otp,
+    );
+
+    return res.status(200).json({
+        message: 'Mã OTP hợp lệ.',
+    });
+};
+
+export const resetPassword = async (req, res) => {
+    const validation = validate(req, res, passwordResetSchema);
+    if (!validation.success) return;
+
+    await authService.resetPasswordWithOtp(
+        validation.data.email,
+        validation.data.userType,
+        validation.data.otp,
+        validation.data.newPassword,
+    );
+
+    return res.status(200).json({
+        message: 'Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại.',
+    });
 };
 
 export const refreshToken = async (req, res) => {

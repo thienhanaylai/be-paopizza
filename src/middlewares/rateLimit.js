@@ -24,6 +24,17 @@ export const authLimiter = rateLimit({
     },
 });
 
+export const passwordResetLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+        status: false,
+        message: 'TOO_MANY_PASSWORD_RESET_REQUESTS',
+    },
+});
+
 export const orderLimit = rateLimit({
     windowMs: 60 * 1000, // 1 phút
     max: 10, //  10 đơn hàng/phút
