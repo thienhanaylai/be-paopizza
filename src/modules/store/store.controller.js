@@ -27,7 +27,7 @@ const createStoreSchema = z.object({
             coordinates: z.tuple([z.number(), z.number()]),
         })
         .optional(),
-    manager_by: z.string().optional(),
+    manager_by: z.string().nullable().optional(),
 });
 
 const updateStoreSchema = z.object({
@@ -51,7 +51,7 @@ const updateStoreSchema = z.object({
             coordinates: z.tuple([z.number(), z.number()]),
         })
         .optional(),
-    manager_by: z.string().optional(),
+    manager_by: z.string().nullable().optional(),
 });
 
 export const createStore = async (req, res) => {
