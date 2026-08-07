@@ -10,6 +10,7 @@ const requireAdmin = authorize(['admin']);
 const router = express.Router();
 
 router.get('/', asyncHandler(storeController.getAllStore));
+router.get('/nearest', asyncHandler(storeController.getNearestStore));
 router.get('/:store_id', requireAuth, asyncHandler(storeController.getStore));
 router.post(
     '/create',

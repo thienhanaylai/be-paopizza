@@ -105,3 +105,22 @@ export const deletedStore = async (req, res) => {
         data: result,
     });
 };
+
+export const getNearestStore = async (req, res) => {
+    const { longitude, latitude, limit } = req.query;
+
+    if (!longitude || !latitude) {
+        return res.status(400).json({
+            message: 'Vui lòng cung cấp longitude và latitude',
+        });
+    }
+
+    const result = await storeService.getNearestStore({
+        longitude,
+        latitude,
+        limit: parseInt(limit, 10) || 10,
+    });
+    return res.status(200).json({
+        data: result,
+    });
+};

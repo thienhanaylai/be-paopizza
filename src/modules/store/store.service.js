@@ -249,3 +249,38 @@ export const deletedStore = async (store_id) => {
     );
     return result;
 };
+
+export const getNearestStore = async ({ longitude, latitude, limit = 10 }) => {
+    const lng = Number(longitude);
+    const lat = Number(latitude);
+
+    if (
+        !Number.isFinite(lng) ||
+        !Number.isFinite(lat) ||
+        lng < -180 ||
+        lng > 180 ||
+        lat < -90 ||
+        lat > 90
+    ) {
+        throw new Error('INVALID_STORE_COORDINATES');
+    }
+
+    const stores = await Store.aggregate([
+        {
+            $geoNear: {
+                near: { type: 'Point', coordinates: [lng, lat] },
+                distanceField: 'distanceMeters',
+                spherical: true,
+                query: {
+                    status: 'active',
+                    isDeleted: false,
+                    location: { $exists: true },
+                },
+            },
+        },
+        { $limit: limit },
+    ]);
+
+    if (!stores.length) throw new Error('STORE_NOT_FOUND');
+    return stores;
+};

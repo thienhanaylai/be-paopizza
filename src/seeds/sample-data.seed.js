@@ -445,7 +445,87 @@ const createOrderTimestamp = (index, storeCount) => {
     return new Date(year, month, day, hour, minute, 0, 0);
 };
 
+// ── Dữ liệu cửa hàng thực tế từ CSV ──────────────────────────────────
+const CSV_STORE_LINES = [
+    'PaoPizza Bến Thành;10.768912;106.697415;136 Lê Thị Hồng Gấm, Phường Nguyễn Thái Bình, Quận 1, TP.HCM | SĐT: 02838210001',
+    'PaoPizza Thảo Điền;10.804152;106.732819;28 Thảo Điền, Phường Thảo Điền, TP. Thủ Đức, TP.HCM | SĐT: 02838210002',
+    'PaoPizza Phú Mỹ Hưng;10.727821;106.707123;101 Nguyễn Đức Cảnh, Phường Tân Phong, Quận 7, TP.HCM | SĐT: 02838210003',
+    'PaoPizza Vạn Hạnh Mall;10.770852;106.669812;11 Sư Vạn Hạnh, Phường 12, Quận 10, TP.HCM | SĐT: 02838210004',
+    'PaoPizza Tân Bình;10.801235;106.650123;202 Cộng Hòa, Phường 12, Quận Tân Bình, TP.HCM | SĐT: 02838210005',
+    'PaoPizza Phan Xích Long;10.796341;106.688219;185 Phan Xích Long, Phường 2, Quận Phú Nhuận, TP.HCM | SĐT: 02838210006',
+    'PaoPizza Bình Thạnh;10.799512;106.708341;26 Điện Biên Phủ, Phường 15, Quận Bình Thạnh, TP.HCM | SĐT: 02838210007',
+    'PaoPizza Gò Vấp;10.836124;106.662109;672 Quang Trung, Phường 11, Quận Gò Vấp, TP.HCM | SĐT: 02838210008',
+    'PaoPizza Võ Văn Ngân;10.850412;106.760123;120 Võ Văn Ngân, Phường Bình Thọ, TP. Thủ Đức, TP.HCM | SĐT: 02838210009',
+    'PaoPizza Bình Tân;10.751241;106.608312;158 Đường số 7, Phường Bình Trị Đông B, Quận Bình Tân, TP.HCM | SĐT: 02838210010',
+    'PaoPizza Hoàn Kiếm;21.030214;105.848612;24 Lý Quốc Sư, Phường Hàng Trống, Quận Hoàn Kiếm, Hà Nội | SĐT: 02439210001',
+    'PaoPizza Tây Hồ;21.063124;105.824512;52 Quảng An, Phường Quảng An, Quận Tây Hồ, Hà Nội | SĐT: 02439210002',
+    'PaoPizza Cầu Giấy;21.031541;105.787412;101 Trần Thái Tông, Phường Dịch Vọng, Quận Cầu Giấy, Hà Nội | SĐT: 02439210003',
+    'PaoPizza Đống Đa;21.008412;105.828512;18 Phố Chùa Bộc, Phường Quang Trung, Quận Đống Đa, Hà Nội | SĐT: 02439210004',
+    'PaoPizza Hai Bà Trưng;21.012541;105.850214;216 Bà Triệu, Phường Lê Đại Hành, Quận Hai Bà Trưng, Hà Nội | SĐT: 02439210005',
+    'PaoPizza Thanh Xuân;20.995124;105.812412;129 Nguyễn Trãi, Phường Thượng Đình, Quận Thanh Xuân, Hà Nội | SĐT: 02439210006',
+    'PaoPizza Hà Đông;20.978412;105.785214;88 Trần Phú, Phường Mộ Lao, Quận Hà Đông, Hà Nội | SĐT: 02439210007',
+    'PaoPizza Long Biên;21.045124;105.869512;27 Nguyễn Văn Cừ, Phường Ngọc Lâm, Quận Long Biên, Hà Nội | SĐT: 02439210008',
+    'PaoPizza Nam Từ Liêm;21.028412;105.768512;15 Lê Đức Thọ, Phường Mỹ Đình 2, Quận Nam Từ Liêm, Hà Nội | SĐT: 02439210009',
+    'PaoPizza Ba Đình;21.036512;105.823412;45 Đội Cấn, Phường Đội Cấn, Quận Ba Đình, Hà Nội | SĐT: 02439210010',
+    'PaoPizza Hải Châu;16.062145;108.223512;180 Bạch Đằng, Phường Phước Ninh, Quận Hải Châu, Đà Nẵng | SĐT: 02363810001',
+    'PaoPizza Sơn Trà;16.060214;108.246512;90 Võ Nguyên Giáp, Phường Phước Mỹ, Quận Sơn Trà, Đà Nẵng | SĐT: 02363810002',
+    'PaoPizza Thanh Khê;16.059412;108.210412;254 Nguyễn Văn Linh, Phường Thạc Gián, Quận Thanh Khê, Đà Nẵng | SĐT: 02363810003',
+    'PaoPizza Cẩm Lệ;16.035412;108.211512;88 Nguyễn Hữu Thọ, Phường Khuê Trung, Quận Cẩm Lệ, Đà Nẵng | SĐT: 02363810004',
+    'PaoPizza Ngũ Hành Sơn;16.025412;108.238512;12 Lê Văn Hiến, Phường Khuê Mỹ, Quận Ngũ Hành Sơn, Đà Nẵng | SĐT: 02363810005',
+];
+
+const parseStoreFromCsv = (line) => {
+    const parts = line.split(';');
+    const name = parts[0].trim();
+    const lat = parseFloat(parts[1].trim());
+    const lng = parseFloat(parts[2].trim());
+    // Phần còn lại sau cột thứ 3 (vì mô tả có thể chứa dấu ;)
+    const desc = parts.slice(3).join(';').trim();
+
+    // Tách địa chỉ và số điện thoại
+    const phoneMatch = desc.match(/\|\s*SĐT:\s*(.+)$/);
+    const phone = phoneMatch ? phoneMatch[1].trim() : '';
+    const addrStr = phoneMatch ? desc.slice(0, phoneMatch.index).trim() : desc;
+
+    // Tách các phần địa chỉ
+    const addrParts = addrStr.split(', ').map((p) => p.trim());
+    const streetNumber = addrParts[0] || '';
+    const city = addrParts.length > 1 ? addrParts[addrParts.length - 1] : '';
+    const district =
+        addrParts.length > 2
+            ? addrParts.slice(1, -1).join(', ')
+            : addrParts[1] || '';
+
+    return {
+        name,
+        lat,
+        lng,
+        address: { streetNumber, district, city },
+        phone,
+    };
+};
+
 const seedSampleData = async () => {
+    const csvStores = CSV_STORE_LINES.map(parseStoreFromCsv);
+
+    const stores = await Store.insertMany(
+        csvStores.map((s) => ({
+            name: s.name,
+            address: s.address,
+            location: {
+                type: 'Point',
+                coordinates: [s.lng, s.lat],
+            },
+            phone: s.phone,
+            email: `store.${slugify(s.name)}@paopizza.com`,
+            time_open: '08:00',
+            time_close: '22:00',
+            manager_by: null,
+            status: 'active',
+            isDeleted: false,
+        })),
+    );
+
     const districtPool = [
         'Quan 1',
         'Quan 3',
@@ -460,29 +540,6 @@ const seedSampleData = async () => {
     ];
 
     const cityPool = ['TP.HCM', 'Ha Noi', 'Da Nang', 'Can Tho', 'Hai Phong'];
-    const storeStatuses = ['active', 'active', 'maintenance', 'close'];
-
-    const stores = await Store.insertMany(
-        Array.from({ length: TARGET_COUNT }, (_, index) => ({
-            name: `Pao Pizza Store ${pad(index + 1)}`,
-            address: {
-                streetNumber: `${100 + index} Street ${pad(index + 1)}`,
-                district: pick(districtPool, index),
-                city: pick(cityPool, index),
-            },
-            location: {
-                type: 'Point',
-                coordinates: [106.6 + index * 0.01, 10.7 + index * 0.005],
-            },
-            phone: `0909${pad(index + 1, 6)}`,
-            email: `store${pad(index + 1)}@paopizza.com`,
-            time_open: pick(['07:00', '08:00', '09:00'], index),
-            time_close: pick(['21:00', '22:00', '23:00'], index),
-            manager_by: null,
-            status: pick(storeStatuses, index),
-            isDeleted: false,
-        })),
-    );
 
     // Keep 5 core categories — added order for display sorting
     const categories = await Category.insertMany([
