@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_2_3_5" targetNamespace="http://paopizza.vn/bpmn" exporter="PaoPizza BPMN Generator" exporterVersion="1.0">
+  <bpmn:collaboration id="Collaboration_2_3_5">
+    <bpmn:participant id="Participant_Actor_2_3_5" name="A&#10;Nhân viên bán hàng" processRef="Process_Actor_2_3_5" />
+    <bpmn:participant id="Participant_System_2_3_5" name="B&#10;Hệ thống PaoPizza" processRef="Process_System_2_3_5" />
+    <bpmn:messageFlow id="Message_Open_POS_2_3_5" sourceRef="Actor_2_3_5_open" targetRef="System_2_3_5_start" />
+    <bpmn:messageFlow id="Message_Create_Order_2_3_5" sourceRef="Actor_2_3_5_action" targetRef="System_2_3_5_create_request" />
+    <bpmn:messageFlow id="Message_Response_2_3_5" sourceRef="System_2_3_5_result" targetRef="Actor_2_3_5_receive" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_Actor_2_3_5" isExecutable="false">
+    <bpmn:startEvent id="Actor_2_3_5_start" name="Bắt đầu" />
+    <bpmn:userTask id="Actor_2_3_5_open" name="A1 Đăng nhập và mở màn hình POS" />
+    <bpmn:userTask id="Actor_2_3_5_action" name="A2 Chờ khách hàng chọn món và yêu cầu order" />
+    <bpmn:userTask id="Actor_2_3_5_input" name="A3 Nhập thông tin đơn hàng" />
+    <bpmn:userTask id="Actor_2_3_5_receive" name="A4 Nhận thông báo tạo đơn thành công" />
+    <bpmn:endEvent id="Actor_2_3_5_end" name="Kết thúc" />
+    <bpmn:sequenceFlow id="Actor_2_3_5_Flow_1" sourceRef="Actor_2_3_5_start" targetRef="Actor_2_3_5_open" />
+    <bpmn:sequenceFlow id="Actor_2_3_5_Flow_2" sourceRef="Actor_2_3_5_open" targetRef="Actor_2_3_5_action" />
+    <bpmn:sequenceFlow id="Actor_2_3_5_Flow_3" sourceRef="Actor_2_3_5_action" targetRef="Actor_2_3_5_input" />
+    <bpmn:sequenceFlow id="Actor_2_3_5_Flow_4" sourceRef="Actor_2_3_5_input" targetRef="Actor_2_3_5_receive" />
+    <bpmn:sequenceFlow id="Actor_2_3_5_Flow_5" sourceRef="Actor_2_3_5_receive" targetRef="Actor_2_3_5_end" />
+  </bpmn:process>
+  <bpmn:process id="Process_System_2_3_5" isExecutable="false">
+    <bpmn:documentation>Sau khi nhân viên đăng nhập và mở POS, Frontend tiếp nhận yêu cầu và hiển thị menu. Hệ thống chờ khách hàng chọn món; khi nhân viên nhập và gửi thông tin đơn hợp lệ, Frontend mới gọi Backend. Backend kiểm tra nghiệp vụ, Database tạo đơn và Frontend hiển thị thông báo thành công.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_2_3_5">
+      <bpmn:lane id="Lane_Frontend_2_3_5" name="B1&#10;Frontend">
+        <bpmn:flowNodeRef>System_2_3_5_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_5_load</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_5_wait_order</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_5_create_request</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_5_input</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_5_validate_ui</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_5_valid_ui</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_5_ui_error</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_5_result</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_5_end</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Backend_2_3_5" name="B2&#10;Backend">
+        <bpmn:flowNodeRef>System_2_3_5_be_request</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_5_business</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_5_valid_business</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_5_business_error</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_5_be_result</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Database_2_3_5" name="B3&#10;Database">
+        <bpmn:flowNodeRef>System_2_3_5_create</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_5_db_result</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="System_2_3_5_start" name="Frontend nhận yêu cầu mở POS">
+      <bpmn:messageEventDefinition id="MessageDef_System_2_3_5_start" />
+    </bpmn:startEvent>
+    <bpmn:task id="System_2_3_5_load" name="B1.1 Hiển thị màn hình POS và menu" />
+    <bpmn:task id="System_2_3_5_wait_order" name="B1.2 Chờ khách hàng chọn món" />
+    <bpmn:intermediateCatchEvent id="System_2_3_5_create_request" name="Nhận yêu cầu tạo đơn">
+      <bpmn:messageEventDefinition id="MessageDef_System_2_3_5_create_request" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:task id="System_2_3_5_input" name="B1.3 Hiển thị và nhập thông tin đơn hàng" />
+    <bpmn:task id="System_2_3_5_validate_ui" name="B1.4 Kiểm tra thông tin đơn hàng" />
+    <bpmn:exclusiveGateway id="System_2_3_5_valid_ui" name="Thông tin hợp lệ?" />
+    <bpmn:task id="System_2_3_5_ui_error" name="B1.4.1 Báo lỗi và yêu cầu nhập lại" />
+    <bpmn:serviceTask id="System_2_3_5_be_request" name="B2.1 Nhận yêu cầu tạo đơn hàng" />
+    <bpmn:serviceTask id="System_2_3_5_business" name="B2.2 Kiểm tra nghiệp vụ đơn hàng" />
+    <bpmn:exclusiveGateway id="System_2_3_5_valid_business" name="Đơn hàng hợp lệ?" />
+    <bpmn:task id="System_2_3_5_business_error" name="B2.2.1 Trả lỗi đơn hàng không hợp lệ" />
+    <bpmn:serviceTask id="System_2_3_5_create" name="B3.1 Thực hiện truy vấn tạo đơn hàng" />
+    <bpmn:serviceTask id="System_2_3_5_db_result" name="B3.2 Trả kết quả truy vấn" />
+    <bpmn:serviceTask id="System_2_3_5_be_result" name="B2.3 Trả kết quả tạo đơn hàng" />
+    <bpmn:task id="System_2_3_5_result" name="B1.5 Hiển thị thông báo tạo đơn hàng thành công" />
+    <bpmn:endEvent id="System_2_3_5_end" name="Đã tạo đơn" />
+    <bpmn:sequenceFlow id="System_2_3_5_Flow_1" sourceRef="System_2_3_5_start" targetRef="System_2_3_5_load" />
+    <bpmn:sequenceFlow id="System_2_3_5_Flow_2" sourceRef="System_2_3_5_load" targetRef="System_2_3_5_wait_order" />
+    <bpmn:sequenceFlow id="System_2_3_5_Flow_3" sourceRef="System_2_3_5_wait_order" targetRef="System_2_3_5_create_request" />
+    <bpmn:sequenceFlow id="System_2_3_5_Flow_4" sourceRef="System_2_3_5_create_request" targetRef="System_2_3_5_input" />
+    <bpmn:sequenceFlow id="System_2_3_5_Flow_5" sourceRef="System_2_3_5_input" targetRef="System_2_3_5_validate_ui" />
+    <bpmn:sequenceFlow id="System_2_3_5_Flow_6" sourceRef="System_2_3_5_validate_ui" targetRef="System_2_3_5_valid_ui" />
+    <bpmn:sequenceFlow id="System_2_3_5_Flow_7" name="Không" sourceRef="System_2_3_5_valid_ui" targetRef="System_2_3_5_ui_error" />
+    <bpmn:sequenceFlow id="System_2_3_5_Flow_8" name="Nhập lại" sourceRef="System_2_3_5_ui_error" targetRef="System_2_3_5_input" />
+    <bpmn:sequenceFlow id="System_2_3_5_Flow_9" name="Có" sourceRef="System_2_3_5_valid_ui" targetRef="System_2_3_5_be_request" />
+    <bpmn:sequenceFlow id="System_2_3_5_Flow_10" sourceRef="System_2_3_5_be_request" targetRef="System_2_3_5_business" />
+    <bpmn:sequenceFlow id="System_2_3_5_Flow_11" sourceRef="System_2_3_5_business" targetRef="System_2_3_5_valid_business" />
+    <bpmn:sequenceFlow id="System_2_3_5_Flow_12" name="Không" sourceRef="System_2_3_5_valid_business" targetRef="System_2_3_5_business_error" />
+    <bpmn:sequenceFlow id="System_2_3_5_Flow_13" name="Nhập lại" sourceRef="System_2_3_5_business_error" targetRef="System_2_3_5_input" />
+    <bpmn:sequenceFlow id="System_2_3_5_Flow_14" name="Có" sourceRef="System_2_3_5_valid_business" targetRef="System_2_3_5_create" />
+    <bpmn:sequenceFlow id="System_2_3_5_Flow_15" sourceRef="System_2_3_5_create" targetRef="System_2_3_5_db_result" />
+    <bpmn:sequenceFlow id="System_2_3_5_Flow_16" sourceRef="System_2_3_5_db_result" targetRef="System_2_3_5_be_result" />
+    <bpmn:sequenceFlow id="System_2_3_5_Flow_17" sourceRef="System_2_3_5_be_result" targetRef="System_2_3_5_result" />
+    <bpmn:sequenceFlow id="System_2_3_5_Flow_18" sourceRef="System_2_3_5_result" targetRef="System_2_3_5_end" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_2_3_5">
+    <bpmndi:BPMNPlane id="BPMNPlane_2_3_5" bpmnElement="Collaboration_2_3_5">
+      <bpmndi:BPMNShape id="Participant_Actor_2_3_5_di" bpmnElement="Participant_Actor_2_3_5" isHorizontal="true">
+        <dc:Bounds x="60" y="70" width="2140" height="180" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Actor_2_3_5_start_di" bpmnElement="Actor_2_3_5_start">
+        <dc:Bounds x="150" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="115" y="183" width="106" height="32" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Actor_2_3_5_open_di" bpmnElement="Actor_2_3_5_open">
+        <dc:Bounds x="240" y="120" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Actor_2_3_5_action_di" bpmnElement="Actor_2_3_5_action">
+        <dc:Bounds x="470" y="120" width="165" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Actor_2_3_5_input_di" bpmnElement="Actor_2_3_5_input">
+        <dc:Bounds x="750" y="120" width="165" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Actor_2_3_5_receive_di" bpmnElement="Actor_2_3_5_receive">
+        <dc:Bounds x="1840" y="120" width="155" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Actor_2_3_5_end_di" bpmnElement="Actor_2_3_5_end">
+        <dc:Bounds x="2070" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2035" y="183" width="106" height="32" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_System_2_3_5_di" bpmnElement="Participant_System_2_3_5" isHorizontal="true">
+        <dc:Bounds x="60" y="320" width="2140" height="600" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Frontend_2_3_5_di" bpmnElement="Lane_Frontend_2_3_5" isHorizontal="true">
+        <dc:Bounds x="90" y="320" width="2110" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Backend_2_3_5_di" bpmnElement="Lane_Backend_2_3_5" isHorizontal="true">
+        <dc:Bounds x="90" y="520" width="2110" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Database_2_3_5_di" bpmnElement="Lane_Database_2_3_5" isHorizontal="true">
+        <dc:Bounds x="90" y="720" width="2110" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_5_start_di" bpmnElement="System_2_3_5_start">
+        <dc:Bounds x="160" y="397" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="125" y="438" width="106" height="32" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_5_load_di" bpmnElement="System_2_3_5_load">
+        <dc:Bounds x="230" y="375" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_5_wait_order_di" bpmnElement="System_2_3_5_wait_order">
+        <dc:Bounds x="415" y="375" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_5_create_request_di" bpmnElement="System_2_3_5_create_request">
+        <dc:Bounds x="610" y="397" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="575" y="438" width="106" height="32" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_5_input_di" bpmnElement="System_2_3_5_input">
+        <dc:Bounds x="700" y="375" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_5_validate_ui_di" bpmnElement="System_2_3_5_validate_ui">
+        <dc:Bounds x="875" y="375" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_5_valid_ui_di" bpmnElement="System_2_3_5_valid_ui" isMarkerVisible="true">
+        <dc:Bounds x="1060" y="390" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1025" y="445" width="120" height="32" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_5_ui_error_di" bpmnElement="System_2_3_5_ui_error">
+        <dc:Bounds x="1015" y="450" width="145" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_5_be_request_di" bpmnElement="System_2_3_5_be_request">
+        <dc:Bounds x="1180" y="575" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_5_business_di" bpmnElement="System_2_3_5_business">
+        <dc:Bounds x="1360" y="575" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_5_valid_business_di" bpmnElement="System_2_3_5_valid_business" isMarkerVisible="true">
+        <dc:Bounds x="1545" y="590" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1510" y="645" width="120" height="32" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_5_business_error_di" bpmnElement="System_2_3_5_business_error">
+        <dc:Bounds x="1515" y="650" width="155" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_5_create_di" bpmnElement="System_2_3_5_create">
+        <dc:Bounds x="1660" y="775" width="155" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_5_db_result_di" bpmnElement="System_2_3_5_db_result">
+        <dc:Bounds x="1850" y="775" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_5_be_result_di" bpmnElement="System_2_3_5_be_result">
+        <dc:Bounds x="1850" y="575" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_5_result_di" bpmnElement="System_2_3_5_result">
+        <dc:Bounds x="1835" y="375" width="175" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_5_end_di" bpmnElement="System_2_3_5_end">
+        <dc:Bounds x="2070" y="397" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2035" y="438" width="106" height="32" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Actor_2_3_5_Flow_1_di" bpmnElement="Actor_2_3_5_Flow_1">
+        <di:waypoint x="186" y="160" />
+        <di:waypoint x="240" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Actor_2_3_5_Flow_2_di" bpmnElement="Actor_2_3_5_Flow_2">
+        <di:waypoint x="385" y="160" />
+        <di:waypoint x="470" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Actor_2_3_5_Flow_3_di" bpmnElement="Actor_2_3_5_Flow_3">
+        <di:waypoint x="635" y="160" />
+        <di:waypoint x="750" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Actor_2_3_5_Flow_4_di" bpmnElement="Actor_2_3_5_Flow_4">
+        <di:waypoint x="915" y="160" />
+        <di:waypoint x="1840" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Actor_2_3_5_Flow_5_di" bpmnElement="Actor_2_3_5_Flow_5">
+        <di:waypoint x="1995" y="160" />
+        <di:waypoint x="2070" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_5_Flow_1_di" bpmnElement="System_2_3_5_Flow_1">
+        <di:waypoint x="196" y="415" />
+        <di:waypoint x="230" y="415" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_5_Flow_2_di" bpmnElement="System_2_3_5_Flow_2">
+        <di:waypoint x="375" y="415" />
+        <di:waypoint x="415" y="415" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_5_Flow_3_di" bpmnElement="System_2_3_5_Flow_3">
+        <di:waypoint x="560" y="415" />
+        <di:waypoint x="610" y="415" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_5_Flow_4_di" bpmnElement="System_2_3_5_Flow_4">
+        <di:waypoint x="646" y="415" />
+        <di:waypoint x="700" y="415" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_5_Flow_5_di" bpmnElement="System_2_3_5_Flow_5">
+        <di:waypoint x="845" y="415" />
+        <di:waypoint x="875" y="415" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_5_Flow_6_di" bpmnElement="System_2_3_5_Flow_6">
+        <di:waypoint x="1020" y="415" />
+        <di:waypoint x="1060" y="415" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_5_Flow_7_di" bpmnElement="System_2_3_5_Flow_7">
+        <di:waypoint x="1085" y="440" />
+        <di:waypoint x="1088" y="450" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1092" y="432" width="110" height="28" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_5_Flow_8_di" bpmnElement="System_2_3_5_Flow_8">
+        <di:waypoint x="1088" y="450" />
+        <di:waypoint x="1088" y="345" />
+        <di:waypoint x="773" y="345" />
+        <di:waypoint x="773" y="375" />
+        <bpmndi:BPMNLabel><dc:Bounds x="728" y="325" width="110" height="28" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_5_Flow_9_di" bpmnElement="System_2_3_5_Flow_9">
+        <di:waypoint x="1110" y="415" />
+        <di:waypoint x="1145" y="415" />
+        <di:waypoint x="1145" y="615" />
+        <di:waypoint x="1180" y="615" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1100" y="595" width="110" height="28" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_5_Flow_10_di" bpmnElement="System_2_3_5_Flow_10">
+        <di:waypoint x="1325" y="615" />
+        <di:waypoint x="1360" y="615" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_5_Flow_11_di" bpmnElement="System_2_3_5_Flow_11">
+        <di:waypoint x="1505" y="615" />
+        <di:waypoint x="1545" y="615" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_5_Flow_12_di" bpmnElement="System_2_3_5_Flow_12">
+        <di:waypoint x="1570" y="640" />
+        <di:waypoint x="1593" y="650" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1597" y="632" width="110" height="28" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_5_Flow_13_di" bpmnElement="System_2_3_5_Flow_13">
+        <di:waypoint x="1593" y="650" />
+        <di:waypoint x="1593" y="345" />
+        <di:waypoint x="773" y="345" />
+        <di:waypoint x="773" y="375" />
+        <bpmndi:BPMNLabel><dc:Bounds x="728" y="325" width="110" height="28" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_5_Flow_14_di" bpmnElement="System_2_3_5_Flow_14">
+        <di:waypoint x="1595" y="615" />
+        <di:waypoint x="1628" y="615" />
+        <di:waypoint x="1628" y="815" />
+        <di:waypoint x="1660" y="815" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1583" y="795" width="110" height="28" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_5_Flow_15_di" bpmnElement="System_2_3_5_Flow_15">
+        <di:waypoint x="1815" y="815" />
+        <di:waypoint x="1850" y="815" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_5_Flow_16_di" bpmnElement="System_2_3_5_Flow_16">
+        <di:waypoint x="1923" y="775" />
+        <di:waypoint x="1923" y="655" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_5_Flow_17_di" bpmnElement="System_2_3_5_Flow_17">
+        <di:waypoint x="1923" y="575" />
+        <di:waypoint x="1923" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_5_Flow_18_di" bpmnElement="System_2_3_5_Flow_18">
+        <di:waypoint x="2010" y="415" />
+        <di:waypoint x="2070" y="415" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Message_Open_POS_2_3_5_di" bpmnElement="Message_Open_POS_2_3_5">
+        <di:waypoint x="313" y="200" />
+        <di:waypoint x="313" y="285" />
+        <di:waypoint x="178" y="285" />
+        <di:waypoint x="178" y="397" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Message_Create_Order_2_3_5_di" bpmnElement="Message_Create_Order_2_3_5">
+        <di:waypoint x="553" y="200" />
+        <di:waypoint x="553" y="285" />
+        <di:waypoint x="628" y="285" />
+        <di:waypoint x="628" y="397" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Message_Response_2_3_5_di" bpmnElement="Message_Response_2_3_5">
+        <di:waypoint x="1922.5" y="375" />
+        <di:waypoint x="1922.5" y="280" />
+        <di:waypoint x="1917" y="280" />
+        <di:waypoint x="1917" y="200" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

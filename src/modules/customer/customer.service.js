@@ -1,6 +1,11 @@
 import { Customer } from './customer.model.js';
 import { User } from '../user/user.model.js';
 
+const LOYALTY_TIERS = ['member', 'silver', 'gold', 'diamond'];
+
+const escapeRegex = (value = '') =>
+    value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 const normalizeEmail = (email) => {
     if (email === undefined || email === null) return null;
     const normalizedEmail = email.trim().toLowerCase();
@@ -336,4 +341,167 @@ export const getRedeemedPromotions = async (userId) => {
     }
 
     return customer.redeemPromotion || [];
+};
+
+export const getLoyaltyCustomers = async (query = {}) => {
+    const {
+        page,
+        limit,
+        search = '',
+        tier = 'all',
+        sortBy = 'totalSpent',
+        sortOrder = 'desc',
+    } = query;
+
+    const pageNum = Math.max(1, Number.parseInt(page, 10) || 1);
+    const limitNum = Math.min(
+        100,
+        Math.max(1, Number.parseInt(limit, 10) || 10),
+    );
+    const skip = (pageNum - 1) * limitNum;
+
+    const customerFilter = { isDeleted: false };
+    const normalizedSearch = search.trim();
+
+    if (normalizedSearch) {
+        const searchRegex = new RegExp(escapeRegex(normalizedSearch), 'i');
+        customerFilter.$or = [
+            { name: searchRegex },
+            { phone: searchRegex },
+            { email: searchRegex },
+        ];
+    }
+
+    if (LOYALTY_TIERS.includes(tier)) {
+        customerFilter.tier = tier;
+    }
+
+    const sortableFields = new Set([
+        'name',
+        'currentPoint',
+        'totalPoint',
+        'tier',
+        'completedOrderCount',
+        'totalItemsPurchased',
+        'totalSpent',
+        'lastOrderAt',
+        'createdAt',
+    ]);
+    const sortField = sortableFields.has(sortBy) ? sortBy : 'totalSpent';
+    const sortDirection = sortOrder === 'asc' ? 1 : -1;
+    const sort = { [sortField]: sortDirection, _id: 1 };
+
+    const [result] = await Customer.aggregate([
+        { $match: customerFilter },
+        {
+            $lookup: {
+                from: 'orders',
+                let: { customerId: '$_id' },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: { $eq: ['$customer_id', '$$customerId'] },
+                            isDeleted: false,
+                            status: 'completed',
+                        },
+                    },
+                    {
+                        $project: {
+                            total: 1,
+                            createdAt: 1,
+                            itemCount: {
+                                $sum: {
+                                    $map: {
+                                        input: { $ifNull: ['$items', []] },
+                                        as: 'item',
+                                        in: { $ifNull: ['$$item.quantity', 0] },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+                as: 'completedOrders',
+            },
+        },
+        {
+            $addFields: {
+                completedOrderCount: { $size: '$completedOrders' },
+                totalItemsPurchased: {
+                    $sum: '$completedOrders.itemCount',
+                },
+                totalSpent: { $sum: '$completedOrders.total' },
+                lastOrderAt: { $max: '$completedOrders.createdAt' },
+            },
+        },
+        {
+            $project: {
+                name: 1,
+                phone: 1,
+                email: 1,
+                currentPoint: 1,
+                totalPoint: 1,
+                tier: 1,
+                completedOrderCount: 1,
+                totalItemsPurchased: 1,
+                totalSpent: 1,
+                lastOrderAt: 1,
+                createdAt: 1,
+            },
+        },
+        {
+            $facet: {
+                customers: [
+                    { $sort: sort },
+                    { $skip: skip },
+                    { $limit: limitNum },
+                ],
+                summary: [
+                    {
+                        $group: {
+                            _id: null,
+                            totalCustomers: { $sum: 1 },
+                            totalCompletedOrders: {
+                                $sum: '$completedOrderCount',
+                            },
+                            totalItemsPurchased: {
+                                $sum: '$totalItemsPurchased',
+                            },
+                            totalSpent: { $sum: '$totalSpent' },
+                        },
+                    },
+                ],
+                tierCounts: [
+                    { $group: { _id: '$tier', count: { $sum: 1 } } },
+                ],
+            },
+        },
+    ]);
+
+    const summary = result?.summary?.[0] || {
+        totalCustomers: 0,
+        totalCompletedOrders: 0,
+        totalItemsPurchased: 0,
+        totalSpent: 0,
+    };
+    const tierCounts = Object.fromEntries(
+        LOYALTY_TIERS.map((tierName) => [tierName, 0]),
+    );
+
+    for (const item of result?.tierCounts || []) {
+        if (LOYALTY_TIERS.includes(item._id)) {
+            tierCounts[item._id] = item.count;
+        }
+    }
+
+    return {
+        customers: result?.customers || [],
+        summary: { ...summary, tierCounts },
+        pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total: summary.totalCustomers,
+            totalPages: Math.ceil(summary.totalCustomers / limitNum),
+        },
+    };
 };

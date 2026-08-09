@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_2_3_6" targetNamespace="http://paopizza.vn/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.22.0">
+  <bpmn:collaboration id="Collaboration_2_3_6">
+    <bpmn:participant id="Participant_Actor_2_3_6" name="A&#10;Nhân viên / Quản lý" processRef="Process_Actor_2_3_6" />
+    <bpmn:participant id="Participant_System_2_3_6" name="B&#10;Hệ thống PaoPizza" processRef="Process_System_2_3_6" />
+    <bpmn:messageFlow id="Message_Open_Page_2_3_6" sourceRef="Actor_2_3_6_open" targetRef="System_2_3_6_start" />
+    <bpmn:messageFlow id="Message_Select_Order_2_3_6" sourceRef="Actor_2_3_6_select" targetRef="System_2_3_6_select_request" />
+    <bpmn:messageFlow id="Message_Order_Action_2_3_6" sourceRef="Actor_2_3_6_action" targetRef="System_2_3_6_action_request" />
+    <bpmn:messageFlow id="Message_Response_2_3_6" sourceRef="System_2_3_6_result" targetRef="Actor_2_3_6_receive" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_Actor_2_3_6" isExecutable="false">
+    <bpmn:startEvent id="Actor_2_3_6_start" name="Bắt đầu" />
+    <bpmn:userTask id="Actor_2_3_6_open" name="A1 Mở trang quản lý đơn hàng" />
+    <bpmn:userTask id="Actor_2_3_6_list" name="A2 Xem danh sách đơn hàng" />
+    <bpmn:userTask id="Actor_2_3_6_select" name="A3 Chọn đơn hàng" />
+    <bpmn:userTask id="Actor_2_3_6_action" name="A4 Xem hoặc cập nhật trạng thái đơn hàng" />
+    <bpmn:userTask id="Actor_2_3_6_receive" name="A5 Xem thông tin đơn và trạng thái hiện tại" />
+    <bpmn:endEvent id="Actor_2_3_6_end" name="Kết thúc" />
+    <bpmn:sequenceFlow id="Actor_2_3_6_Flow_1" sourceRef="Actor_2_3_6_start" targetRef="Actor_2_3_6_open" />
+    <bpmn:sequenceFlow id="Actor_2_3_6_Flow_2" sourceRef="Actor_2_3_6_open" targetRef="Actor_2_3_6_list" />
+    <bpmn:sequenceFlow id="Actor_2_3_6_Flow_3" sourceRef="Actor_2_3_6_list" targetRef="Actor_2_3_6_select" />
+    <bpmn:sequenceFlow id="Actor_2_3_6_Flow_4" sourceRef="Actor_2_3_6_select" targetRef="Actor_2_3_6_action" />
+    <bpmn:sequenceFlow id="Actor_2_3_6_Flow_5" sourceRef="Actor_2_3_6_action" targetRef="Actor_2_3_6_receive" />
+    <bpmn:sequenceFlow id="Actor_2_3_6_Flow_6" sourceRef="Actor_2_3_6_receive" targetRef="Actor_2_3_6_end" />
+  </bpmn:process>
+  <bpmn:process id="Process_System_2_3_6" isExecutable="false">
+    <bpmn:documentation>Khi nhân viên hoặc quản lý mở trang quản lý đơn hàng, hệ thống tải và hiển thị danh sách. Người dùng chọn một đơn để xem hoặc cập nhật trạng thái. Nếu trạng thái mới là completed, hệ thống thực hiện trừ kho. Sau khi xử lý, hệ thống truy vấn lại đơn và hiển thị thông tin với trạng thái hiện tại.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_2_3_6">
+      <bpmn:lane id="Lane_Database_2_3_6" name="B3&#10;Database">
+        <bpmn:flowNodeRef>System_2_3_6_load_order</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_6_update</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_6_update_inventory</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_6_reload_order</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_6_load_list</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Backend_2_3_6" name="B2&#10;Backend">
+        <bpmn:flowNodeRef>System_2_3_6_auth</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_6_list_response</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_6_get_order_request</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_6_order_exists</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_6_order_response</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_6_update_request</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_6_completed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_6_deduct</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_6_detail_response</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Frontend_2_3_6" name="B1&#10;Frontend">
+        <bpmn:flowNodeRef>System_2_3_6_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_6_list_request</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_6_display_list</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_6_select_request</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_6_display_order</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_6_not_found</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_6_action_request</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_6_result</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>System_2_3_6_end</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="System_2_3_6_start" name="Nhận yêu cầu mở trang quản lý đơn">
+      <bpmn:messageEventDefinition id="MessageDef_System_2_3_6_start" />
+    </bpmn:startEvent>
+    <bpmn:task id="System_2_3_6_list_request" name="B1.1 Gửi yêu cầu lấy danh sách đơn hàng" />
+    <bpmn:serviceTask id="System_2_3_6_auth" name="B2.1 Xác thực nhân viên hoặc quản lý" />
+    <bpmn:serviceTask id="System_2_3_6_list_response" name="B2.2 Trả danh sách đơn hàng" />
+    <bpmn:task id="System_2_3_6_display_list" name="B1.2 Hiển thị danh sách đơn hàng" />
+    <bpmn:intermediateCatchEvent id="System_2_3_6_select_request" name="Nhận đơn hàng được chọn">
+      <bpmn:messageEventDefinition id="MessageDef_System_2_3_6_select_request" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:serviceTask id="System_2_3_6_get_order_request" name="B2.3 Nhận yêu cầu truy vấn đơn hàng" />
+    <bpmn:serviceTask id="System_2_3_6_load_order" name="B3.2 Truy vấn chi tiết đơn hàng" />
+    <bpmn:exclusiveGateway id="System_2_3_6_order_exists" name="Có đơn hàng?" />
+    <bpmn:serviceTask id="System_2_3_6_order_response" name="B2.4 Trả thông tin đơn hàng cho Frontend" />
+    <bpmn:task id="System_2_3_6_display_order" name="B1.3 Hiển thị thông tin đơn hàng" />
+    <bpmn:task id="System_2_3_6_not_found" name="B1.3.1 Thông báo không tìm thấy đơn hàng" />
+    <bpmn:intermediateCatchEvent id="System_2_3_6_action_request" name="Nhận yêu cầu cập nhật trạng thái">
+      <bpmn:messageEventDefinition id="MessageDef_System_2_3_6_action_request" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:serviceTask id="System_2_3_6_update_request" name="B2.5 Kiểm tra và cập nhật trạng thái">
+      <bpmn:incoming>System_2_3_6_Flow_10</bpmn:incoming>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="System_2_3_6_update" name="B3.3 Lưu trạng thái mới của đơn hàng" />
+    <bpmn:exclusiveGateway id="System_2_3_6_completed" name="Hoàn thành?" />
+    <bpmn:serviceTask id="System_2_3_6_deduct" name="B2.6 Thực hiện quy trình trừ kho" />
+    <bpmn:serviceTask id="System_2_3_6_update_inventory" name="B3.4 Cập nhật tồn kho nguyên liệu" />
+    <bpmn:serviceTask id="System_2_3_6_reload_order" name="B3.5 Truy vấn lại đơn hàng vừa xử lý" />
+    <bpmn:serviceTask id="System_2_3_6_detail_response" name="B2.7 Trả thông tin và trạng thái hiện tại" />
+    <bpmn:task id="System_2_3_6_result" name="B1.4 Hiển thị lại thông tin đơn hàng với trạng thái hiện tại" />
+    <bpmn:endEvent id="System_2_3_6_end" name="Đã xử lý" />
+    <bpmn:serviceTask id="System_2_3_6_load_list" name="B3.1 Truy vấn danh sách đơn hàng" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_1" sourceRef="System_2_3_6_start" targetRef="System_2_3_6_list_request" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_2" sourceRef="System_2_3_6_list_request" targetRef="System_2_3_6_auth" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_3" sourceRef="System_2_3_6_auth" targetRef="System_2_3_6_load_list" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_4" sourceRef="System_2_3_6_load_list" targetRef="System_2_3_6_list_response" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_5" sourceRef="System_2_3_6_list_response" targetRef="System_2_3_6_display_list" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_6" sourceRef="System_2_3_6_display_list" targetRef="System_2_3_6_select_request" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_7" sourceRef="System_2_3_6_select_request" targetRef="System_2_3_6_get_order_request" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_8" sourceRef="System_2_3_6_get_order_request" targetRef="System_2_3_6_load_order" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_22" sourceRef="System_2_3_6_load_order" targetRef="System_2_3_6_order_exists" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_23" name="Có" sourceRef="System_2_3_6_order_exists" targetRef="System_2_3_6_order_response" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_25" name="Không" sourceRef="System_2_3_6_order_exists" targetRef="System_2_3_6_not_found" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_24" sourceRef="System_2_3_6_order_response" targetRef="System_2_3_6_display_order" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_9" sourceRef="System_2_3_6_display_order" targetRef="System_2_3_6_action_request" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_10" sourceRef="System_2_3_6_action_request" targetRef="System_2_3_6_update_request" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_13" sourceRef="System_2_3_6_update_request" targetRef="System_2_3_6_update" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_14" sourceRef="System_2_3_6_update" targetRef="System_2_3_6_completed" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_15" name="Có" sourceRef="System_2_3_6_completed" targetRef="System_2_3_6_deduct" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_18" name="Không" sourceRef="System_2_3_6_completed" targetRef="System_2_3_6_reload_order" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_16" sourceRef="System_2_3_6_deduct" targetRef="System_2_3_6_update_inventory" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_17" sourceRef="System_2_3_6_update_inventory" targetRef="System_2_3_6_reload_order" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_19" sourceRef="System_2_3_6_reload_order" targetRef="System_2_3_6_detail_response" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_20" sourceRef="System_2_3_6_detail_response" targetRef="System_2_3_6_result" />
+    <bpmn:sequenceFlow id="System_2_3_6_Flow_21" sourceRef="System_2_3_6_result" targetRef="System_2_3_6_end" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_2_3_6">
+    <bpmndi:BPMNPlane id="BPMNPlane_2_3_6" bpmnElement="Collaboration_2_3_6">
+      <bpmndi:BPMNShape id="Participant_Actor_2_3_6_di" bpmnElement="Participant_Actor_2_3_6" isHorizontal="true">
+        <dc:Bounds x="160" y="70" width="2110" height="180" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Actor_2_3_6_start_di" bpmnElement="Actor_2_3_6_start">
+        <dc:Bounds x="250" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="249" y="183" width="38" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Actor_2_3_6_open_di" bpmnElement="Actor_2_3_6_open">
+        <dc:Bounds x="340" y="120" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Actor_2_3_6_list_di" bpmnElement="Actor_2_3_6_list">
+        <dc:Bounds x="540" y="120" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Actor_2_3_6_select_di" bpmnElement="Actor_2_3_6_select">
+        <dc:Bounds x="737" y="120" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Actor_2_3_6_action_di" bpmnElement="Actor_2_3_6_action">
+        <dc:Bounds x="1337" y="120" width="165" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Actor_2_3_6_receive_di" bpmnElement="Actor_2_3_6_receive">
+        <dc:Bounds x="2022" y="120" width="155" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Actor_2_3_6_end_di" bpmnElement="Actor_2_3_6_end">
+        <dc:Bounds x="2212" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2210" y="183" width="41" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Actor_2_3_6_Flow_1_di" bpmnElement="Actor_2_3_6_Flow_1">
+        <di:waypoint x="286" y="160" />
+        <di:waypoint x="340" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Actor_2_3_6_Flow_2_di" bpmnElement="Actor_2_3_6_Flow_2">
+        <di:waypoint x="485" y="160" />
+        <di:waypoint x="540" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Actor_2_3_6_Flow_3_di" bpmnElement="Actor_2_3_6_Flow_3">
+        <di:waypoint x="685" y="160" />
+        <di:waypoint x="737" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Actor_2_3_6_Flow_4_di" bpmnElement="Actor_2_3_6_Flow_4">
+        <di:waypoint x="882" y="160" />
+        <di:waypoint x="1337" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Actor_2_3_6_Flow_5_di" bpmnElement="Actor_2_3_6_Flow_5">
+        <di:waypoint x="1502" y="160" />
+        <di:waypoint x="2022" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Actor_2_3_6_Flow_6_di" bpmnElement="Actor_2_3_6_Flow_6">
+        <di:waypoint x="2177" y="160" />
+        <di:waypoint x="2212" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Participant_System_2_3_6_di" bpmnElement="Participant_System_2_3_6" isHorizontal="true">
+        <dc:Bounds x="160" y="320" width="2110" height="600" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Database_2_3_6_di" bpmnElement="Lane_Database_2_3_6" isHorizontal="true">
+        <dc:Bounds x="190" y="720" width="2080" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Backend_2_3_6_di" bpmnElement="Lane_Backend_2_3_6" isHorizontal="true">
+        <dc:Bounds x="190" y="520" width="2080" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Frontend_2_3_6_di" bpmnElement="Lane_Frontend_2_3_6" isHorizontal="true">
+        <dc:Bounds x="190" y="320" width="2080" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_start_di" bpmnElement="System_2_3_6_start">
+        <dc:Bounds x="250" y="397" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="224" y="438" width="88" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_list_request_di" bpmnElement="System_2_3_6_list_request">
+        <dc:Bounds x="320" y="375" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_auth_di" bpmnElement="System_2_3_6_auth">
+        <dc:Bounds x="320" y="600" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_list_response_di" bpmnElement="System_2_3_6_list_response">
+        <dc:Bounds x="577" y="575" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_display_list_di" bpmnElement="System_2_3_6_display_list">
+        <dc:Bounds x="577" y="375" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_select_request_di" bpmnElement="System_2_3_6_select_request">
+        <dc:Bounds x="792" y="397" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="757" y="438" width="106" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_get_order_request_di" bpmnElement="System_2_3_6_get_order_request">
+        <dc:Bounds x="827" y="575" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_load_order_di" bpmnElement="System_2_3_6_load_order">
+        <dc:Bounds x="827" y="775" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_order_exists_di" bpmnElement="System_2_3_6_order_exists" isMarkerVisible="true">
+        <dc:Bounds x="1085" y="590" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1003.5" y="608" width="71" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_order_response_di" bpmnElement="System_2_3_6_order_response">
+        <dc:Bounds x="1202" y="575" width="155" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_display_order_di" bpmnElement="System_2_3_6_display_order">
+        <dc:Bounds x="1207" y="375" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_not_found_di" bpmnElement="System_2_3_6_not_found">
+        <dc:Bounds x="1037" y="380" width="145" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_action_request_di" bpmnElement="System_2_3_6_action_request">
+        <dc:Bounds x="1422" y="397" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1396" y="438" width="89" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_update_request_di" bpmnElement="System_2_3_6_update_request">
+        <dc:Bounds x="1457" y="575" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_update_di" bpmnElement="System_2_3_6_update">
+        <dc:Bounds x="1457" y="775" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_completed_di" bpmnElement="System_2_3_6_completed" isMarkerVisible="true">
+        <dc:Bounds x="1655" y="590" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1608" y="590" width="63" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_deduct_di" bpmnElement="System_2_3_6_deduct">
+        <dc:Bounds x="1787" y="575" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_update_inventory_di" bpmnElement="System_2_3_6_update_inventory">
+        <dc:Bounds x="1797" y="740" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_reload_order_di" bpmnElement="System_2_3_6_reload_order">
+        <dc:Bounds x="1955" y="830" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_detail_response_di" bpmnElement="System_2_3_6_detail_response">
+        <dc:Bounds x="2035" y="575" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_result_di" bpmnElement="System_2_3_6_result">
+        <dc:Bounds x="2027" y="375" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_end_di" bpmnElement="System_2_3_6_end">
+        <dc:Bounds x="2212" y="397" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2210" y="438" width="41" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="System_2_3_6_load_list_di" bpmnElement="System_2_3_6_load_list">
+        <dc:Bounds x="320" y="790" width="145" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_1_di" bpmnElement="System_2_3_6_Flow_1">
+        <di:waypoint x="286" y="415" />
+        <di:waypoint x="320" y="415" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_2_di" bpmnElement="System_2_3_6_Flow_2">
+        <di:waypoint x="393" y="455" />
+        <di:waypoint x="393" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_3_di" bpmnElement="System_2_3_6_Flow_3">
+        <di:waypoint x="393" y="680" />
+        <di:waypoint x="393" y="790" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_4_di" bpmnElement="System_2_3_6_Flow_4">
+        <di:waypoint x="465" y="830" />
+        <di:waypoint x="650" y="830" />
+        <di:waypoint x="650" y="655" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_5_di" bpmnElement="System_2_3_6_Flow_5">
+        <di:waypoint x="650" y="575" />
+        <di:waypoint x="650" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_6_di" bpmnElement="System_2_3_6_Flow_6">
+        <di:waypoint x="722" y="415" />
+        <di:waypoint x="792" y="415" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_7_di" bpmnElement="System_2_3_6_Flow_7">
+        <di:waypoint x="828" y="415" />
+        <di:waypoint x="900" y="415" />
+        <di:waypoint x="900" y="575" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_8_di" bpmnElement="System_2_3_6_Flow_8">
+        <di:waypoint x="900" y="655" />
+        <di:waypoint x="900" y="775" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_22_di" bpmnElement="System_2_3_6_Flow_22">
+        <di:waypoint x="972" y="815" />
+        <di:waypoint x="1110" y="815" />
+        <di:waypoint x="1110" y="640" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_23_di" bpmnElement="System_2_3_6_Flow_23">
+        <di:waypoint x="1135" y="615" />
+        <di:waypoint x="1202" y="615" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1140.0000000000027" y="590" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_25_di" bpmnElement="System_2_3_6_Flow_25">
+        <di:waypoint x="1110" y="590" />
+        <di:waypoint x="1110" y="450" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1064" y="567" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_24_di" bpmnElement="System_2_3_6_Flow_24">
+        <di:waypoint x="1280" y="575" />
+        <di:waypoint x="1280" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_9_di" bpmnElement="System_2_3_6_Flow_9">
+        <di:waypoint x="1352" y="415" />
+        <di:waypoint x="1422" y="415" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_10_di" bpmnElement="System_2_3_6_Flow_10">
+        <di:waypoint x="1458" y="415" />
+        <di:waypoint x="1530" y="415" />
+        <di:waypoint x="1530" y="575" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_13_di" bpmnElement="System_2_3_6_Flow_13">
+        <di:waypoint x="1530" y="655" />
+        <di:waypoint x="1530" y="775" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_14_di" bpmnElement="System_2_3_6_Flow_14">
+        <di:waypoint x="1602" y="815" />
+        <di:waypoint x="1680" y="815" />
+        <di:waypoint x="1680" y="640" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_15_di" bpmnElement="System_2_3_6_Flow_15">
+        <di:waypoint x="1680" y="590" />
+        <di:waypoint x="1680" y="550" />
+        <di:waypoint x="1860" y="550" />
+        <di:waypoint x="1860" y="575" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1654.0000000000232" y="543" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_18_di" bpmnElement="System_2_3_6_Flow_18">
+        <di:waypoint x="1705" y="615" />
+        <di:waypoint x="1740" y="615" />
+        <di:waypoint x="1740" y="870" />
+        <di:waypoint x="1955" y="870" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1744" y="639" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_16_di" bpmnElement="System_2_3_6_Flow_16">
+        <di:waypoint x="1860" y="655" />
+        <di:waypoint x="1860" y="740" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_17_di" bpmnElement="System_2_3_6_Flow_17">
+        <di:waypoint x="1942" y="780" />
+        <di:waypoint x="2020" y="780" />
+        <di:waypoint x="2020" y="830" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_19_di" bpmnElement="System_2_3_6_Flow_19">
+        <di:waypoint x="2085" y="870" />
+        <di:waypoint x="2100" y="870" />
+        <di:waypoint x="2100" y="655" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_20_di" bpmnElement="System_2_3_6_Flow_20">
+        <di:waypoint x="2100" y="575" />
+        <di:waypoint x="2100" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="System_2_3_6_Flow_21_di" bpmnElement="System_2_3_6_Flow_21">
+        <di:waypoint x="2172" y="415" />
+        <di:waypoint x="2212" y="415" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Message_Open_Page_2_3_6_di" bpmnElement="Message_Open_Page_2_3_6">
+        <di:waypoint x="413" y="200" />
+        <di:waypoint x="413" y="285" />
+        <di:waypoint x="268" y="285" />
+        <di:waypoint x="268" y="397" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Message_Select_Order_2_3_6_di" bpmnElement="Message_Select_Order_2_3_6">
+        <di:waypoint x="810" y="200" />
+        <di:waypoint x="810" y="397" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Message_Order_Action_2_3_6_di" bpmnElement="Message_Order_Action_2_3_6">
+        <di:waypoint x="1440" y="200" />
+        <di:waypoint x="1440" y="397" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Message_Response_2_3_6_di" bpmnElement="Message_Response_2_3_6">
+        <di:waypoint x="2100" y="375" />
+        <di:waypoint x="2100" y="200" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

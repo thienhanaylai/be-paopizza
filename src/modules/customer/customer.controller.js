@@ -168,3 +168,13 @@ export const getRedeemedPromotions = async (req, res) => {
         data: redeemedList,
     });
 };
+
+export const getLoyaltyCustomers = async (req, res) => {
+    const result = await customerService.getLoyaltyCustomers(req.query);
+
+    return res.status(200).json({
+        data: result.customers,
+        summary: result.summary,
+        pagination: result.pagination,
+    });
+};
