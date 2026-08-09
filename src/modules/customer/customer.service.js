@@ -1,8 +1,15 @@
 import { Customer } from './customer.model.js';
 import { User } from '../user/user.model.js';
 
+const normalizeEmail = (email) => {
+    if (email === undefined || email === null) return null;
+    const normalizedEmail = email.trim().toLowerCase();
+    return normalizedEmail || null;
+};
+
 export const registerCustomer = async (data) => {
     const { password, name, phone, email } = data;
+    const normalizedEmail = normalizeEmail(email);
 
     // Kiểm tra username là số điện thaoij có bị trùng không
 
@@ -19,6 +26,15 @@ export const registerCustomer = async (data) => {
         throw new Error('PHONE_ALREADY_EXISTS');
     }
 
+    if (normalizedEmail) {
+        const existingCustomerEmail = await Customer.findOne({
+            email: normalizedEmail,
+        });
+        if (existingCustomerEmail) {
+            throw new Error('EMAIL_ALREADY_EXISTS');
+        }
+    }
+
     let newCustomer = null;
 
     try {
@@ -26,7 +42,7 @@ export const registerCustomer = async (data) => {
         newCustomer = await Customer.create({
             name,
             phone,
-            email,
+            email: normalizedEmail,
         });
 
         const newUser = await User.create({
@@ -67,6 +83,19 @@ export const updateCustomer = async (data) => {
         throw new Error('CUSTOMER_NOT_FOUND');
     }
 
+    const normalizedEmail =
+        email === undefined ? undefined : normalizeEmail(email);
+
+    if (normalizedEmail) {
+        const existingCustomerEmail = await Customer.findOne({
+            email: normalizedEmail,
+            _id: { $ne: user.ref_id },
+        });
+        if (existingCustomerEmail) {
+            throw new Error('EMAIL_ALREADY_EXISTS');
+        }
+    }
+
     if (phone !== undefined && phone !== user.username) {
         const existingUser = await User.findOne({ username: phone });
         if (existingUser && String(existingUser._id) !== String(user_id)) {
@@ -76,7 +105,6 @@ export const updateCustomer = async (data) => {
         const existingCustomer = await Customer.findOne({
             phone,
             _id: { $ne: user.ref_id },
-            isDeleted: false,
         });
         if (existingCustomer) {
             throw new Error('PHONE_ALREADY_EXISTS');
@@ -89,7 +117,7 @@ export const updateCustomer = async (data) => {
     const updateData = {};
     if (name !== undefined) updateData.name = name;
     if (phone !== undefined) updateData.phone = phone;
-    if (email !== undefined) updateData.email = email;
+    if (email !== undefined) updateData.email = normalizedEmail;
     if (birthday !== undefined) updateData.birthday = birthday;
 
     // Nếu có truyền listAddress thì ghi đè toàn bộ danh sách
