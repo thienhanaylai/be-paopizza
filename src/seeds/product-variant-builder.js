@@ -60,7 +60,7 @@ export const buildSeedVariants = ({
     return variantConfigs.map((config) => {
         const variant = {
             sku: `PRD-${slug.toUpperCase()}-${config.skuSuffix}`,
-            disscountType: 'percent',
+            discountType: 'percent',
             discount: 0,
             price: toRoundedPrice(basePrice * config.priceMultiplier),
             size: config.size,

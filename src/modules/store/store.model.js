@@ -58,12 +58,12 @@ const storeSchema = new mongoose.Schema(
             required: true,
             trim: true,
         },
-        time_open: {
+        timeOpen: {
             type: String,
             required: true,
             match: /^([01]\d|2[0-3]):([0-5]\d)$/,
         },
-        time_close: {
+        timeClose: {
             type: String,
             required: true,
             match: /^([01]\d|2[0-3]):([0-5]\d)$/,

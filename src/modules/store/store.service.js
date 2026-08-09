@@ -14,14 +14,14 @@ export const create = async (data) => {
         address,
         phone,
         email,
-        time_open,
-        time_close,
+        timeOpen,
+        timeClose,
         status = 'active',
         location,
         manager_by,
     } = data;
 
-    if (!name || !address || !phone || !email || !time_open || !time_close) {
+    if (!name || !address || !phone || !email || !timeOpen || !timeClose) {
         throw new Error('MISSING_STORE_INFO');
     }
 
@@ -76,8 +76,8 @@ export const create = async (data) => {
         address,
         phone,
         email,
-        time_open,
-        time_close,
+        timeOpen,
+        timeClose,
         status,
         ...(locationPayload && { location: locationPayload }),
         ...(manager_by && { manager_by }),

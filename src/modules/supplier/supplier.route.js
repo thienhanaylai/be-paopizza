@@ -6,6 +6,7 @@ import { asyncHandler } from '../../middlewares/asyncHandler.js';
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 const requireAdmin = authorize(['admin']);
+const requireManager = authorize(['admin', 'manager']);
 const router = express.Router();
 
 router.post(
@@ -27,6 +28,12 @@ router.get(
     requireAuth,
     requireAdmin,
     asyncHandler(supplierController.getAllSuppliers),
+);
+router.get(
+    '/options',
+    requireAuth,
+    requireManager,
+    asyncHandler(supplierController.getSupplierOptions),
 );
 router.get(
     '/:supplier_id',

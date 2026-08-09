@@ -10,16 +10,16 @@ const requireManager = authorize(['admin', 'manager']);
 const router = express.Router();
 
 router.get(
-    '/:store_id',
-    requireAuth,
-    requireManager,
-    asyncHandler(inventoryController.getAllInventory),
-);
-router.get(
     '/low-stock',
     requireAuth,
     requireAdmin,
     asyncHandler(inventoryController.getLowStock),
+);
+router.get(
+    '/:store_id',
+    requireAuth,
+    requireManager,
+    asyncHandler(inventoryController.getAllInventory),
 );
 router.post(
     '/update',

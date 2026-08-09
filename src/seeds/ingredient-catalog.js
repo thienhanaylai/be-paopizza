@@ -451,10 +451,12 @@ export const ingredientSeedCatalog = [
             : 0);
 
     return {
-        ...ingredient,
+        name: ingredient.name,
+        unit: ingredient.unit,
+        category: ingredient.category,
         costPerUnit: cost_per_unit ?? 0,
         quantityExtra,
-        suppliers: ingredient.suppliers ?? [],
+        price: ingredient.price ?? 0,
         isActive: true,
         isDeleted: false,
     };

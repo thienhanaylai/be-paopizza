@@ -13,7 +13,7 @@ const createSupplierSchema = z.object({
     name: z.string().min(1, 'Tên nhà cung cấp không được để trống'),
     email: emailSchema.optional().or(z.literal('')),
     phone: phoneSchema.optional().or(z.literal('')),
-    supplier_category: z.string().optional(),
+    supplierCategory: z.string().optional(),
     isActive: booleanSchema,
     supplierIngredients: z.array(z.string()).optional(),
 });
@@ -23,7 +23,7 @@ const updateSupplierSchema = z.object({
     name: z.string().optional(),
     email: emailSchema.optional().or(z.literal('')),
     phone: phoneSchema.optional().or(z.literal('')),
-    supplier_category: z.string().optional(),
+    supplierCategory: z.string().optional(),
     isActive: booleanSchema.optional(),
     supplierIngredients: z.array(z.string()).optional(),
 });
@@ -77,6 +77,15 @@ export const getAllSuppliers = async (req, res, next) => {
     }
 };
 
+export const getSupplierOptions = async (req, res, next) => {
+    try {
+        const result = await supplierService.getOptions();
+        return res.status(200).json({ data: result });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const getSupplier = async (req, res, next) => {
     try {
         const supplier_id = req.params.supplier_id || req.body.supplier_id;
@@ -103,6 +112,6 @@ export const deletedSupplier = async (req, res, next) => {
 
 export const getCategorySupplier = (req, res) => {
     res.json({
-        supplier_category: CATEGORY_LIST,
+        supplierCategory: CATEGORY_LIST,
     });
 };

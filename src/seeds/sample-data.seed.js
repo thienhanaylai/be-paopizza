@@ -388,6 +388,8 @@ const syncModelIndexes = async () => {
         User.syncIndexes(),
         Employee.syncIndexes(),
         Inventory.syncIndexes(),
+        Ingredient.syncIndexes(),
+        Supplier.syncIndexes(),
         Category.syncIndexes(),
         Combo.syncIndexes(),
         Menu.syncIndexes(),
@@ -518,8 +520,8 @@ const seedSampleData = async () => {
             },
             phone: s.phone,
             email: `store.${slugify(s.name)}@paopizza.com`,
-            time_open: '08:00',
-            time_close: '22:00',
+            timeOpen: '08:00',
+            timeClose: '22:00',
             manager_by: null,
             status: 'active',
             isDeleted: false,
@@ -587,18 +589,53 @@ const seedSampleData = async () => {
 
     const ingredients = await Ingredient.insertMany(ingredientSeedCatalog);
 
-    const supplierCategories = ['meat', 'drink', 'seafood', 'vegetable'];
+    const supplierCategories = [
+        'dough',
+        'drink',
+        'seafood',
+        'vegetable',
+        'meat',
+        'sauce',
+        'other',
+    ];
+
+    const ingredientIdsByCategory = new Map();
+    for (const ingredient of ingredients) {
+        const category = ingredient.category || 'other';
+        const ingredientIds = ingredientIdsByCategory.get(category) || [];
+        ingredientIds.push(ingredient._id);
+        ingredientIdsByCategory.set(category, ingredientIds);
+    }
 
     const suppliers = await Supplier.insertMany(
-        Array.from({ length: TARGET_COUNT }, (_, index) => ({
-            name: `Supplier ${pad(index + 1)} Food Service`,
-            email: `supplier${pad(index + 1)}@vendor.com`,
-            phone: `0287${pad(index + 1, 6)}`,
-            supplier_category: pick(supplierCategories, index),
-            isActive: index % 8 !== 0,
-            isDeleted: false,
-        })),
+        Array.from({ length: TARGET_COUNT }, (_, index) => {
+            const supplierCategory = pick(supplierCategories, index);
+
+            return {
+                name: `Supplier ${pad(index + 1)} Food Service`,
+                email: `supplier${pad(index + 1)}@vendor.com`,
+                phone: `0287${pad(index + 1, 6)}`,
+                supplierCategory,
+                supplierIngredients:
+                    ingredientIdsByCategory.get(supplierCategory) || [],
+                isActive: index % 8 !== 0,
+                isDeleted: false,
+            };
+        }),
     );
+
+    const activeSuppliersByCategory = new Map();
+    for (const supplier of suppliers) {
+        if (!supplier.isActive) continue;
+
+        const categorySuppliers =
+            activeSuppliersByCategory.get(supplier.supplierCategory) || [];
+        categorySuppliers.push(supplier);
+        activeSuppliersByCategory.set(
+            supplier.supplierCategory,
+            categorySuppliers,
+        );
+    }
 
     const categoriesMap = {};
     for (const cat of categories) {
@@ -931,6 +968,13 @@ const seedSampleData = async () => {
         other: { base: 20, variance: 10, minRatio: 0.1 }, // Khác: 10-30
     };
 
+    const createSeedExpiryDate = (daysFromToday) => {
+        const date = new Date();
+        date.setUTCHours(0, 0, 0, 0);
+        date.setUTCDate(date.getUTCDate() + daysFromToday);
+        return date;
+    };
+
     const inventoryData = stores.map((store, storeIndex) => {
         const seed = storeIndex * 7 + 3;
         const pseudoRandom = (offset) => {
@@ -949,11 +993,51 @@ const seedSampleData = async () => {
                 1,
                 Math.round(currentStock * cfg.minRatio),
             );
+            const batchCount = 2 + ((storeIndex + idx) % 2);
+            const firstBatchQuantity = Math.max(
+                1,
+                Math.round(currentStock * 0.4),
+            );
+            const remainingQuantity = currentStock - firstBatchQuantity;
+            const secondBatchQuantity =
+                batchCount === 2
+                    ? remainingQuantity
+                    : Math.max(1, Math.round(remainingQuantity * 0.5));
+            const batchQuantities =
+                batchCount === 2
+                    ? [firstBatchQuantity, secondBatchQuantity]
+                    : [
+                          firstBatchQuantity,
+                          secondBatchQuantity,
+                          remainingQuantity - secondBatchQuantity,
+                      ];
+            const categorySuppliers =
+                activeSuppliersByCategory.get(cat) || suppliers;
+            const earliestExpiryDays = [
+                'meat',
+                'seafood',
+                'vegetable',
+            ].includes(cat)
+                ? 7
+                : 30;
+            const batches = batchQuantities.map((quantity, batchIndex) => ({
+                supplier_id: pick(
+                    categorySuppliers,
+                    storeIndex + idx + batchIndex,
+                )._id,
+                expiry_date: createSeedExpiryDate(
+                    earliestExpiryDays +
+                        batchIndex * 30 +
+                        ((idx + storeIndex) % 7),
+                ),
+                quantity,
+            }));
 
             return {
                 ingredient_id: ingredient._id,
                 current_stock: currentStock,
                 min_stock_level: minStock,
+                batches,
             };
         });
 

@@ -31,7 +31,7 @@ const supplierSchema = new mongoose.Schema(
             unique: true,
         },
         isActive: { type: Boolean, default: true },
-        supplier_category: {
+        supplierCategory: {
             type: String,
             enum: CATEGORY_LIST,
             required: true,

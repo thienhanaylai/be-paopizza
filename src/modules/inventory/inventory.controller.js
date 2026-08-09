@@ -6,21 +6,103 @@ import {
     validate,
 } from '../../utils/validation.js';
 
-const createOrUpdateInventorySchema = z.object({
-    store_id: objectIdSchema,
-    ingredient_id: objectIdSchema,
-    current_stock: positiveNumberSchema,
-    unit: z.string().optional(),
-    min_stock_level: positiveNumberSchema.optional(),
-});
+const expiryDateSchema = z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Hạn sử dụng phải có định dạng YYYY-MM-DD')
+    .refine((value) => {
+        const date = new Date(`${value}T00:00:00.000Z`);
+        return (
+            !Number.isNaN(date.getTime()) &&
+            date.toISOString().slice(0, 10) === value
+        );
+    }, 'Hạn sử dụng không hợp lệ')
+    .transform((value) => new Date(`${value}T00:00:00.000Z`));
 
-const updateStockSchema = z.object({
-    store_id: objectIdSchema,
-    ingredient_id: objectIdSchema,
-    quantity: z.coerce.number(),
-    type: z.enum(['add', 'subtract', 'set']).default('set'),
-    reason: z.string().optional(),
-});
+const createOrUpdateInventorySchema = z
+    .object({
+        store_id: objectIdSchema,
+        ingredient_id: objectIdSchema,
+        current_stock: positiveNumberSchema.optional(),
+        quantity: z.coerce.number().positive().optional(),
+        supplier_id: objectIdSchema.optional(),
+        expiry_date: expiryDateSchema.optional(),
+        unit: z.string().optional(),
+        min_stock_level: positiveNumberSchema.optional(),
+    })
+    .superRefine((data, context) => {
+        const batchFieldCount = [
+            data.quantity,
+            data.supplier_id,
+            data.expiry_date,
+        ].filter((value) => value !== undefined).length;
+
+        if (batchFieldCount > 0 && batchFieldCount < 3) {
+            context.addIssue({
+                code: 'custom',
+                message:
+                    'Khi nhập kho phải có đủ số lượng, nhà cung cấp và hạn sử dụng',
+                path: ['quantity'],
+            });
+        }
+
+        if (data.current_stock !== undefined && data.quantity !== undefined) {
+            context.addIssue({
+                code: 'custom',
+                message:
+                    'Không thể vừa đặt tổng tồn vừa nhập thêm một lô trong cùng yêu cầu',
+                path: ['current_stock'],
+            });
+        }
+
+        if (
+            data.current_stock === undefined &&
+            data.quantity === undefined &&
+            data.min_stock_level === undefined
+        ) {
+            context.addIssue({
+                code: 'custom',
+                message: 'Không có dữ liệu tồn kho cần cập nhật',
+                path: ['current_stock'],
+            });
+        }
+    });
+
+const updateStockSchema = z
+    .object({
+        store_id: objectIdSchema,
+        ingredient_id: objectIdSchema,
+        quantity: z.coerce.number(),
+        type: z.enum(['add', 'subtract', 'set']).default('set'),
+        supplier_id: objectIdSchema.optional(),
+        expiry_date: expiryDateSchema.optional(),
+        min_stock_level: positiveNumberSchema.optional(),
+        reason: z.string().optional(),
+    })
+    .superRefine((data, context) => {
+        if (data.type === 'add' && (!data.supplier_id || !data.expiry_date)) {
+            context.addIssue({
+                code: 'custom',
+                message: 'Khi nhập kho phải có đủ nhà cung cấp và hạn sử dụng',
+                path: ['supplier_id'],
+            });
+        }
+
+        if (data.type !== 'set' && data.quantity <= 0) {
+            context.addIssue({
+                code: 'custom',
+                message: 'Số lượng phải lớn hơn 0',
+                path: ['quantity'],
+            });
+        }
+
+        if (data.type === 'set' && data.quantity < 0) {
+            context.addIssue({
+                code: 'custom',
+                message: 'Tồn kho không được là số âm',
+                path: ['quantity'],
+            });
+        }
+    });
 
 export const createOrUpdateInventory = async (req, res) => {
     const validation = validate(req, res, createOrUpdateInventorySchema);

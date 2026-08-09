@@ -5,17 +5,17 @@ export const create = async (data) => {
         name,
         email = '',
         phone = '',
-        supplier_category,
+        supplierCategory,
         isActive,
         supplierIngredients,
     } = data;
 
-    if (!name || !supplier_category) {
+    if (!name || !supplierCategory) {
         throw new Error('MISSING_INFO');
     }
 
-    if (!CATEGORY_LIST.includes(supplier_category)) {
-        throw new Error('INVALID_SUPPLIER_CATEGORY');
+    if (!CATEGORY_LIST.includes(supplierCategory)) {
+        throw new Error('INVALID_supplierCategory');
     }
 
     const duplicateOrConditions = [];
@@ -36,7 +36,7 @@ export const create = async (data) => {
         name,
         email,
         phone,
-        supplier_category,
+        supplierCategory,
         ...(isActive !== undefined ? { isActive } : {}),
         ...(supplierIngredients !== undefined ? { supplierIngredients } : {}),
     });
@@ -48,7 +48,7 @@ export const update = async (data) => {
         name,
         email,
         phone,
-        supplier_category,
+        supplierCategory,
         isActive,
         supplierIngredients,
     } = data;
@@ -63,10 +63,10 @@ export const update = async (data) => {
     }
 
     if (
-        supplier_category !== undefined &&
-        !CATEGORY_LIST.includes(supplier_category)
+        supplierCategory !== undefined &&
+        !CATEGORY_LIST.includes(supplierCategory)
     ) {
-        throw new Error('INVALID_SUPPLIER_CATEGORY');
+        throw new Error('INVALID_supplierCategory');
     }
 
     const duplicateOrConditions = [];
@@ -92,8 +92,8 @@ export const update = async (data) => {
     if (name !== undefined) updateData.name = name;
     if (email !== undefined) updateData.email = email;
     if (phone !== undefined) updateData.phone = phone;
-    if (supplier_category !== undefined)
-        updateData.supplier_category = supplier_category;
+    if (supplierCategory !== undefined)
+        updateData.supplierCategory = supplierCategory;
     if (isActive !== undefined) updateData.isActive = isActive;
     if (supplierIngredients !== undefined)
         updateData.supplierIngredients = supplierIngredients;
@@ -134,6 +134,13 @@ export const getAll = async (query = {}) => {
         },
     };
 };
+
+export const getOptions = async () =>
+    Supplier.find({ isDeleted: false, isActive: true })
+        .select('name supplierIngredients')
+        .populate('supplierIngredients', 'name unit category')
+        .sort({ name: 1 })
+        .lean();
 
 export const getById = async (supplier_id) => {
     const supplier = await Supplier.findById(supplier_id)

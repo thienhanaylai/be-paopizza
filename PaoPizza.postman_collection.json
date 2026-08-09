@@ -1624,7 +1624,7 @@
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}/supplier/categories",
-            "description": "Get list of supplier categories/enums. Public endpoint.\n\n**Response 200**:\n```json\n{\n  \"supplier_category\": [\"main_ingredient\", \"drink\", \"seafood\", \"vegetable\"]\n}\n```"
+            "description": "Get list of supplier categories/enums. Public endpoint.\n\n**Response 200**:\n```json\n{\n  \"supplierCategory\": [\"main_ingredient\", \"drink\", \"seafood\", \"vegetable\"]\n}\n```"
           },
           "response": [
             {
@@ -1637,7 +1637,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"supplier_category\": [\n    \"main_ingredient\",\n    \"drink\",\n    \"seafood\",\n    \"vegetable\"\n  ]\n}"
+              "body": "{\n  \"supplierCategory\": [\n    \"main_ingredient\",\n    \"drink\",\n    \"seafood\",\n    \"vegetable\"\n  ]\n}"
             }
           ]
         },
@@ -1673,7 +1673,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Nhà cung cấp ABC\",\n  \"email\": \"abc@supplier.com\",\n  \"phone\": \"0987654321\",\n  \"supplier_category\": \"main_ingredient\"\n}",
+              "raw": "{\n  \"name\": \"Nhà cung cấp ABC\",\n  \"email\": \"abc@supplier.com\",\n  \"phone\": \"0987654321\",\n  \"supplierCategory\": \"main_ingredient\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1681,7 +1681,7 @@
               }
             },
             "url": "{{baseUrl}}/supplier/create",
-            "description": "Tạo nhà cung cấp mới. **Yêu cầu JWT + admin.**\n\nBody fields: name, email, phone, supplier_category, isActive (optional).\n\nTest script auto-sets supplierId variable from response.data._id"
+            "description": "Tạo nhà cung cấp mới. **Yêu cầu JWT + admin.**\n\nBody fields: name, email, phone, supplierCategory, isActive (optional).\n\nTest script auto-sets supplierId variable from response.data._id"
           },
           "response": [
             {
@@ -1714,7 +1714,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"supplier_id\": \"{{supplierId}}\",\n  \"name\": \"Nhà cung cấp ABC Updated\",\n  \"email\": \"abc@supplier.com\",\n  \"phone\": \"0987654322\",\n  \"supplier_category\": \"main_ingredient\"\n}",
+              "raw": "{\n  \"supplier_id\": \"{{supplierId}}\",\n  \"name\": \"Nhà cung cấp ABC Updated\",\n  \"email\": \"abc@supplier.com\",\n  \"phone\": \"0987654322\",\n  \"supplierCategory\": \"main_ingredient\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1722,7 +1722,7 @@
               }
             },
             "url": "{{baseUrl}}/supplier/update",
-            "description": "Cập nhật thông tin nhà cung cấp (supplier_id trong body). **Yêu cầu admin.** Có thể cập nhật name, email, phone, supplier_category, isActive."
+            "description": "Cập nhật thông tin nhà cung cấp (supplier_id trong body). **Yêu cầu admin.** Có thể cập nhật name, email, phone, supplierCategory, isActive."
           },
           "response": [
             {
@@ -2854,7 +2854,7 @@
     },
     {
       "name": "Store",
-      "description": "Store management endpoints.\n\nStore model fields include: `name`, `address`, `location`, `phone`, `email`, `time_open`, `time_close`, `manager_by`, `status`.\n`address` is stored as an object: `{ streetNumber, district, city }`.\n`location` is stored as a GeoJSON Point: `{ type: \"Point\", coordinates: [lng, lat] }`.\n`manager_by` references an Employee ID.\nState values in model: `active`, `maintenance`, `close`.",
+      "description": "Store management endpoints.\n\nStore model fields include: `name`, `address`, `location`, `phone`, `email`, `timeOpen`, `timeClose`, `manager_by`, `status`.\n`address` is stored as an object: `{ streetNumber, district, city }`.\n`location` is stored as a GeoJSON Point: `{ type: \"Point\", coordinates: [lng, lat] }`.\n`manager_by` references an Employee ID.\nState values in model: `active`, `maintenance`, `close`.",
       "item": [
         {
           "name": "Get All Stores",
@@ -2920,7 +2920,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Pao Pizza Thu Duc\",\n  \"address\": {\n    \"streetNumber\": \"01 Vo Van Ngan\",\n    \"district\": \"Thu Duc\",\n    \"city\": \"TP.HCM\"\n  },\n  \"location\": {\n    \"coordinates\": [106.772, 10.849]\n  },\n  \"manager_by\": null,\n  \"phone\": \"0909777666\",\n  \"email\": \"thuduc@paopizza.com\",\n  \"time_open\": \"08:00\",\n  \"time_close\": \"22:00\",\n  \"status\": \"active\"\n}",
+              "raw": "{\n  \"name\": \"Pao Pizza Thu Duc\",\n  \"address\": {\n    \"streetNumber\": \"01 Vo Van Ngan\",\n    \"district\": \"Thu Duc\",\n    \"city\": \"TP.HCM\"\n  },\n  \"location\": {\n    \"coordinates\": [106.772, 10.849]\n  },\n  \"manager_by\": null,\n  \"phone\": \"0909777666\",\n  \"email\": \"thuduc@paopizza.com\",\n  \"timeOpen\": \"08:00\",\n  \"timeClose\": \"22:00\",\n  \"status\": \"active\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2928,7 +2928,7 @@
               }
             },
             "url": "{{baseUrl}}/stores/create",
-            "description": "Create store. Requires JWT + admin.\n\nRequired fields: name, address (with streetNumber, district, city), phone, email, time_open, time_close.\nOptional fields: location (coordinates array: [longitude, latitude]), manager_by (Employee ID).\nTime format must be HH:mm (24h)."
+            "description": "Create store. Requires JWT + admin.\n\nRequired fields: name, address (with streetNumber, district, city), phone, email, timeOpen, timeClose.\nOptional fields: location (coordinates array: [longitude, latitude]), manager_by (Employee ID).\nTime format must be HH:mm (24h)."
           },
           "response": []
         },
@@ -2948,7 +2948,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"store_id\": \"{{storeId}}\",\n  \"name\": \"Pao Pizza Thu Duc Updated\",\n  \"address\": {\n    \"streetNumber\": \"12 Vo Van Ngan\",\n    \"district\": \"Thu Duc\",\n    \"city\": \"TP.HCM\"\n  },\n  \"location\": {\n    \"coordinates\": [106.773, 10.850]\n  },\n  \"manager_by\": null,\n  \"phone\": \"0909777555\",\n  \"email\": \"thuduc.updated@paopizza.com\",\n  \"time_open\": \"09:00\",\n  \"time_close\": \"23:00\",\n  \"status\": \"maintenance\"\n}",
+              "raw": "{\n  \"store_id\": \"{{storeId}}\",\n  \"name\": \"Pao Pizza Thu Duc Updated\",\n  \"address\": {\n    \"streetNumber\": \"12 Vo Van Ngan\",\n    \"district\": \"Thu Duc\",\n    \"city\": \"TP.HCM\"\n  },\n  \"location\": {\n    \"coordinates\": [106.773, 10.850]\n  },\n  \"manager_by\": null,\n  \"phone\": \"0909777555\",\n  \"email\": \"thuduc.updated@paopizza.com\",\n  \"timeOpen\": \"09:00\",\n  \"timeClose\": \"23:00\",\n  \"status\": \"maintenance\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3027,7 +3027,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"store_id\": \"{{storeId}}\",\n  \"ingredient_id\": \"{{ingredientId}}\",\n  \"current_stock\": 120,\n  \"min_stock_level\": 20,\n  \"source\": \"manual\",\n  \"log_action\": \"inventory_update\"\n}",
+              "raw": "{\n  \"store_id\": \"{{storeId}}\",\n  \"ingredient_id\": \"{{ingredientId}}\",\n  \"min_stock_level\": 20\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3055,7 +3055,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"store_id\": \"{{storeId}}\",\n  \"ingredient_id\": \"{{ingredientId}}\",\n  \"quantity\": 10,\n  \"type\": \"add\"\n}",
+              "raw": "{\n  \"store_id\": \"{{storeId}}\",\n  \"ingredient_id\": \"{{ingredientId}}\",\n  \"quantity\": 10,\n  \"type\": \"add\",\n  \"supplier_id\": \"{{supplierId}}\",\n  \"expiry_date\": \"2030-12-31\",\n  \"min_stock_level\": 20\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3063,7 +3063,7 @@
               }
             },
             "url": "{{baseUrl}}/inventory/stock",
-            "description": "Adjust stock quantity for one ingredient inside a store inventory. type: add | reduce. Requires JWT + admin."
+            "description": "Adjust stock quantity for one ingredient inside a store inventory. type: add | subtract | set. add requires supplier_id and expiry_date (YYYY-MM-DD). Requires JWT + admin or manager."
           },
           "response": []
         },

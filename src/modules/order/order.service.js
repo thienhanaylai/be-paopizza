@@ -601,11 +601,15 @@ const computeTier = (totalPoint) => {
 export const updateStatus = async (order_id, status) => {
     const payload = { status };
     const currentOrder = await Order.findById(order_id).select(
-        'paymentMethod paymentStatus',
+        'status paymentMethod paymentStatus',
     );
 
     if (!currentOrder) {
         throw new Error('ORDER_NOT_FOUND');
+    }
+
+    if (currentOrder.status === 'completed' && status !== 'completed') {
+        throw new Error('COMPLETED_ORDER_STATUS_CANNOT_BE_CHANGED');
     }
 
     if (
@@ -616,13 +620,31 @@ export const updateStatus = async (order_id, status) => {
         payload.paymentStatus = 'success';
     }
 
-    const order = await Order.findByIdAndUpdate(order_id, payload, {
-        new: true,
-        runValidators: true,
-    }).populate(POPULATE_ORDER);
+    let didTransitionToCompleted = false;
+    let order;
+
+    if (status === 'completed') {
+        order = await Order.findOneAndUpdate(
+            { _id: order_id, status: { $ne: 'completed' } },
+            payload,
+            { new: true, runValidators: true },
+        ).populate(POPULATE_ORDER);
+        didTransitionToCompleted = Boolean(order);
+
+        if (!order) {
+            order = await Order.findById(order_id).populate(POPULATE_ORDER);
+        }
+    } else {
+        order = await Order.findByIdAndUpdate(order_id, payload, {
+            new: true,
+            runValidators: true,
+        }).populate(POPULATE_ORDER);
+    }
+
+    if (!order) throw new Error('ORDER_NOT_FOUND');
 
     // Khi đơn hàng chuyển sang completed, tự động trừ kho nguyên liệu (cho phép âm kho)
-    if (status === 'completed' && order) {
+    if (didTransitionToCompleted) {
         const storeId = order.store_id?._id || order.store_id;
         const ingredientsMap = extractIngredientsFromOrder(order);
         if (ingredientsMap.size > 0) {

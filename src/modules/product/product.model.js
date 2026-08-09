@@ -29,7 +29,7 @@ const variantSchema = new mongoose.Schema(
             trim: true,
             unique: true,
         },
-        disscountType: {
+        discountType: {
             type: String,
             enum: ['percent', 'amount'],
             default: 'percent',

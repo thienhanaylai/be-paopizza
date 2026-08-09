@@ -18,8 +18,8 @@ const createStoreSchema = z.object({
         .optional(),
     phone: phoneSchema.optional().or(z.literal('')),
     email: emailSchema.optional().or(z.literal('')),
-    time_open: z.string().optional(),
-    time_close: z.string().optional(),
+    timeOpen: z.string().optional(),
+    timeClose: z.string().optional(),
     status: z.string().optional(),
     location: z
         .object({
@@ -42,8 +42,8 @@ const updateStoreSchema = z.object({
         .optional(),
     phone: phoneSchema.optional().or(z.literal('')),
     email: emailSchema.optional().or(z.literal('')),
-    time_open: z.string().optional(),
-    time_close: z.string().optional(),
+    timeOpen: z.string().optional(),
+    timeClose: z.string().optional(),
     status: z.string().optional(),
     location: z
         .object({
