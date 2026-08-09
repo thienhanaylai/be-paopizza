@@ -759,106 +759,335 @@ const seedSampleData = async () => {
 
     const products = await Product.insertMany(productsData);
 
-    const comboCount = 20;
+    // Curated offers: each image, description, and selection rule describes
+    // the same offer instead of combining random categories and stock images.
+    const comboImage = (photoId) =>
+        `https://images.unsplash.com/${photoId}?auto=format&fit=crop&w=1200&h=800&q=85`;
+    const comboCatalog = [
+        [
+            'Combo Ăn Trưa Tiết Kiệm',
+            '1 Pasta và 1 đồ uống mát lạnh cho bữa trưa nhanh gọn.',
+            'photo-1564936281291-294551497d81',
+            'percent',
+            15,
+            'dynamic',
+            null,
+            [
+                ['pasta', 'Mỳ Ý', 1],
+                ['drink', 'Đồ uống 330ml', 1, ['330ml']],
+            ],
+        ],
+        [
+            'Combo Pizza & Nước',
+            '1 Pizza cỡ M cùng 2 đồ uống 330ml, giảm ngay 12%.',
+            'photo-1565299624946-b28f40a0ae38',
+            'percent',
+            12,
+            'dynamic',
+            null,
+            [
+                ['pizza', 'Pizza cỡ M', 1, ['M']],
+                ['drink', 'Đồ uống 330ml', 2, ['330ml']],
+            ],
+        ],
+        [
+            'Combo Cặp Đôi Hẹn Hò',
+            '2 Pizza cỡ M, 1 món khai vị và 2 nước cho hai người.',
+            'photo-1579751626657-72bc17010498',
+            'percent',
+            18,
+            'static',
+            299000,
+            [
+                ['pizza', 'Pizza cỡ M', 2, ['M']],
+                ['appetizer', 'Khai vị dùng chung', 1],
+                ['drink', 'Đồ uống 330ml', 2, ['330ml']],
+            ],
+        ],
+        [
+            'Combo Gia Đình Sum Vầy',
+            '2 Pizza cỡ L, 2 món khai vị và 2 chai nước 1.5L cho cả nhà.',
+            'photo-1574071318508-1cdbab80d002',
+            'percent',
+            20,
+            'static',
+            499000,
+            [
+                ['pizza', 'Pizza cỡ L', 2, ['L']],
+                ['appetizer', 'Món khai vị', 2],
+                ['drink', 'Đồ uống 1.5L', 2, ['1.5L']],
+            ],
+        ],
+        [
+            'Combo Nhóm Bạn Vui Vẻ',
+            '3 Pizza cỡ L, 2 món khai vị và 4 nước cho nhóm bạn.',
+            'photo-1572449043416-55f4685c9bb7',
+            'percent',
+            22,
+            'static',
+            699000,
+            [
+                ['pizza', 'Pizza cỡ L', 3, ['L']],
+                ['appetizer', 'Món khai vị chia sẻ', 2],
+                ['drink', 'Đồ uống 330ml', 4, ['330ml']],
+            ],
+        ],
+        [
+            'Combo Pasta Hẹn Hò',
+            '2 phần Pasta, 1 Salad tươi và 2 nước dành cho buổi hẹn.',
+            'photo-1547592180-85f173990554',
+            'amount',
+            35000,
+            'dynamic',
+            null,
+            [
+                ['pasta', 'Mỳ Ý', 2],
+                ['salad', 'Salad tươi', 1],
+                ['drink', 'Đồ uống 330ml', 2, ['330ml']],
+            ],
+        ],
+        [
+            'Combo Nhẹ Bụng Healthy',
+            '2 Salad, 1 Pasta và 2 nước dung tích nhỏ cho bữa ăn thanh nhẹ.',
+            'photo-1621996346565-e3dbc646d9a9',
+            'percent',
+            15,
+            'dynamic',
+            null,
+            [
+                ['salad', 'Salad', 2],
+                ['pasta', 'Mỳ Ý', 1],
+                ['drink', 'Đồ uống 330ml', 2, ['330ml']],
+            ],
+        ],
+        [
+            'Combo Bữa Tối Trọn Vị',
+            'Pizza cỡ M, Pasta, Salad và 2 đồ uống cho bữa tối đủ vị.',
+            'photo-1513104890138-7c749659a591',
+            'amount',
+            40000,
+            'dynamic',
+            null,
+            [
+                ['pizza', 'Pizza cỡ M', 1, ['M']],
+                ['pasta', 'Mỳ Ý', 1],
+                ['salad', 'Salad', 1],
+                ['drink', 'Đồ uống 330ml', 2, ['330ml']],
+            ],
+        ],
+        [
+            'Combo Ăn Vặt Chia Sẻ',
+            '3 món khai vị cùng 4 đồ uống 330ml, phù hợp cho nhóm nhỏ.',
+            'photo-1594007654729-407eedc4be65',
+            'percent',
+            16,
+            'dynamic',
+            null,
+            [
+                ['appetizer', 'Món khai vị', 3],
+                ['drink', 'Đồ uống 330ml', 4, ['330ml']],
+            ],
+        ],
+        [
+            'Combo Pizza Cuối Tuần',
+            '1 Pizza cỡ L, 2 món khai vị và 1 chai nước 1.5L cho cuối tuần.',
+            'photo-1550547660-d9450f859349',
+            'amount',
+            30000,
+            'static',
+            259000,
+            [
+                ['pizza', 'Pizza cỡ L', 1, ['L']],
+                ['appetizer', 'Món khai vị', 2],
+                ['drink', 'Đồ uống 1.5L', 1, ['1.5L']],
+            ],
+        ],
+        [
+            'Combo Pizza Hai Vị',
+            'Chọn 2 Pizza cỡ M với hai hương vị khác nhau, kèm 2 nước.',
+            'photo-1566843972142-a7fcb70de55a',
+            'percent',
+            17,
+            'dynamic',
+            null,
+            [
+                ['pizza', 'Pizza cỡ M', 2, ['M']],
+                ['drink', 'Đồ uống 330ml', 2, ['330ml']],
+            ],
+        ],
+        [
+            'Combo Pizza & Pasta',
+            'Kết hợp Pizza cỡ M, 2 phần Pasta và 2 đồ uống.',
+            'photo-1571997478779-2adcbbe9ab2f',
+            'amount',
+            45000,
+            'dynamic',
+            null,
+            [
+                ['pizza', 'Pizza cỡ M', 1, ['M']],
+                ['pasta', 'Mỳ Ý', 2],
+                ['drink', 'Đồ uống 330ml', 2, ['330ml']],
+            ],
+        ],
+        [
+            'Combo Đại Tiệc 6 Người',
+            '4 Pizza cỡ L, 3 món khai vị, 2 Salad và 6 đồ uống.',
+            'photo-1593504049359-74330189a345',
+            'percent',
+            25,
+            'static',
+            1099000,
+            [
+                ['pizza', 'Pizza cỡ L', 4, ['L']],
+                ['appetizer', 'Món khai vị', 3],
+                ['salad', 'Salad', 2],
+                ['drink', 'Đồ uống 330ml', 6, ['330ml']],
+            ],
+        ],
+        [
+            'Combo Pasta Gia Đình',
+            '3 phần Pasta, 2 Salad và 2 chai nước 1.5L cho gia đình nhỏ.',
+            'photo-1547592180-85f173990554',
+            'percent',
+            18,
+            'dynamic',
+            null,
+            [
+                ['pasta', 'Mỳ Ý', 3],
+                ['salad', 'Salad', 2],
+                ['drink', 'Đồ uống 1.5L', 2, ['1.5L']],
+            ],
+        ],
+        [
+            'Combo Pizza Cỡ L',
+            '2 Pizza cỡ L và 1 chai nước 1.5L với mức giá ưu đãi.',
+            'photo-1556761223-4c4282c73f77',
+            'amount',
+            50000,
+            'static',
+            379000,
+            [
+                ['pizza', 'Pizza cỡ L', 2, ['L']],
+                ['drink', 'Đồ uống 1.5L', 1, ['1.5L']],
+            ],
+        ],
+        [
+            'Combo Pizza & Salad',
+            'Pizza cỡ M, 2 Salad và 2 đồ uống cho bữa ăn cân bằng.',
+            'photo-1593560708920-61dd98c46a4e',
+            'percent',
+            14,
+            'dynamic',
+            null,
+            [
+                ['pizza', 'Pizza cỡ M', 1, ['M']],
+                ['salad', 'Salad', 2],
+                ['drink', 'Đồ uống 330ml', 2, ['330ml']],
+            ],
+        ],
+        [
+            'Combo Ba Món Nhẹ',
+            'Pizza cỡ S, 1 món khai vị và 1 nước 330ml cho một người.',
+            'photo-1550547660-d9450f859349',
+            'amount',
+            20000,
+            'static',
+            129000,
+            [
+                ['pizza', 'Pizza cỡ S', 1, ['S']],
+                ['appetizer', 'Món khai vị', 1],
+                ['drink', 'Đồ uống 330ml', 1, ['330ml']],
+            ],
+        ],
+        [
+            'Combo Đêm Muộn',
+            '2 Pizza cỡ M và 2 đồ uống 330ml cho buổi tụ họp cuối ngày.',
+            'photo-1528137871618-79d2761e3fd5',
+            'percent',
+            13,
+            'dynamic',
+            null,
+            [
+                ['pizza', 'Pizza cỡ M', 2, ['M']],
+                ['drink', 'Đồ uống 330ml', 2, ['330ml']],
+            ],
+        ],
+        [
+            'Combo Tự Chọn Đặc Biệt',
+            'Tự phối Pizza, Pasta, Salad, khai vị và nước theo sở thích.',
+            'photo-1571407970349-bc81e7e96d47',
+            'percent',
+            10,
+            'dynamic',
+            null,
+            [
+                ['pizza', 'Pizza bất kỳ', 1],
+                ['pasta', 'Mỳ Ý', 1],
+                ['salad', 'Salad', 1],
+                ['appetizer', 'Món khai vị', 1],
+                ['drink', 'Đồ uống bất kỳ', 1],
+            ],
+        ],
+        [
+            'Combo Tiệc Văn Phòng',
+            '3 Pizza cỡ L, 2 Pasta, 2 khai vị và 6 đồ uống cho cả đội.',
+            'photo-1515003197210-e0cd71810b5f',
+            'percent',
+            23,
+            'static',
+            849000,
+            [
+                ['pizza', 'Pizza cỡ L', 3, ['L']],
+                ['pasta', 'Mỳ Ý', 2],
+                ['appetizer', 'Món khai vị', 2],
+                ['drink', 'Đồ uống 330ml', 6, ['330ml']],
+            ],
+        ],
+    ];
+    const catBySlug = new Map(
+        categories.map((category) => [category.slug, category]),
+    );
     const combos = await Combo.insertMany(
-        Array.from({ length: comboCount }, (_, index) => {
-            const type = index % 2 === 0 ? 'percent' : 'amount';
-            const discount =
-                type === 'percent'
-                    ? 10 + (index % 3) * 5
-                    : 15000 + index * 1000;
-            const productA = products[index % products.length];
-            const basePrice = productA?.variants?.[0]?.price || 90000;
-            const price =
-                type === 'percent'
-                    ? Math.max(0, Math.round(basePrice * (1 - discount / 100)))
-                    : Math.max(0, basePrice - discount);
-
-            // ---- Diverse combo rules (category-based only) ----
-            const catBySlug = new Map(categories.map((c) => [c.slug, c]));
-            // Chỉ dùng category thực sự có sản phẩm (khớp với CSV import)
-            const allCatSlugs = [
-                'pizza',
-                'drink',
-                'appetizer',
-                'pasta',
-                'salad',
-            ];
-
-            // Shuffle categories deterministically so each combo gets a different mix
-            const shuffledSlugs = [...allCatSlugs];
-            for (let si = shuffledSlugs.length - 1; si > 0; si -= 1) {
-                const ri = Math.floor(
-                    seededRandom(index * 31.17 + si * 2.71) * (si + 1),
-                );
-                [shuffledSlugs[si], shuffledSlugs[ri]] = [
-                    shuffledSlugs[ri],
-                    shuffledSlugs[si],
-                ];
-            }
-
-            // Pick 1–4 distinct categories per combo
-            const maxRules = Math.min(
-                1 + Math.floor(seededRandom(index * 7.13 + 3) * 3),
-                allCatSlugs.length,
-            );
-            const rules = [];
-
-            for (let ri = 0; ri < maxRules; ri += 1) {
-                const slug = shuffledSlugs[ri];
-                const cat = catBySlug.get(slug);
-                if (!cat) continue;
-
-                const seed = index * 100 + ri + 1;
-
-                // applicableSizes: ~30% chance for food categories, always for drink
-                const hasSizes =
-                    slug === 'drink' || seededRandom(seed * 11.11) > 0.7;
-                const applicableSizes = hasSizes
-                    ? slug === 'drink'
-                        ? ['330ml', '1L']
-                        : ['S', 'M', 'L']
-                    : [];
-
-                const qty = 1 + Math.floor(seededRandom(seed * 17.71) * 2);
-
-                rules.push({
-                    groupName: cat.name,
-                    applicableCategories: [cat._id],
-                    requiredQuantity: qty,
-                    ...(applicableSizes.length > 0 && { applicableSizes }),
-                });
-            }
-
-            // Safety fallback: ensure at least 1 rule exists
-            if (rules.length === 0) {
-                const fallbackCat = catBySlug.get('pizza') || categories[0];
-                rules.push({
-                    groupName: fallbackCat.name,
-                    applicableCategories: [fallbackCat._id],
-                    requiredQuantity: 1,
-                });
-            }
-
-            // Random pricingType: ~50% static, ~50% dynamic (deterministic)
-            const pricingType =
-                seededRandom(index * 43.21 + 9) > 0.5 ? 'static' : 'dynamic';
-
-            return {
-                name: `Combo ${pad(index + 1)}`,
-                description: `Combo deal ${pad(index + 1)}`,
-                dateStart: dateUtc(2026, 4, 1 + index),
-                dateEnd: dateUtc(2026, 5, 15 + index),
-                image: `https://picsum.photos/seed/combo-${index + 1}/1200/800`,
-                rules,
-                discountType: type,
+        comboCatalog.map(
+            (
+                [
+                    name,
+                    description,
+                    photoId,
+                    discountType,
+                    discount,
+                    pricingType,
+                    price,
+                    rules,
+                ],
+                index,
+            ) => ({
+                name,
+                description,
+                image: comboImage(photoId),
+                discountType,
                 discount,
                 pricingType,
                 ...(pricingType === 'static' && { price }),
-                isActive: index % 3 !== 0,
+                dateStart: dateUtc(2026, 0, 1),
+                dateEnd: dateUtc(2026, 11, 31),
+                rules: rules.map(
+                    ([
+                        slug,
+                        groupName,
+                        requiredQuantity,
+                        applicableSizes = [],
+                    ]) => ({
+                        groupName,
+                        applicableCategories: [catBySlug.get(slug)._id],
+                        requiredQuantity,
+                        ...(applicableSizes.length > 0 && { applicableSizes }),
+                    }),
+                ),
+                isActive: index % 7 !== 6,
                 isDeleted: false,
-            };
-        }),
+            }),
+        ),
     );
 
     // Nhóm sản phẩm theo category để đảm bảo menu phủ đều
