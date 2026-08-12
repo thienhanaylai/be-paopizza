@@ -60,28 +60,27 @@ export const createEmployee = async (data) => {
 };
 
 export const updateEmployee = async (data) => {
-    try {
-        const { employee_id, ...updateData } = data;
+    const { employee_id, ...updateData } = data;
 
-        const employee = await Employee.findByIdAndUpdate(
-            employee_id,
-            updateData,
-            { new: true },
-        );
-        if (!employee) {
-            throw new Error('EMPLOYEE_NOT_FOUND');
-        }
-
-        return {
-            profile: employee,
-        };
-    } catch (error) {
-        throw error;
+    const employee = await Employee.findByIdAndUpdate(
+        employee_id,
+        updateData,
+        { new: true },
+    );
+    if (!employee) {
+        throw new Error('EMPLOYEE_NOT_FOUND');
     }
+
+    return {
+        profile: employee,
+    };
 };
 
 export const getEmployee = async (employee_id) => {
-    const employee = await Employee.findById(employee_id);
+    const employee = await Employee.findOne({
+        _id: employee_id,
+        isDeleted: false,
+    }).populate('store_id', '_id name');
     if (!employee) throw new Error('EMPLOYEE_NOT_FOUND');
     return employee;
 };

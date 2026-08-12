@@ -97,7 +97,6 @@ export const update = async (req, res) => {
 };
 
 export const getEmployee = async (req, res) => {
-    const { employee_id } = req.params;
     const validation = validate(
         req,
         res,
@@ -106,9 +105,9 @@ export const getEmployee = async (req, res) => {
     );
     if (!validation.success) return;
 
-    const result = await employeeService.getEmployee({
-        employee_id: validation.data.employee_id,
-    });
+    const result = await employeeService.getEmployee(
+        validation.data.employee_id,
+    );
 
     return res.status(200).json({
         data: result,
