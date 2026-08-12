@@ -87,14 +87,18 @@ const deductFromBatches = (inventoryItem, quantity) => {
     );
 };
 
-const removeExpiredBatches = async (storeId) => {
+const removeExpiredBatches = async (storeId, { session = null } = {}) => {
     const filter = storeId ? { store_id: storeId } : {};
-    const inventoryIds = await Inventory.find(filter).distinct('_id');
+    let inventoryIdsQuery = Inventory.find(filter).distinct('_id');
+    if (session) inventoryIdsQuery = inventoryIdsQuery.session(session);
+    const inventoryIds = await inventoryIdsQuery;
     const today = getBusinessToday();
 
     for (const inventoryId of inventoryIds) {
-        await withInventoryWriteRetry(async () => {
-            const inventory = await Inventory.findById(inventoryId);
+        const removeExpiredForInventory = async () => {
+            let inventoryQuery = Inventory.findById(inventoryId);
+            if (session) inventoryQuery = inventoryQuery.session(session);
+            const inventory = await inventoryQuery;
             if (!inventory) return;
 
             let changed = false;
@@ -119,8 +123,14 @@ const removeExpiredBatches = async (storeId) => {
                 changed = true;
             }
 
-            if (changed) await inventory.save();
-        });
+            if (changed) await inventory.save({ session });
+        };
+
+        if (session) {
+            await removeExpiredForInventory();
+        } else {
+            await withInventoryWriteRetry(removeExpiredForInventory);
+        }
     }
 };
 
@@ -404,8 +414,14 @@ export const deletedInventory = async (inventory_id) => {
 //  @param {ObjectId} store_id - ID cửa hàng
 //   @param {Map<string, number>} ingredientsMap - Map của ingredientId (string) → tổng quantity cần trừ
 
-const deductForOrderOnce = async (store_id, ingredientsMap) => {
-    let inventory = await Inventory.findOne({ store_id });
+const deductForOrderOnce = async (
+    store_id,
+    ingredientsMap,
+    { session = null } = {},
+) => {
+    let inventoryQuery = Inventory.findOne({ store_id });
+    if (session) inventoryQuery = inventoryQuery.session(session);
+    let inventory = await inventoryQuery;
     if (!inventory) inventory = new Inventory({ store_id, ingredients: [] });
 
     for (const [ingredientIdStr, quantity] of ingredientsMap) {
@@ -430,13 +446,21 @@ const deductForOrderOnce = async (store_id, ingredientsMap) => {
         }
     }
 
-    await inventory.save();
+    await inventory.save({ session });
 };
 
-export const deductForOrder = async (store_id, ingredientsMap) => {
+export const deductForOrder = async (
+    store_id,
+    ingredientsMap,
+    { session = null } = {},
+) => {
     if (!store_id || !ingredientsMap?.size) return;
 
-    await removeExpiredBatches(store_id);
+    await removeExpiredBatches(store_id, { session });
+    if (session) {
+        return deductForOrderOnce(store_id, ingredientsMap, { session });
+    }
+
     return withInventoryWriteRetry(() =>
         deductForOrderOnce(store_id, ingredientsMap),
     );

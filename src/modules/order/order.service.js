@@ -1,6 +1,8 @@
+import mongoose from 'mongoose';
 import { Order, PAYMENT_STATUSES } from './order.model.js';
 import { Product } from '../product/product.model.js';
 import { Combo } from '../combo/combo.model.js';
+import { Ingredient } from '../ingredient/ingredient.model.js';
 import { Promotion } from '../promotion/promotion.model.js';
 import { User } from '../user/user.model.js';
 import { Customer } from '../customer/customer.model.js';
@@ -10,17 +12,179 @@ import * as inventoryService from '../inventory/inventory.service.js';
 
 const SEPAY_QR_PAYMENT_METHODS = new Set(['qrCode', 'ewallet']);
 const CASH_PAYMENT_METHODS = new Set(['cash']);
+const DELIVERY_FEE = 25_000;
+const FREE_DELIVERY_MIN_SUBTOTAL = 200_000;
+
+const runInTransaction = async (operation) => {
+    const session = await mongoose.startSession();
+
+    try {
+        let result;
+        await session.withTransaction(async () => {
+            result = await operation(session);
+        });
+        return result;
+    } finally {
+        await session.endSession();
+    }
+};
+
+const calculateDeliveryFee = (orderType, subTotal) =>
+    orderType === 'delivery' && subTotal < FREE_DELIVERY_MIN_SUBTOTAL
+        ? DELIVERY_FEE
+        : 0;
 
 const normalizeAddedTopping = (added_topping = []) => {
     return added_topping.map((item) => {
-        if (typeof item === 'string') {
-            return { ingredient: item, quantity: 1 };
+        const ingredient = typeof item === 'string' ? item : item?.ingredient;
+        const quantity = Number(
+            typeof item === 'string' ? 1 : (item?.quantity ?? 1),
+        );
+
+        if (!ingredient || !Number.isInteger(quantity) || quantity < 1) {
+            throw new Error('INVALID_TOPPING');
         }
-        return {
-            ingredient: item.ingredient,
-            quantity: item.quantity || 1,
-        };
+
+        return { ingredient, quantity };
     });
+};
+
+const resolveToppingLists = async (...toppingLists) => {
+    const normalizedLists = toppingLists.map((list) =>
+        normalizeAddedTopping(Array.isArray(list) ? list : []),
+    );
+    const ingredientIds = [
+        ...new Set(
+            normalizedLists
+                .flat()
+                .map((item) => item.ingredient.toString()),
+        ),
+    ];
+
+    if (ingredientIds.length === 0) {
+        return normalizedLists.map((items) => ({ items, total: 0 }));
+    }
+
+    const ingredients = await Ingredient.find({
+        _id: { $in: ingredientIds },
+        isActive: true,
+        isDeleted: false,
+    })
+        .select('_id price')
+        .lean();
+    const priceByIngredientId = new Map(
+        ingredients.map((ingredient) => [
+            ingredient._id.toString(),
+            Number(ingredient.price),
+        ]),
+    );
+
+    if (priceByIngredientId.size !== ingredientIds.length) {
+        throw new Error('TOPPING_NOT_FOUND_OR_INACTIVE');
+    }
+
+    return normalizedLists.map((items) => ({
+        items,
+        total: items.reduce(
+            (total, item) =>
+                total +
+                priceByIngredientId.get(item.ingredient.toString()) *
+                    item.quantity,
+            0,
+        ),
+    }));
+};
+
+const selectionMatchesRule = (selection, rule) => {
+    const productId = selection.product._id.toString();
+    const categoryId = (
+        selection.product.category?._id ?? selection.product.category
+    )?.toString();
+    const applicableProductIds = (rule.applicableProducts || []).map((id) =>
+        id.toString(),
+    );
+    const applicableCategoryIds = (rule.applicableCategories || []).map((id) =>
+        id.toString(),
+    );
+
+    const matchesProduct =
+        applicableProductIds.length > 0
+            ? applicableProductIds.includes(productId)
+            : Boolean(categoryId && applicableCategoryIds.includes(categoryId));
+    const matchesSize =
+        !rule.applicableSizes?.length ||
+        rule.applicableSizes.some(
+            (size) =>
+                size.toLowerCase() === selection.variant.size.toLowerCase(),
+        );
+
+    return matchesProduct && matchesSize;
+};
+
+const validateComboSelectionsAgainstRules = (selections, rules = []) => {
+    const remainingByRule = rules.map((rule) => Number(rule.requiredQuantity));
+    const requiredSelectionCount = remainingByRule.reduce(
+        (total, quantity) => total + quantity,
+        0,
+    );
+
+    if (selections.length !== requiredSelectionCount) {
+        throw new Error('COMBO_SELECTIONS_DO_NOT_MATCH_RULES');
+    }
+
+    const selectionsWithCandidates = selections
+        .map((selection) => ({
+            selection,
+            candidateRuleIndexes: rules
+                .map((rule, index) =>
+                    selectionMatchesRule(selection, rule) ? index : -1,
+                )
+                .filter((index) => index >= 0),
+        }))
+        .sort(
+            (left, right) =>
+                left.candidateRuleIndexes.length -
+                right.candidateRuleIndexes.length,
+        );
+
+    if (
+        selectionsWithCandidates.some(
+            ({ candidateRuleIndexes }) => candidateRuleIndexes.length === 0,
+        )
+    ) {
+        throw new Error('COMBO_SELECTIONS_DO_NOT_MATCH_RULES');
+    }
+
+    const assignSelection = (selectionIndex) => {
+        if (selectionIndex === selectionsWithCandidates.length) {
+            return remainingByRule.every((remaining) => remaining === 0);
+        }
+
+        for (const ruleIndex of
+            selectionsWithCandidates[selectionIndex].candidateRuleIndexes) {
+            if (remainingByRule[ruleIndex] === 0) continue;
+            remainingByRule[ruleIndex] -= 1;
+            if (assignSelection(selectionIndex + 1)) return true;
+            remainingByRule[ruleIndex] += 1;
+        }
+
+        return false;
+    };
+
+    if (!assignSelection(0)) {
+        throw new Error('COMBO_SELECTIONS_DO_NOT_MATCH_RULES');
+    }
+};
+
+const applyComboDiscount = (basePrice, combo) => {
+    const discount = Number(combo.discount) || 0;
+    if (combo.discountType === 'percent') {
+        return Math.max(0, Math.round(basePrice * (1 - discount / 100)));
+    }
+    if (combo.discountType === 'amount') {
+        return Math.max(0, basePrice - discount);
+    }
+    return basePrice;
 };
 
 const POPULATE_ORDER = [
@@ -77,7 +241,6 @@ export const create = async (data) => {
             note = '',
             added_topping = [],
             combo_selections = [],
-            price: requestPrice,
         } = item;
 
         if (quantity < 1) {
@@ -108,7 +271,10 @@ export const create = async (data) => {
                 throw new Error('SIZE_NOT_AVAILABLE');
             }
 
-            price = variant.price;
+            const [resolvedToppings] =
+                await resolveToppingLists(added_topping);
+
+            price = Number(variant.price) + resolvedToppings.total;
             sku = variant.sku;
 
             if (variant.recipe?.length) {
@@ -130,7 +296,7 @@ export const create = async (data) => {
                 size,
                 quantity,
                 note,
-                added_topping: normalizeAddedTopping(added_topping),
+                added_topping: resolvedToppings.items,
             });
         } else if (item_type === 'combo') {
             if (!combo_id) {
@@ -146,60 +312,123 @@ export const create = async (data) => {
                 throw new Error('COMBO_MISSING_SELECTIONS');
             }
 
+            const comboDoc = await Combo.findById(combo_id)
+                .select(
+                    'price pricingType discountType discount rules isActive isDeleted dateStart dateEnd',
+                )
+                .lean();
+            if (!comboDoc || comboDoc.isDeleted || !comboDoc.isActive) {
+                throw new Error('COMBO_NOT_FOUND');
+            }
+
+            const now = new Date();
+            if (comboDoc.dateStart > now || comboDoc.dateEnd < now) {
+                throw new Error('COMBO_NOT_ACTIVE');
+            }
+
             const selectionProductIds = combo_selections
-                .map((sel) => sel.product_id)
+                .map((selection) => selection.product_id)
                 .filter(Boolean);
 
             const selectionProducts = await Product.find({
                 _id: { $in: selectionProductIds },
+                isActive: true,
+                isDeleted: false,
             })
                 .populate('category', 'slug name')
                 .lean();
-
-            const pizzaProductIds = new Set(
-                selectionProducts
-                    .filter(
-                        (p) =>
-                            p.category?.slug === 'pizza' ||
-                            p.category?.name?.toLowerCase() === 'pizza',
-                    )
-                    .map((p) => p._id.toString()),
+            const productById = new Map(
+                selectionProducts.map((product) => [
+                    product._id.toString(),
+                    product,
+                ]),
+            );
+            const uniqueSelectionProductIds = new Set(
+                selectionProductIds.map((id) => id.toString()),
             );
 
-            for (let i = 0; i < combo_selections.length; i++) {
-                const sel = combo_selections[i];
-                if (!sel.product_id) {
+            if (productById.size !== uniqueSelectionProductIds.size) {
+                throw new Error('COMBO_SELECTION_PRODUCT_NOT_FOUND');
+            }
+
+            const resolvedSelections = combo_selections.map((selection) => {
+                if (!selection.product_id) {
                     throw new Error('MISSING_COMBO_SELECTION_PRODUCT_ID');
                 }
-                if (!sel.size) {
+                if (!selection.size) {
                     throw new Error('MISSING_COMBO_SELECTION_SIZE');
                 }
-                // Chỉ kiểm tra crust nếu sản phẩm là pizza
-                if (
-                    pizzaProductIds.has(sel.product_id.toString()) &&
-                    !sel.crust
-                ) {
-                    throw new Error('MISSING_COMBO_SELECTION_CRUST');
+                const product = productById.get(
+                    selection.product_id.toString(),
+                );
+                if (!product) {
+                    throw new Error('COMBO_SELECTION_PRODUCT_NOT_FOUND');
                 }
-            }
 
-            const comboDoc =
-                await Combo.findById(combo_id).select('price pricingType');
-            if (!comboDoc) {
-                throw new Error('COMBO_NOT_FOUND');
-            }
-            // static: dùng giá từ DB: dynamic: dùng giá frontend đã tính từ combo_selections
-            price =
+                const variant = product.variants.find(
+                    (candidate) =>
+                        candidate.sku === selection.sku &&
+                        candidate.size.toLowerCase() ===
+                            selection.size.toLowerCase(),
+                );
+                if (!variant) {
+                    throw new Error('COMBO_SELECTION_VARIANT_NOT_FOUND');
+                }
+
+                const isPizza =
+                    product.category?.slug === 'pizza' ||
+                    product.category?.name?.toLowerCase() === 'pizza';
+                if (
+                    isPizza &&
+                    (!selection.crust ||
+                        !variant.crust?.includes(selection.crust))
+                ) {
+                    throw new Error('INVALID_COMBO_SELECTION_CRUST');
+                }
+
+                return { selection, product, variant };
+            });
+
+            validateComboSelectionsAgainstRules(
+                resolvedSelections,
+                comboDoc.rules,
+            );
+            // Dynamic combo pricing is recalculated exclusively from DB values.
+            const [resolvedComboToppings, ...resolvedSelectionToppings] =
+                await resolveToppingLists(
+                    added_topping,
+                    ...resolvedSelections.map(
+                        ({ selection }) => selection.added_topping,
+                    ),
+                );
+            const selectionBasePrice = resolvedSelections.reduce(
+                (total, { variant }) => total + Number(variant.price),
+                0,
+            );
+            const comboBasePrice =
                 comboDoc.pricingType === 'dynamic'
-                    ? requestPrice || comboDoc.price
-                    : comboDoc.price;
+                    ? applyComboDiscount(selectionBasePrice, comboDoc)
+                    : Number(comboDoc.price);
+            const selectionToppingTotal = resolvedSelectionToppings.reduce(
+                (total, toppings) => total + toppings.total,
+                0,
+            );
+
+            price =
+                comboBasePrice +
+                resolvedComboToppings.total +
+                selectionToppingTotal;
             sku = `COMBO-${combo_id}`;
 
-            // Chuẩn hoá added_topping trong từng combo_selection
-            const normalizedSelections = combo_selections.map((sel) => ({
-                ...sel,
-                added_topping: normalizeAddedTopping(sel.added_topping),
-            }));
+            const normalizedSelections = resolvedSelections.map(
+                ({ selection, product, variant }, index) => ({
+                    product_id: product._id,
+                    sku: variant.sku,
+                    size: variant.size,
+                    crust: selection.crust,
+                    added_topping: resolvedSelectionToppings[index].items,
+                }),
+            );
 
             populatedItems.push({
                 item_type,
@@ -208,7 +437,7 @@ export const create = async (data) => {
                 size: finalSize,
                 quantity,
                 note,
-                added_topping: normalizeAddedTopping(added_topping),
+                added_topping: resolvedComboToppings.items,
                 combo: combo_id,
                 combo_selections: normalizedSelections,
             });
@@ -219,128 +448,173 @@ export const create = async (data) => {
         subTotal += price * quantity;
     }
 
-    let discount_amount = 0;
-    let appliedPromotionCode = null;
-    let appliedPromotion = null;
-    let shouldMarkRedeemedPromotion = false;
+    const persistOrder = async (session = null) => {
+        let discount_amount = 0;
+        let appliedPromotionCode = null;
+        let appliedPromotion = null;
+        let shouldMarkRedeemedPromotion = false;
 
-    if (promotion_code) {
-        const code = promotion_code.toUpperCase().trim();
-        const promo = await Promotion.findOne({
-            code,
-            status: 'active',
-            isDeleted: false,
-            startDate: { $lte: new Date() },
-            endDate: { $gte: new Date() },
-            applicableStore: { $in: [store_id] },
-        });
+        if (promotion_code) {
+            const code = promotion_code.toUpperCase().trim();
+            const now = new Date();
+            let promotionQuery = Promotion.findOne({
+                code,
+                status: 'active',
+                isDeleted: false,
+                startDate: { $lte: now },
+                endDate: { $gte: now },
+                applicableStore: { $in: [store_id] },
+            });
+            if (session) promotionQuery = promotionQuery.session(session);
+            const promo = await promotionQuery;
 
-        if (!promo) {
-            throw new Error('PROMOTION_NOT_FOUND_OR_EXPIRED');
+            if (!promo) {
+                throw new Error('PROMOTION_NOT_FOUND_OR_EXPIRED');
+            }
+
+            const isRedeemablePromo = promo.point != null && promo.point >= 0;
+
+            if (isRedeemablePromo && !customer_id) {
+                throw new Error('PROMOTION_REQUIRES_CUSTOMER');
+            }
+
+            if (
+                promo.usageLimit !== -1 &&
+                promo.usageLimit !== null &&
+                promo.usedCount >= promo.usageLimit
+            ) {
+                throw new Error('PROMOTION_USAGE_LIMIT_REACHED');
+            }
+
+            if (customer_id) {
+                let customerQuery = Customer.findById(customer_id);
+                if (session) customerQuery = customerQuery.session(session);
+                const customer = await customerQuery;
+                if (!customer || customer.isDeleted) {
+                    throw new Error('CUSTOMER_NOT_FOUND');
+                }
+
+                if (promo.maxUsagePerUser > 0) {
+                    const userUsedCount = customer.redeemPromotion
+                        ? customer.redeemPromotion
+                              .filter(
+                                  (rp) =>
+                                      rp.promotion &&
+                                      rp.promotion.toString() ===
+                                          promo._id.toString(),
+                              )
+                              .reduce(
+                                  (sum, rp) => sum + (rp.usedCount || 0),
+                                  0,
+                              )
+                        : 0;
+
+                    if (userUsedCount >= promo.maxUsagePerUser) {
+                        throw new Error(
+                            'PROMOTION_MAX_USAGE_PER_USER_REACHED',
+                        );
+                    }
+                }
+
+                if (isRedeemablePromo) {
+                    const hasUnusedRedemption =
+                        customer.redeemPromotion?.some(
+                            (rp) =>
+                                rp.promotion &&
+                                rp.promotion.toString() ===
+                                    promo._id.toString() &&
+                                (promo.maxUsagePerUser <= 0 ||
+                                    (rp.usedCount || 0) <
+                                        promo.maxUsagePerUser),
+                        );
+
+                    if (!hasUnusedRedemption) {
+                        throw new Error('PROMOTION_NOT_REDEEMED');
+                    }
+
+                    shouldMarkRedeemedPromotion = true;
+                }
+            }
+
+            if (promo.type === 'percentage') {
+                discount_amount = Math.round(subTotal * (promo.value / 100));
+            } else if (promo.type === 'fixed_amount') {
+                discount_amount = Math.min(promo.value, subTotal);
+            }
+
+            appliedPromotionCode = code;
+            appliedPromotion = promo;
         }
 
-        const isRedeemablePromo = promo.point != null && promo.point >= 0;
+        const deliveryFee = calculateDeliveryFee(orderType, subTotal);
+        const total = Math.max(0, subTotal + deliveryFee - discount_amount);
+        const orderData = {
+            store_id,
+            customer_id,
+            employee_id,
+            items: populatedItems,
+            subTotal,
+            deliveryFee,
+            discount_amount,
+            total,
+            note,
+            status: 'pending',
+            orderType,
+            paymentMethod,
+            paymentStatus: 'pending',
+            contact_info,
+            promotion_code: appliedPromotionCode,
+        };
 
-        // Mã quy đổi chỉ được dùng bởi đúng khách hàng đã đổi mã.
-        if (isRedeemablePromo && !customer_id) {
-            throw new Error('PROMOTION_REQUIRES_CUSTOMER');
-        }
+        const order = session
+            ? (await Order.create([orderData], { session }))[0]
+            : await Order.create(orderData);
 
-        // Kiểm tra usageLimit
-        if (promo.usageLimit !== -1 && promo.usageLimit !== null) {
-            if (promo.usedCount >= promo.usageLimit) {
+        if (appliedPromotion) {
+            if (shouldMarkRedeemedPromotion) {
+                await customerService.markRedeemedPromotionUsed(
+                    customer_id,
+                    appliedPromotion._id.toString(),
+                    {
+                        maxUsagePerUser: appliedPromotion.maxUsagePerUser,
+                        session,
+                    },
+                );
+            }
+
+            const promotionUsageFilter = {
+                _id: appliedPromotion._id,
+                status: 'active',
+                isDeleted: false,
+                startDate: { $lte: new Date() },
+                endDate: { $gte: new Date() },
+                applicableStore: { $in: [store_id] },
+            };
+            if (
+                appliedPromotion.usageLimit !== -1 &&
+                appliedPromotion.usageLimit !== null
+            ) {
+                promotionUsageFilter.usedCount = {
+                    $lt: appliedPromotion.usageLimit,
+                };
+            }
+
+            const promotionUpdate = await Promotion.updateOne(
+                promotionUsageFilter,
+                { $inc: { usedCount: 1 } },
+                { session },
+            );
+            if (promotionUpdate.matchedCount !== 1) {
                 throw new Error('PROMOTION_USAGE_LIMIT_REACHED');
             }
         }
 
-        // Kiểm tra maxUsagePerUser và quyền sử dụng mã nếu có customer_id.
-        if (customer_id) {
-            const customer = await Customer.findById(customer_id);
-            if (!customer || customer.isDeleted) {
-                throw new Error('CUSTOMER_NOT_FOUND');
-            }
-
-            if (promo.maxUsagePerUser > 0) {
-                // Đếm tổng số lần đã sử dụng promotion (tổng usedCount)
-                const userUsedCount = customer.redeemPromotion
-                    ? customer.redeemPromotion
-                          .filter(
-                              (rp) =>
-                                  rp.promotion &&
-                                  rp.promotion.toString() ===
-                                      promo._id.toString(),
-                          )
-                          .reduce((sum, rp) => sum + (rp.usedCount || 0), 0)
-                    : 0;
-
-                if (userUsedCount >= promo.maxUsagePerUser) {
-                    throw new Error('PROMOTION_MAX_USAGE_PER_USER_REACHED');
-                }
-            }
-
-            if (isRedeemablePromo) {
-                const hasUnusedRedemption = customer.redeemPromotion?.some(
-                    (rp) =>
-                        rp.promotion &&
-                        rp.promotion.toString() === promo._id.toString() &&
-                        (promo.maxUsagePerUser <= 0 ||
-                            (rp.usedCount || 0) < promo.maxUsagePerUser),
-                );
-
-                if (!hasUnusedRedemption) {
-                    throw new Error('PROMOTION_NOT_REDEEMED');
-                }
-
-                shouldMarkRedeemedPromotion = true;
-            }
-        }
-
-        // Tính discount
-        if (promo.type === 'percentage') {
-            discount_amount = Math.round(subTotal * (promo.value / 100));
-        } else if (promo.type === 'fixed_amount') {
-            discount_amount = Math.min(promo.value, subTotal);
-        }
-
-        appliedPromotionCode = code;
-        appliedPromotion = promo;
-    }
-
-    const total = subTotal - discount_amount;
-
-    const orderData = {
-        store_id,
-        customer_id,
-        employee_id,
-        items: populatedItems,
-        subTotal,
-        discount_amount,
-        total,
-        note,
-        status: 'pending',
-        orderType,
-        paymentMethod,
-        paymentStatus: 'pending',
-        contact_info,
-        promotion_code: appliedPromotionCode,
+        return order;
     };
 
-    const order = await Order.create(orderData);
-
-    // Chỉ tiêu thụ lượt mã sau khi đơn hàng đã được ghi thành công.
-    if (appliedPromotion) {
-        if (shouldMarkRedeemedPromotion) {
-            await customerService.markRedeemedPromotionUsed(
-                customer_id,
-                appliedPromotion._id.toString(),
-            );
-        }
-
-        await Promotion.updateOne(
-            { _id: appliedPromotion._id },
-            { $inc: { usedCount: 1 } },
-        );
-    }
+    const order = promotion_code
+        ? await runInTransaction(persistOrder)
+        : await persistOrder();
 
     const populatedOrder = await Order.findOne({
         _id: order._id,
@@ -561,7 +835,7 @@ const extractIngredientsFromOrder = (order) => {
 //   Tích điểm dựa trên tài khoản Customer (customer_id),
 //   10k = 1 đ
 
-const rewardCustomerPoints = async (order) => {
+const rewardCustomerPoints = async (order, { session = null } = {}) => {
     if (!order || order.total <= 0) return null;
 
     let customerId = null;
@@ -583,7 +857,7 @@ const rewardCustomerPoints = async (order) => {
                 totalPoint: pointsEarned,
             },
         },
-        { new: true },
+        { new: true, session },
     );
 
     //  Tự động nâng tier dựa trên tổng điểm tích luỹ totalPoint
@@ -593,7 +867,7 @@ const rewardCustomerPoints = async (order) => {
 
         if (newTier !== updatedCustomer.tier) {
             updatedCustomer.tier = newTier;
-            await updatedCustomer.save();
+            await updatedCustomer.save({ session });
         }
     }
 
@@ -618,71 +892,78 @@ const computeTier = (totalPoint) => {
 };
 
 export const updateStatus = async (order_id, status) => {
-    const payload = { status };
-    const currentOrder = await Order.findById(order_id).select(
-        'status paymentMethod paymentStatus',
-    );
+    if (status === 'completed') {
+        const transactionResult = await runInTransaction(async (session) => {
+            const currentOrder = await Order.findById(order_id)
+                .select('status paymentMethod paymentStatus')
+                .session(session);
+            if (!currentOrder) {
+                throw new Error('ORDER_NOT_FOUND');
+            }
 
-    if (!currentOrder) {
-        throw new Error('ORDER_NOT_FOUND');
+            if (currentOrder.status === 'completed') {
+                const completedOrder = await Order.findById(order_id)
+                    .session(session)
+                    .populate(POPULATE_ORDER);
+                return { order: completedOrder, rewardedCustomer: null };
+            }
+
+            const payload = { status };
+            if (
+                CASH_PAYMENT_METHODS.has(currentOrder.paymentMethod) &&
+                currentOrder.paymentStatus === 'pending'
+            ) {
+                payload.paymentStatus = 'success';
+            }
+
+            let order = await Order.findOneAndUpdate(
+                { _id: order_id, status: { $ne: 'completed' } },
+                payload,
+                { new: true, runValidators: true, session },
+            ).populate(POPULATE_ORDER);
+
+            // Một transaction đồng thời có thể đã hoàn tất đơn trước lần retry này.
+            if (!order) {
+                order = await Order.findById(order_id)
+                    .session(session)
+                    .populate(POPULATE_ORDER);
+                if (!order) throw new Error('ORDER_NOT_FOUND');
+                return { order, rewardedCustomer: null };
+            }
+
+            const storeId = order.store_id?._id || order.store_id;
+            const ingredientsMap = extractIngredientsFromOrder(order);
+            if (ingredientsMap.size > 0) {
+                await inventoryService.deductForOrder(storeId, ingredientsMap, {
+                    session,
+                });
+            }
+
+            const rewardedCustomer = await rewardCustomerPoints(order, {
+                session,
+            });
+            return { order, rewardedCustomer };
+        });
+
+        if (transactionResult.rewardedCustomer) {
+            console.log(
+                `[POINTS] +${Math.floor(transactionResult.order.total / 10000)} điểm cho tài khoản KH ${transactionResult.rewardedCustomer.phone} (Đơn: ${transactionResult.order._id})`,
+            );
+        }
+
+        return transactionResult.order;
     }
 
-    if (currentOrder.status === 'completed' && status !== 'completed') {
+    const order = await Order.findOneAndUpdate(
+        { _id: order_id, status: { $ne: 'completed' } },
+        { status },
+        { new: true, runValidators: true },
+    ).populate(POPULATE_ORDER);
+    if (!order) {
+        const existingOrder = await Order.findById(order_id).select('status');
+        if (!existingOrder) throw new Error('ORDER_NOT_FOUND');
         throw new Error('COMPLETED_ORDER_STATUS_CANNOT_BE_CHANGED');
     }
-
-    if (
-        CASH_PAYMENT_METHODS.has(currentOrder.paymentMethod) &&
-        status === 'completed' &&
-        currentOrder.paymentStatus === 'pending'
-    ) {
-        payload.paymentStatus = 'success';
-    }
-
-    let didTransitionToCompleted = false;
-    let order;
-
-    if (status === 'completed') {
-        order = await Order.findOneAndUpdate(
-            { _id: order_id, status: { $ne: 'completed' } },
-            payload,
-            { new: true, runValidators: true },
-        ).populate(POPULATE_ORDER);
-        didTransitionToCompleted = Boolean(order);
-
-        if (!order) {
-            order = await Order.findById(order_id).populate(POPULATE_ORDER);
-        }
-    } else {
-        order = await Order.findByIdAndUpdate(order_id, payload, {
-            new: true,
-            runValidators: true,
-        }).populate(POPULATE_ORDER);
-    }
-
-    if (!order) throw new Error('ORDER_NOT_FOUND');
-
-    // Khi đơn hàng chuyển sang completed, tự động trừ kho nguyên liệu (cho phép âm kho)
-    if (didTransitionToCompleted) {
-        const storeId = order.store_id?._id || order.store_id;
-        const ingredientsMap = extractIngredientsFromOrder(order);
-        if (ingredientsMap.size > 0) {
-            await inventoryService.deductForOrder(storeId, ingredientsMap);
-        }
-
-        // Tự động cộng điểm cho tài khoản khách hàng
-        try {
-            const rewardedCustomer = await rewardCustomerPoints(order);
-            if (rewardedCustomer) {
-                console.log(
-                    `[POINTS] +${Math.floor(order.total / 10000)} điểm cho tài khoản KH ${rewardedCustomer.phone} (Đơn: ${order._id})`,
-                );
-            }
-        } catch (err) {
-            console.error('[POINTS] Lỗi cộng điểm:', err.message);
-        }
-    }
-
     return order;
 };
 

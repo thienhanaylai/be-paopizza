@@ -8,7 +8,6 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "test:api": "node scripts/run-api-tests.js",
     "seed:sample": "node src/seeds/sample-data.seed.js",
     "seed:init": "node src/seeds/init.seed.js",
     "seed:product": "node src/seeds/product-from-csv.seed.js",

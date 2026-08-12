@@ -287,24 +287,47 @@ export const addPoints = async (customerId, points) => {
     return customer;
 };
 
-export const markRedeemedPromotionUsed = async (customerId, promotionId) => {
-    const customer = await Customer.findById(customerId);
-    if (!customer || customer.isDeleted) {
+export const markRedeemedPromotionUsed = async (
+    customerId,
+    promotionId,
+    { maxUsagePerUser = 0, session = null } = {},
+) => {
+    const redemptionFilter = { promotion: promotionId };
+    if (maxUsagePerUser > 0) {
+        redemptionFilter.usedCount = { $lt: maxUsagePerUser };
+    }
+
+    const customer = await Customer.findOneAndUpdate(
+        {
+            _id: customerId,
+            isDeleted: false,
+            redeemPromotion: { $elemMatch: redemptionFilter },
+        },
+        { $inc: { 'redeemPromotion.$.usedCount': 1 } },
+        { new: true, session },
+    );
+
+    if (customer) return customer;
+
+    let customerQuery = Customer.findOne({
+        _id: customerId,
+        isDeleted: false,
+    });
+    if (session) customerQuery = customerQuery.session(session);
+    const existingCustomer = await customerQuery;
+    if (!existingCustomer) {
         throw new Error('CUSTOMER_NOT_FOUND');
     }
 
-    const redeemed = customer.redeemPromotion.find(
+    const redeemed = existingCustomer.redeemPromotion?.find(
         (rp) =>
             rp.promotion && rp.promotion.toString() === promotionId.toString(),
     );
-
     if (!redeemed) {
         throw new Error('REDEEMED_PROMOTION_NOT_FOUND');
     }
 
-    redeemed.usedCount += 1;
-    await customer.save();
-    return customer;
+    throw new Error('PROMOTION_MAX_USAGE_PER_USER_REACHED');
 };
 
 export const getCustomerByUserId = async (userId) => {

@@ -2,7 +2,15 @@ import * as orderService from './order.service.js';
 import { z } from 'zod';
 import { validate } from '../../utils/validation.js';
 
-const createOrderSchema = z.object({
+const addedToppingSchema = z.union([
+    z.string().min(1),
+    z.object({
+        ingredient: z.string().min(1),
+        quantity: z.coerce.number().int().min(1).default(1),
+    }),
+]);
+
+export const createOrderSchema = z.object({
     orderType: z.enum(['dine_in', 'carry_out', 'delivery']),
     paymentMethod: z.enum(['cash', 'qrCode', 'card', 'ewallet']),
     paymentStatus: z.enum(['pending', 'success', 'failed']).default('pending'),
@@ -17,8 +25,6 @@ const createOrderSchema = z.object({
         .optional(),
     store_id: z.string().min(1, 'store_id không được để trống'),
     note: z.string().optional(),
-    customer_id: z.string().nullable().optional(),
-    employee_id: z.string().optional(),
     items: z
         .array(
             z.object({
@@ -26,12 +32,14 @@ const createOrderSchema = z.object({
                 product_id: z.string().optional(),
                 combo_id: z.string().optional(),
                 sku: z.string(),
-                price: z.coerce.number().min(0),
+                // Accepted for backward compatibility, but order.service always
+                // recalculates authoritative prices from database values.
+                price: z.coerce.number().min(0).optional(),
                 size: z.string().optional(),
                 crust: z.string().optional(),
                 quantity: z.coerce.number().int().min(1),
                 note: z.string().optional(),
-                added_topping: z.array(z.any()).optional(),
+                added_topping: z.array(addedToppingSchema).optional(),
                 combo_selections: z
                     .array(
                         z.object({
@@ -39,12 +47,22 @@ const createOrderSchema = z.object({
                             sku: z.string(),
                             size: z.string(),
                             crust: z.string().optional(),
+                            added_topping: z
+                                .array(addedToppingSchema)
+                                .optional(),
                         }),
                     )
                     .optional(),
             }),
         )
         .min(1, 'Đơn hàng phải có ít nhất 1 sản phẩm'),
+});
+
+export const resolveOrderActorIds = (user) => ({
+    customer_id:
+        user?.user_type === 'Customer' && user.ref_id ? user.ref_id : null,
+    employee_id:
+        user?.user_type === 'Employee' && user.ref_id ? user.ref_id : null,
 });
 
 const updateOrderStatusSchema = z.object({
@@ -59,12 +77,10 @@ export const createOrder = async (req, res) => {
     const validation = validate(req, res, createOrderSchema);
     if (!validation.success) return;
 
-    const orderData = { ...validation.data };
-
-    // Nếu user đã đăng nhập và là Customer, tự động gán customer_id từ profile
-    if (req.user && req.user.user_type === 'Customer' && req.user.ref_id) {
-        orderData.customer_id = orderData.customer_id || req.user.ref_id;
-    }
+    const orderData = {
+        ...validation.data,
+        ...resolveOrderActorIds(req.user),
+    };
 
     const result = await orderService.create(orderData);
 
