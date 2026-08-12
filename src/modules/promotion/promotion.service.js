@@ -437,10 +437,9 @@ export const redeemByPoints = async (userId, promotionId) => {
         usedCount: 0,
     });
 
-    // Tăng usedCount của promotion
-    promotion.usedCount += 1;
-
-    await Promise.all([customer.save(), promotion.save()]);
+    // Đổi điểm chỉ mở khóa mã cho khách hàng. Lượt sử dụng chỉ được tính
+    // sau khi một đơn hàng áp dụng mã đã được tạo thành công.
+    await customer.save();
 
     return {
         code: promotion.code,

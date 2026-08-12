@@ -221,7 +221,8 @@ export const create = async (data) => {
 
     let discount_amount = 0;
     let appliedPromotionCode = null;
-    let appliedPromotionId = null;
+    let appliedPromotion = null;
+    let shouldMarkRedeemedPromotion = false;
 
     if (promotion_code) {
         const code = promotion_code.toUpperCase().trim();
@@ -238,6 +239,13 @@ export const create = async (data) => {
             throw new Error('PROMOTION_NOT_FOUND_OR_EXPIRED');
         }
 
+        const isRedeemablePromo = promo.point != null && promo.point >= 0;
+
+        // Mã quy đổi chỉ được dùng bởi đúng khách hàng đã đổi mã.
+        if (isRedeemablePromo && !customer_id) {
+            throw new Error('PROMOTION_REQUIRES_CUSTOMER');
+        }
+
         // Kiểm tra usageLimit
         if (promo.usageLimit !== -1 && promo.usageLimit !== null) {
             if (promo.usedCount >= promo.usageLimit) {
@@ -245,10 +253,14 @@ export const create = async (data) => {
             }
         }
 
-        // Kiểm tra maxUsagePerUser nếu có customer_id
-        if (customer_id && promo.maxUsagePerUser > 0) {
+        // Kiểm tra maxUsagePerUser và quyền sử dụng mã nếu có customer_id.
+        if (customer_id) {
             const customer = await Customer.findById(customer_id);
-            if (customer) {
+            if (!customer || customer.isDeleted) {
+                throw new Error('CUSTOMER_NOT_FOUND');
+            }
+
+            if (promo.maxUsagePerUser > 0) {
                 // Đếm tổng số lần đã sử dụng promotion (tổng usedCount)
                 const userUsedCount = customer.redeemPromotion
                     ? customer.redeemPromotion
@@ -265,6 +277,22 @@ export const create = async (data) => {
                     throw new Error('PROMOTION_MAX_USAGE_PER_USER_REACHED');
                 }
             }
+
+            if (isRedeemablePromo) {
+                const hasUnusedRedemption = customer.redeemPromotion?.some(
+                    (rp) =>
+                        rp.promotion &&
+                        rp.promotion.toString() === promo._id.toString() &&
+                        (promo.maxUsagePerUser <= 0 ||
+                            (rp.usedCount || 0) < promo.maxUsagePerUser),
+                );
+
+                if (!hasUnusedRedemption) {
+                    throw new Error('PROMOTION_NOT_REDEEMED');
+                }
+
+                shouldMarkRedeemedPromotion = true;
+            }
         }
 
         // Tính discount
@@ -274,32 +302,8 @@ export const create = async (data) => {
             discount_amount = Math.min(promo.value, subTotal);
         }
 
-        // Tăng usedCount
-        promo.usedCount += 1;
-        await promo.save();
-
-        // Đánh dấu redeemed promotion đã sử dụng (nếu có customer)
-        if (customer_id) {
-            // Với promotion cần quy đổi (point >= 0), bắt buộc phải có bản ghi redeemPromotion chưa dùng
-            // Với promotion thường (point = -1), cho phép dùng trực tiếp không cần quy đổi
-            const isRedeemablePromo = promo.point != null && promo.point >= 0;
-
-            try {
-                await customerService.markRedeemedPromotionUsed(
-                    customer_id,
-                    promo._id.toString(),
-                );
-            } catch (markErr) {
-                if (isRedeemablePromo) {
-                    // Promotion yêu cầu quy đổi nhưng customer chưa redeem → chặn
-                    throw new Error('PROMOTION_NOT_REDEEMED');
-                }
-                // Promotion thường (point = -1): bỏ qua, cho phép dùng trực tiếp
-            }
-        }
-
         appliedPromotionCode = code;
-        appliedPromotionId = promo._id;
+        appliedPromotion = promo;
     }
 
     const total = subTotal - discount_amount;
@@ -322,6 +326,21 @@ export const create = async (data) => {
     };
 
     const order = await Order.create(orderData);
+
+    // Chỉ tiêu thụ lượt mã sau khi đơn hàng đã được ghi thành công.
+    if (appliedPromotion) {
+        if (shouldMarkRedeemedPromotion) {
+            await customerService.markRedeemedPromotionUsed(
+                customer_id,
+                appliedPromotion._id.toString(),
+            );
+        }
+
+        await Promotion.updateOne(
+            { _id: appliedPromotion._id },
+            { $inc: { usedCount: 1 } },
+        );
+    }
 
     const populatedOrder = await Order.findOne({
         _id: order._id,
