@@ -1,34 +1,34 @@
 name,price,image
-Create your own pizza,179,https://media.dodostatic.net/image/11ee7d616b6eac0d9d1151039f788394.jpg
-Ham and pickles,169,https://media.dodostatic.net/image/019c986d0e7d75e595d9b0f02bda0ed5.jpg
-Masala Pizza,229,https://media.dodostatic.net/image/019bcbc9b40370a4b47c6298dcac292a.jpg
-Dodo,369,https://media.dodostatic.net/image/019ac604bad37209b1ec496bbdd98560.jpg
-Pepperoni Fresh,179,https://media.dodostatic.net/image/0198bf57bc517218ab93c762f4b0193e.jpg
-Pepperoni,189,https://media.dodostatic.net/image/0198bf39dda97082912be8d1f3f2b233.jpg
-Garlic Chicken,199,https://media.dodostatic.net/image/0198bf24170179679a7872f2ddf16d18.jpg
-Teriyaki,279,https://media.dodostatic.net/image/019a10a0c9ab792190a97768688bc6e9.jpg
-Four cheese,279,https://media.dodostatic.net/image/019a109fe01672189d029a725ba99705.jpg
-Cheesy,169,https://media.dodostatic.net/image/0198bf40eb1171aabe90b1b3ce07c0c5.jpg
-Meat mix,389,https://media.dodostatic.net/image/019bfc26d13e710094be830c3c55ccc2.jpg
-Ham & Cheese,179,https://media.dodostatic.net/image/0198bf283b2372ea8e7cfc8adae9ea84.jpg
-Double Chicken,219,https://media.dodostatic.net/image/0198bf3e424371b49f0b8d7dbe320a70.jpg
-Shrimp and pesto,299,https://media.dodostatic.net/image/0198bf4d218b75d4a3e667fc2f6d7643.jpg
-Ham & Mushroom,199,https://media.dodostatic.net/image/0198c659b357718f9c77ad0dc392dadf.jpg
-Arriva!,289,https://media.dodostatic.net/image/0198bf2e5d2973a4bf5ec61161496f91.jpg
-Sweet Chilli shrimp,299,https://media.dodostatic.net/image/0198bf5147f27780a3290a82692e7a36.jpg
-Carbonara,289,https://media.dodostatic.net/image/0198bf2b03447079941f2d5ac6e986a9.jpg
-Julienne,269,https://media.dodostatic.net/image/0198bf4e67f474f991f04a46a49af5e6.jpg
-Pesto Pizza,289,https://media.dodostatic.net/image/019a8aaa69cc7601b28736b1ebe7fc25.jpg
-Meat Feast,329,https://media.dodostatic.net/image/0198bf3b88d5772695c7f9e557b5b196.jpg
-Burger pizza,229,https://media.dodostatic.net/image/0199b77856ec79a986a2d582c2678fff.jpg
-Cheesy chicken,279,https://media.dodostatic.net/image/0198bf44f21b753ab8d43dada31ecee1.jpg
-Hawaiian,179,https://media.dodostatic.net/image/0198bf530345746e98039478001d5108.jpg
-BBQ Chicken,259,https://media.dodostatic.net/image/0198bf2cc87a79baa946c53b634615f4.jpg
-Chicken ranch,259,https://media.dodostatic.net/image/0198bf265f7371bcb8a99321fecf2716.jpg
-Margherita,189,https://media.dodostatic.net/image/0198bf3d788b78d491891a6da5e94bf1.jpg
-Diablo,299,https://media.dodostatic.net/image/0198bf439a007604880d0231be87cd3e.jpg
-Double Pepperoni,289,https://media.dodostatic.net/image/0198bf315122735a8b45cf8539df53f8.jpg
-Four Seasons,359,https://media.dodostatic.net/image/0198bf47733e787a98ed55d13e9a2251.jpg
-Vegetarian,219,https://media.dodostatic.net/image/019d393af27672229e382b37b1988f6c.jpg
-Dodo Mix,399,https://media.dodostatic.net/image/0198bf4a963f722a8f2780b4a9b66365.jpg
+Create your own pizza,179,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606137/paopizza/products/pizza/create-your-own-pizza.jpg
+Ham and pickles,169,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606138/paopizza/products/pizza/ham-and-pickles.jpg
+Masala Pizza,229,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606138/paopizza/products/pizza/masala-pizza.jpg
+Dodo,369,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606139/paopizza/products/pizza/dodo.jpg
+Pepperoni Fresh,179,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606139/paopizza/products/pizza/pepperoni-fresh.jpg
+Pepperoni,189,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606140/paopizza/products/pizza/pepperoni.jpg
+Garlic Chicken,199,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606140/paopizza/products/pizza/garlic-chicken.jpg
+Teriyaki,279,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606141/paopizza/products/pizza/teriyaki.jpg
+Four cheese,279,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606141/paopizza/products/pizza/four-cheese.jpg
+Cheesy,169,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606142/paopizza/products/pizza/cheesy.jpg
+Meat mix,389,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606142/paopizza/products/pizza/meat-mix.jpg
+Ham & Cheese,179,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606143/paopizza/products/pizza/ham-and-cheese.jpg
+Double Chicken,219,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606734/paopizza/products/pizza/double-chicken.jpg
+Shrimp and pesto,299,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606735/paopizza/products/pizza/shrimp-and-pesto.jpg
+Ham & Mushroom,199,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606736/paopizza/products/pizza/ham-and-mushroom.jpg
+Arriva!,289,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606737/paopizza/products/pizza/arriva.jpg
+Sweet Chilli shrimp,299,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606738/paopizza/products/pizza/sweet-chilli-shrimp.jpg
+Carbonara,289,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606739/paopizza/products/pizza/carbonara.jpg
+Julienne,269,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606143/paopizza/products/pizza/julienne.jpg
+Pesto Pizza,289,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606144/paopizza/products/pizza/pesto-pizza.jpg
+Meat Feast,329,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606144/paopizza/products/pizza/meat-feast.jpg
+Burger pizza,229,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606144/paopizza/products/pizza/burger-pizza.jpg
+Cheesy chicken,279,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606145/paopizza/products/pizza/cheesy-chicken.jpg
+Hawaiian,179,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606146/paopizza/products/pizza/hawaiian.jpg
+BBQ Chicken,259,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606146/paopizza/products/pizza/bbq-chicken.jpg
+Chicken ranch,259,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606147/paopizza/products/pizza/chicken-ranch.jpg
+Margherita,189,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606147/paopizza/products/pizza/margherita.jpg
+Diablo,299,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606148/paopizza/products/pizza/diablo.jpg
+Double Pepperoni,289,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606148/paopizza/products/pizza/double-pepperoni.jpg
+Four Seasons,359,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606149/paopizza/products/pizza/four-seasons.jpg
+Vegetarian,219,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606149/paopizza/products/pizza/vegetarian.jpg
+Dodo Mix,399,https://res.cloudinary.com/dxrrdqgss/image/upload/v1786606150/paopizza/products/pizza/dodo-mix.jpg
 ,,

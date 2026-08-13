@@ -105,3 +105,6 @@ plan.md
 scripts/
 reports/
 PROJECT_SUMMARY.md
+*/seeds/downloaded-images
+*/seeds/download-product-images.js
+*/seeds/upload-product-images-to-cloudinary.js
