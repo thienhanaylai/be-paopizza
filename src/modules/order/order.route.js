@@ -3,7 +3,7 @@ import passport from 'passport';
 import * as orderController from './order.controller.js';
 import { authorize, optionalAuth } from '../auth/auth.middleware.js';
 import { asyncHandler } from '../../middlewares/index.js';
-import { orderLimit } from '../../middlewares/rateLimit.js';
+import { orderLimit, trackingLimit } from '../../middlewares/rateLimit.js';
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 const requireAdmin = authorize(['admin']);
@@ -27,7 +27,12 @@ router.get(
     requireAuth,
     asyncHandler(orderController.getHistoryOrder),
 );
-router.get('/track', optionalAuth, asyncHandler(orderController.trackOrders));
+router.get(
+    '/track',
+    optionalAuth,
+    trackingLimit,
+    asyncHandler(orderController.trackOrders),
+);
 router.get('/', requireAuth, asyncHandler(orderController.getAllOrders));
 router.get(
     '/:order_id/payment-success',

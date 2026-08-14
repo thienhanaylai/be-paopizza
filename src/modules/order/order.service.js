@@ -55,9 +55,7 @@ const resolveToppingLists = async (...toppingLists) => {
     );
     const ingredientIds = [
         ...new Set(
-            normalizedLists
-                .flat()
-                .map((item) => item.ingredient.toString()),
+            normalizedLists.flat().map((item) => item.ingredient.toString()),
         ),
     ];
 
@@ -160,8 +158,8 @@ const validateComboSelectionsAgainstRules = (selections, rules = []) => {
             return remainingByRule.every((remaining) => remaining === 0);
         }
 
-        for (const ruleIndex of
-            selectionsWithCandidates[selectionIndex].candidateRuleIndexes) {
+        for (const ruleIndex of selectionsWithCandidates[selectionIndex]
+            .candidateRuleIndexes) {
             if (remainingByRule[ruleIndex] === 0) continue;
             remainingByRule[ruleIndex] -= 1;
             if (assignSelection(selectionIndex + 1)) return true;
@@ -203,6 +201,72 @@ const POPULATE_ORDER = [
         select: 'name price unit quantityExtra',
     },
 ];
+
+const TRACKING_POPULATE_ORDER = POPULATE_ORDER.filter(
+    ({ path }) => !['customer_id', 'employee_id'].includes(path),
+);
+//mask dùng để che giấu đi thông tin nhạy cảm
+const maskTrackingName = (value = '') => {
+    const words = String(value).trim().split(/\s+/).filter(Boolean);
+    if (words.length === 0) return '';
+    if (words.length === 1) return `${words[0].charAt(0)}***`;
+    return `${words[0]} ***`;
+};
+
+const maskTrackingPhone = (value = '') => {
+    const rawValue = String(value).trim();
+    const digits = rawValue.replace(/\D/g, '');
+    if (digits.length === 0) return '';
+    if (digits.length <= 6) {
+        return `${digits.charAt(0)}***${digits.charAt(digits.length - 1)}`;
+    }
+
+    const prefix = rawValue.startsWith('+') ? '+' : '';
+    return `${prefix}${digits.slice(0, 3)}${'*'.repeat(
+        digits.length - 6,
+    )}${digits.slice(-3)}`;
+};
+
+const maskTrackingAddress = (value = '') => {
+    const parts = String(value)
+        .split(',')
+        .map((part) => part.trim())
+        .filter(Boolean);
+    if (parts.length === 0) return '';
+
+    const firstAddressToken = parts[0].split(/\s+/).filter(Boolean)[0];
+    const maskedStreet = firstAddressToken
+        ? `${firstAddressToken} *****`
+        : '*****';
+
+    return [maskedStreet, ...parts.slice(1)].join(', ');
+};
+
+const maskTrackingEmail = (value = '') => {
+    const [localPart, domain] = String(value).trim().split('@');
+    if (!localPart) return '';
+    if (!domain) return `${localPart.charAt(0)}***`;
+    return `${localPart.charAt(0)}***@${domain}`;
+};
+
+const maskTrackingContactInfo = (contactInfo) => {
+    if (!contactInfo) return contactInfo;
+
+    const safeContactInfo = Object.fromEntries(
+        Object.entries(contactInfo).filter(([key]) => key !== 'location'),
+    );
+    return {
+        ...safeContactInfo,
+        full_name: maskTrackingName(contactInfo.full_name),
+        phone: maskTrackingPhone(contactInfo.phone),
+        address: contactInfo.address
+            ? maskTrackingAddress(contactInfo.address)
+            : contactInfo.address,
+        email: contactInfo.email
+            ? maskTrackingEmail(contactInfo.email)
+            : contactInfo.email,
+    };
+};
 
 export const create = async (data) => {
     const {
@@ -271,8 +335,7 @@ export const create = async (data) => {
                 throw new Error('SIZE_NOT_AVAILABLE');
             }
 
-            const [resolvedToppings] =
-                await resolveToppingLists(added_topping);
+            const [resolvedToppings] = await resolveToppingLists(added_topping);
 
             price = Number(variant.price) + resolvedToppings.total;
             sku = variant.sku;
@@ -503,30 +566,22 @@ export const create = async (data) => {
                                       rp.promotion.toString() ===
                                           promo._id.toString(),
                               )
-                              .reduce(
-                                  (sum, rp) => sum + (rp.usedCount || 0),
-                                  0,
-                              )
+                              .reduce((sum, rp) => sum + (rp.usedCount || 0), 0)
                         : 0;
 
                     if (userUsedCount >= promo.maxUsagePerUser) {
-                        throw new Error(
-                            'PROMOTION_MAX_USAGE_PER_USER_REACHED',
-                        );
+                        throw new Error('PROMOTION_MAX_USAGE_PER_USER_REACHED');
                     }
                 }
 
                 if (isRedeemablePromo) {
-                    const hasUnusedRedemption =
-                        customer.redeemPromotion?.some(
-                            (rp) =>
-                                rp.promotion &&
-                                rp.promotion.toString() ===
-                                    promo._id.toString() &&
-                                (promo.maxUsagePerUser <= 0 ||
-                                    (rp.usedCount || 0) <
-                                        promo.maxUsagePerUser),
-                        );
+                    const hasUnusedRedemption = customer.redeemPromotion?.some(
+                        (rp) =>
+                            rp.promotion &&
+                            rp.promotion.toString() === promo._id.toString() &&
+                            (promo.maxUsagePerUser <= 0 ||
+                                (rp.usedCount || 0) < promo.maxUsagePerUser),
+                    );
 
                     if (!hasUnusedRedemption) {
                         throw new Error('PROMOTION_NOT_REDEEMED');
@@ -692,10 +747,15 @@ export const trackOrders = async ({ phone, orderId }) => {
     }
 
     const orders = await Order.find(filter)
-        .populate(POPULATE_ORDER)
+        .select('-customer_id -employee_id')
+        .populate(TRACKING_POPULATE_ORDER)
+        .lean()
         .sort({ createdAt: -1 });
 
-    return orders;
+    return orders.map((order) => ({
+        ...order,
+        contact_info: maskTrackingContactInfo(order.contact_info),
+    }));
 };
 
 export const checkPaymentSuccess = async (order_id) => {

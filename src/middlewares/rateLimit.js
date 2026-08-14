@@ -45,3 +45,14 @@ export const orderLimit = rateLimit({
         message: 'RATE_LIMIT',
     },
 });
+
+export const trackingLimit = rateLimit({
+    windowMs: 60 * 1000, // 1 phút
+    max: 5, //  10 đơn hàng/phút
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+        status: false,
+        message: 'RATE_LIMIT',
+    },
+});
