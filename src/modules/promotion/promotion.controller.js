@@ -46,7 +46,8 @@ export const createPromotion = async (req, res) => {
 };
 
 export const getAllPromotions = async (req, res) => {
-    const result = await promotionService.getAll(req.query);
+    const includeCode = req.user?.role === 'admin';
+    const result = await promotionService.getAll(req.query, { includeCode });
     return res.status(200).json({
         data: result.data,
         pagination: result.pagination,
@@ -55,7 +56,10 @@ export const getAllPromotions = async (req, res) => {
 
 export const getPromotion = async (req, res) => {
     const { promotion_id } = req.params;
-    const result = await promotionService.getById(promotion_id);
+    const includeCode = req.user?.role === 'admin';
+    const result = await promotionService.getById(promotion_id, {
+        includeCode,
+    });
     return res.status(200).json({
         data: result,
     });

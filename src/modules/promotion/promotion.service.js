@@ -43,7 +43,7 @@ export const create = async (data) => {
     return result;
 };
 
-export const getAll = async (query = {}) => {
+export const getAll = async (query = {}, { includeCode = false } = {}) => {
     const { page, limit, ...filterParams } = query;
 
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
@@ -52,8 +52,13 @@ export const getAll = async (query = {}) => {
 
     const filter = { isDeleted: false, ...filterParams };
 
+    const promotionsQuery = Promotion.find(filter);
+    if (!includeCode) {
+        promotionsQuery.select('-code');
+    }
+
     const [data, total] = await Promise.all([
-        Promotion.find(filter)
+        promotionsQuery
             .populate('applicableStore')
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -72,11 +77,19 @@ export const getAll = async (query = {}) => {
     };
 };
 
-export const getById = async (promotion_id) => {
-    const promotion = await Promotion.findOne({
+export const getById = async (
+    promotion_id,
+    { includeCode = false } = {},
+) => {
+    const promotionQuery = Promotion.findOne({
         _id: promotion_id,
         isDeleted: false,
-    }).populate('applicableStore');
+    });
+    if (!includeCode) {
+        promotionQuery.select('-code');
+    }
+
+    const promotion = await promotionQuery.populate('applicableStore');
     if (!promotion) {
         throw new Error('PROMOTION_NOT_FOUND');
     }
