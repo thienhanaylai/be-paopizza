@@ -114,7 +114,7 @@ export const forgotPassword = async (req, res) => {
     );
 
     return res.status(200).json({
-        message: 'Nếu email thuộc tài khoản đang hoạt động, mã OTP đã được gửi.',
+        message: 'Mã OTP đã được gửi đến email.',
     });
 };
 

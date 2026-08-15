@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { Employee } from '../employee/employee.model.js';
 import { Customer } from '../customer/customer.model.js';
+import { NotFoundError } from '../../utils/appError.js';
 
 const OTP_TTL_MS = 5 * 60 * 1000;
 const MAX_OTP_ATTEMPTS = 5;
@@ -199,9 +200,12 @@ export const changePassword = async (userId, oldPass, newPass) => {
 export const requestPasswordReset = async (email, userType) => {
     const account = await findUserByResetEmail(email, userType);
 
-    // Always return success for a missing account so this endpoint cannot be
-    // used to discover which email addresses are registered.
-    if (!account) return { sent: false };
+    if (!account) {
+        throw new NotFoundError(
+            'Email này chưa đăng ký tài khoản.',
+            'EMAIL_NOT_REGISTERED',
+        );
+    }
 
     const otp = crypto.randomInt(100000, 1000000).toString();
     await sendPasswordResetOtpEmail({
