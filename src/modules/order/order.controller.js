@@ -245,15 +245,15 @@ export const customerCancelOrder = async (req, res) => {
     });
 };
 export const trackOrders = async (req, res) => {
-    const { phone, orderId } = req.query;
+    const { orderId } = req.query;
 
-    if (!phone && !orderId) {
+    if (!orderId) {
         return res.status(400).json({
-            message: 'Vui lòng cung cấp số điện thoại hoặc mã đơn hàng',
+            message: 'Vui lòng cung mã đơn hàng',
         });
     }
 
-    const result = await orderService.trackOrders({ phone, orderId });
+    const result = await orderService.trackOrders({ orderId });
 
     return res.status(200).json({
         data: result,

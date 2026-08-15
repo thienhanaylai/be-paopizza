@@ -730,7 +730,7 @@ export const getById = async (order_id) => {
     return order;
 };
 
-export const trackOrders = async ({ phone, orderId }) => {
+export const trackOrders = async ({ orderId }) => {
     // Tìm đơn hàng trong vòng 24h gần nhất
     const now = new Date();
     const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -742,8 +742,6 @@ export const trackOrders = async ({ phone, orderId }) => {
 
     if (orderId) {
         filter._id = orderId;
-    } else if (phone) {
-        filter['contact_info.phone'] = phone;
     }
 
     const orders = await Order.find(filter)
