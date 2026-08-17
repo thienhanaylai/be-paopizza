@@ -11,7 +11,7 @@ const SUPPORTED_QR_PAYMENT_METHODS = new Set(['qrCode', 'ewallet']);
 const buildTransferContent = (orderId) => `DH${orderId}`;
 
 const buildQrUrl = ({ amount, transferContent }) => {
-    return `https://qr.sepay.vn/img?acc=${BANK_ACCOUNT}&bank=${BANK_BIN}&amount=${amount}&des=${transferContent}`;
+    return `https://vietqr.app/img?acc=${BANK_ACCOUNT}&bank=${BANK_BIN}&amount=${amount}&des=${transferContent}`;
 };
 
 const extractApikeyToken = (rawValue = '') => {
