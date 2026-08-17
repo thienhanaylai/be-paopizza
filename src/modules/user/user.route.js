@@ -29,5 +29,10 @@ router.get(
     requireAdmin,
     asyncHandler(userController.getById),
 );
-router.put('/:id', asyncHandler(userController.update));
+router.put(
+    '/:id',
+    requireAuth,
+    requireAdmin,
+    asyncHandler(userController.update),
+);
 export default router;
