@@ -3,6 +3,33 @@ import passport from 'passport';
 import { z } from 'zod';
 import { validate } from '../../utils/validation.js';
 
+const ACCOUNT_LOCKED_MESSAGE =
+    'Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.';
+const REFRESH_COOKIE_NAMES = {
+    Employee: 'employeeRefreshToken',
+    Customer: 'customerRefreshToken',
+};
+
+const getRefreshCookieOptions = () => ({
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+});
+
+const sendLoginFailure = (res, info) => {
+    const isAccountLocked = info?.message === 'ACCOUNT_LOCKED';
+
+    return res.status(isAccountLocked ? 403 : 401).json({
+        success: false,
+        ...(isAccountLocked && { errorCode: 'ACCOUNT_LOCKED' }),
+        message: isAccountLocked
+            ? ACCOUNT_LOCKED_MESSAGE
+            : info?.message ||
+              'Tài khoản hoặc mật khẩu không chính xác.',
+    });
+};
+
 const passwordResetRequestSchema = z.object({
     email: z.string().email('Email không hợp lệ'),
     userType: z.enum(['Employee', 'Customer']),
@@ -23,11 +50,7 @@ export const EmployeeLogin = (req, res, next) => {
         }
 
         if (!user) {
-            return res.status(401).json({
-                success: false,
-                message:
-                    info?.message || 'Tài khoản hoặc mật khẩu không chính xác.',
-            });
+            return sendLoginFailure(res, info);
         }
         if (user.user_type === 'Customer')
             return res.status(403).json({
@@ -41,10 +64,12 @@ export const EmployeeLogin = (req, res, next) => {
             const { accessToken, refreshToken } =
                 authService.generateAuthTokens(user);
 
-            res.cookie('refreshToken', refreshToken, {
-                httpOnly: true,
-                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
-            });
+            res.cookie(
+                REFRESH_COOKIE_NAMES.Employee,
+                refreshToken,
+                getRefreshCookieOptions(),
+            );
+            res.clearCookie('refreshToken');
 
             return res.status(200).json({
                 message: 'Đăng nhập thành công',
@@ -69,11 +94,7 @@ export const CustomerLogin = (req, res, next) => {
         }
 
         if (!user) {
-            return res.status(401).json({
-                success: false,
-                message:
-                    info?.message || 'Tài khoản hoặc mật khẩu không chính xác.',
-            });
+            return sendLoginFailure(res, info);
         }
         if (user.user_type === 'Employee')
             return res.status(403).json({
@@ -87,10 +108,12 @@ export const CustomerLogin = (req, res, next) => {
             const { accessToken, refreshToken } =
                 authService.generateAuthTokens(user);
 
-            res.cookie('refreshToken', refreshToken, {
-                httpOnly: true,
-                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
-            });
+            res.cookie(
+                REFRESH_COOKIE_NAMES.Customer,
+                refreshToken,
+                getRefreshCookieOptions(),
+            );
+            res.clearCookie('refreshToken');
 
             return res.status(200).json({
                 message: 'Đăng nhập thành công',
@@ -156,33 +179,59 @@ export const resetPassword = async (req, res) => {
 };
 
 export const refreshToken = async (req, res) => {
-    try {
-        const oldRefreshToken = req.cookies.refreshToken;
+    const userType = req.body?.userType;
+    if (!Object.hasOwn(REFRESH_COOKIE_NAMES, userType)) {
+        return res.status(400).json({
+            success: false,
+            errorCode: 'INVALID_USER_TYPE',
+            message: 'Loại tài khoản không hợp lệ.',
+        });
+    }
 
+    const cookieName = REFRESH_COOKIE_NAMES[userType];
+    const oldRefreshToken = req.cookies[cookieName];
+
+    try {
         if (!oldRefreshToken) {
+            res.clearCookie('refreshToken');
             return res
                 .status(401)
                 .json({ message: 'Không tìm thấy Refresh Token' });
         }
 
         const { accessToken, refreshToken: newRefreshToken } =
-            await authService.refreshAuthTokens(oldRefreshToken);
+            await authService.refreshAuthTokens(oldRefreshToken, userType);
 
-        res.cookie('refreshToken', newRefreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
-
-        return res.status(200).json({ accessToken });
-    } catch (error) {
+        res.cookie(
+            cookieName,
+            newRefreshToken,
+            getRefreshCookieOptions(),
+        );
         res.clearCookie('refreshToken');
-        return res.status(403).json({ message: error.message });
+
+        return res.status(200).json({ accessToken, userType });
+    } catch (error) {
+        res.clearCookie(cookieName);
+        res.clearCookie('refreshToken');
+        return res.status(403).json({
+            success: false,
+            errorCode: error.errorCode || error.message,
+            message: error.message,
+        });
     }
 };
 
 export const logout = (req, res) => {
+    const userType = req.body?.userType;
+    const cookieName = REFRESH_COOKIE_NAMES[userType];
+
+    if (cookieName) {
+        res.clearCookie(cookieName);
+    } else {
+        Object.values(REFRESH_COOKIE_NAMES).forEach((name) =>
+            res.clearCookie(name),
+        );
+    }
     res.clearCookie('refreshToken');
     return res.status(200).json({ message: 'Đăng xuất thành công' });
 };

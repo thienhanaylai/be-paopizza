@@ -27,6 +27,12 @@ export const localStrategy = new LocalStrategy(
                 });
             }
 
+            if (user.status === false) {
+                return done(null, false, {
+                    message: 'ACCOUNT_LOCKED',
+                });
+            }
+
             return done(null, user);
         } catch (error) {
             return done(error, false);

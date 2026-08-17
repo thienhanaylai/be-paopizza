@@ -4,10 +4,14 @@ import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { Employee } from '../employee/employee.model.js';
 import { Customer } from '../customer/customer.model.js';
-import { NotFoundError } from '../../utils/appError.js';
+import { ForbiddenError, NotFoundError } from '../../utils/appError.js';
 
 const OTP_TTL_MS = 5 * 60 * 1000;
 const MAX_OTP_ATTEMPTS = 5;
+const ACCOUNT_LOCKED_MESSAGE =
+    'Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.';
+const SESSION_TYPE_MISMATCH_MESSAGE =
+    'Phiên đăng nhập không đúng loại tài khoản.';
 
 const hashOtp = (otp) => crypto.createHash('sha256').update(otp).digest('hex');
 
@@ -146,6 +150,7 @@ export const generateAuthTokens = (user) => {
     const payload = {
         id: user._id,
         role: user.role,
+        userType: user.user_type,
     };
 
     const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
@@ -158,20 +163,44 @@ export const generateAuthTokens = (user) => {
     return { accessToken, refreshToken };
 };
 
-export const refreshAuthTokens = async (oldRefreshToken) => {
+export const refreshAuthTokens = async (oldRefreshToken, expectedUserType) => {
     try {
         const decoded = jwt.verify(
             oldRefreshToken,
             process.env.REFRESH_TOKEN_SECRET,
         );
 
+        if (decoded.userType && decoded.userType !== expectedUserType) {
+            throw new ForbiddenError(
+                SESSION_TYPE_MISMATCH_MESSAGE,
+                'SESSION_TYPE_MISMATCH',
+            );
+        }
+
         const user = await User.findById(decoded.id);
         if (!user) {
             throw new Error('ACCOUNT_NOT_FOUND');
         }
 
+        if (user.status === false) {
+            throw new ForbiddenError(
+                ACCOUNT_LOCKED_MESSAGE,
+                'ACCOUNT_LOCKED',
+            );
+        }
+
+        if (user.user_type !== expectedUserType) {
+            throw new ForbiddenError(
+                SESSION_TYPE_MISMATCH_MESSAGE,
+                'SESSION_TYPE_MISMATCH',
+            );
+        }
+
         return generateAuthTokens(user);
-    } catch {
+    } catch (error) {
+        if (error instanceof ForbiddenError) {
+            throw error;
+        }
         throw new Error('INVALID_OR_EXPIRED_REFRESH_TOKEN');
     }
 };

@@ -20,6 +20,26 @@ export const authorize = (allowedRoles = []) => {
     };
 };
 
+export const authorizeUserType = (allowedUserTypes = []) => {
+    return (req, res, next) => {
+        if (!req.user) {
+            return res.status(401).json({
+                message: 'Vui lòng đăng nhập để tiếp tục',
+            });
+        }
+
+        if (!allowedUserTypes.includes(req.user.user_type)) {
+            return res.status(403).json({
+                success: false,
+                errorCode: 'ACCOUNT_TYPE_NOT_ALLOWED',
+                message: 'Loại tài khoản không được phép thực hiện thao tác này.',
+            });
+        }
+
+        next();
+    };
+};
+
 // nếu có jwt thì xác nhận là user, còn nếu là khách vãng lai thì vẫn cho đi tiếp để dặt hàng
 export const optionalAuth = (req, res, next) => {
     passport.authenticate('jwt', { session: false }, (err, user) => {
