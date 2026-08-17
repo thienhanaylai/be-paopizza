@@ -1,6 +1,7 @@
 import { Cart } from './cart.model.js';
 import { Product } from '../product/product.model.js';
 import { Combo } from '../combo/combo.model.js';
+import { getDiscountedVariantPrice } from '../../utils/variantPricing.js';
 
 export const getCart = async (data) => {
     const { userId } = data;
@@ -102,7 +103,8 @@ export const addToCart = async (data) => {
             throw new Error('SIZE_NOT_AVAILABLE');
         }
 
-        price = clientPrice > 0 ? clientPrice : variant.price;
+        // Giá sản phẩm phải được tính từ variant trong DB, không tin giá do FE gửi lên.
+        price = getDiscountedVariantPrice(variant);
         sku = variant.sku;
     } else if (item_type === 'combo') {
         const comboDoc = await Combo.findById(combo).select('price');

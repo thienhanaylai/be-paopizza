@@ -9,6 +9,7 @@ import { Customer } from '../customer/customer.model.js';
 import * as customerService from '../customer/customer.service.js';
 import { paymentService } from '../payment/payment.service.js';
 import * as inventoryService from '../inventory/inventory.service.js';
+import { getDiscountedVariantPrice } from '../../utils/variantPricing.js';
 
 const SEPAY_QR_PAYMENT_METHODS = new Set(['qrCode', 'ewallet']);
 const CASH_PAYMENT_METHODS = new Set(['cash']);
@@ -337,7 +338,7 @@ export const create = async (data) => {
 
             const [resolvedToppings] = await resolveToppingLists(added_topping);
 
-            price = Number(variant.price) + resolvedToppings.total;
+            price = getDiscountedVariantPrice(variant) + resolvedToppings.total;
             sku = variant.sku;
 
             if (variant.recipe?.length) {
