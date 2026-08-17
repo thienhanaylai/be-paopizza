@@ -72,6 +72,15 @@ export const create = async (req, res) => {
     const validation = validate(req, res, createEmployeeSchema);
     if (!validation.success) return;
 
+    // Manager được tạo manager/staff nhưng không được tự cấp quyền admin.
+    // Kiểm tra tại controller để không phụ thuộc duy nhất vào route middleware.
+    if (req.user?.role !== 'admin' && validation.data.role === 'admin') {
+        return res.status(403).json({
+            errorCode: 'ROLE_ASSIGNMENT_FORBIDDEN',
+            message: 'Manager không được tạo tài khoản admin',
+        });
+    }
+
     const response = await employeeService.createEmployee(validation.data);
 
     return res.status(201).json({
@@ -83,6 +92,13 @@ export const create = async (req, res) => {
 export const update = async (req, res) => {
     const validation = validate(req, res, updateEmployeeSchema);
     if (!validation.success) return;
+
+    if (req.user?.role !== 'admin' && validation.data.role === 'admin') {
+        return res.status(403).json({
+            errorCode: 'ROLE_ASSIGNMENT_FORBIDDEN',
+            message: 'Manager không được gán quyền admin',
+        });
+    }
 
     const { employee_id, ...updateData } = validation.data;
     const result = await employeeService.updateEmployee({
