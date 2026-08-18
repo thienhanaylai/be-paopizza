@@ -184,7 +184,13 @@ export const deleted = async (promotion_id) => {
     return promotion;
 };
 
-export const applyPromotion = async (code, orderTotal, storeId, customerId) => {
+export const applyPromotion = async (
+    code,
+    orderTotal,
+    storeId,
+    customerId,
+    { isEmployee = false } = {},
+) => {
     if (!code || orderTotal === undefined || orderTotal === null) {
         throw new Error('MISSING_CODE_OR_ORDER_TOTAL');
     }
@@ -286,6 +292,22 @@ export const applyPromotion = async (code, orderTotal, storeId, customerId) => {
     }
 
     // Khách vãng lai chỉ được áp dụng mã có point = 0 (miễn phí)
+    const isRedeemablePromo =
+        promotion.point != null && promotion.point >= 0;
+
+    // POS employee requests do not include a customer id for point-based codes.
+    if (isEmployee && isRedeemablePromo && !customerId) {
+        return {
+            valid: false,
+            code: promotion.code,
+            discountType:
+                promotion.type === 'percentage' ? 'percent' : 'fixed',
+            discountValue: promotion.value,
+            discountAmount: 0,
+            message: 'PROMOTION_REQUIRES_CUSTOMER',
+        };
+    }
+
     if (!customerId && promotion.point != null && promotion.point > 0) {
         return {
             valid: false,
@@ -327,8 +349,6 @@ export const applyPromotion = async (code, orderTotal, storeId, customerId) => {
         }
 
         // Kiểm tra promotion yêu cầu quy đổi (point >= 0) phải có bản ghi redeemPromotion chưa dùng hết
-        const isRedeemablePromo =
-            promotion.point != null && promotion.point >= 0;
         if (isRedeemablePromo) {
             const hasUnusedRedemption = customer.redeemPromotion?.some(
                 (rp) =>

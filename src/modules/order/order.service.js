@@ -1014,6 +1014,13 @@ export const updateStatus = async (order_id, status) => {
                 return { order: completedOrder, rewardedCustomer: null };
             }
 
+            if (
+                !CASH_PAYMENT_METHODS.has(currentOrder.paymentMethod) &&
+                currentOrder.paymentStatus !== 'success'
+            ) {
+                throw new Error('PAYMENT_REQUIRED_BEFORE_COMPLETION');
+            }
+
             const payload = { status };
             if (
                 CASH_PAYMENT_METHODS.has(currentOrder.paymentMethod) &&

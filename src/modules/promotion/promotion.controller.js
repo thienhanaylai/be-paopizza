@@ -133,6 +133,7 @@ export const applyPromoCode = async (req, res) => {
         orderTotal,
         storeId,
         customerId,
+        { isEmployee: req.user?.user_type === 'Employee' },
     );
     return res.status(200).json({
         data: result,
