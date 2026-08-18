@@ -604,6 +604,7 @@ export const create = async (data) => {
 
         const deliveryFee = calculateDeliveryFee(orderType, subTotal);
         const total = Math.max(0, subTotal + deliveryFee - discount_amount);
+        const isFreeOrder = total === 0;
         const orderData = {
             store_id,
             customer_id,
@@ -614,10 +615,13 @@ export const create = async (data) => {
             discount_amount,
             total,
             note,
-            status: 'pending',
+            // A fully discounted order does not need a cash/QR/card payment.
+            // This is calculated from authoritative DB prices and the final
+            // delivery fee, never from values sent by the client.
+            status: isFreeOrder ? 'confirmed' : 'pending',
             orderType,
             paymentMethod,
-            paymentStatus: 'pending',
+            paymentStatus: isFreeOrder ? 'success' : 'pending',
             contact_info,
             promotion_code: appliedPromotionCode,
         };
@@ -679,7 +683,7 @@ export const create = async (data) => {
 
     let payment_info = null;
 
-    if (SEPAY_QR_PAYMENT_METHODS.has(paymentMethod)) {
+    if (populatedOrder.total > 0 && SEPAY_QR_PAYMENT_METHODS.has(paymentMethod)) {
         payment_info = await paymentService.createPaymentRequest({
             orderId: populatedOrder._id.toString(),
         });

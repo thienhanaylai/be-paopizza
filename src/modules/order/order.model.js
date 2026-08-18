@@ -8,7 +8,9 @@ const ORDER_STATUSES = [
     'cancelled',
     'delivering',
 ];
-const PAYMENT_METHODS = ['cash', 'qrCode'];
+// Keep this list aligned with the order creation validator. A zero-value order
+// is considered paid regardless of which supported method the customer chose.
+const PAYMENT_METHODS = ['cash', 'qrCode', 'card', 'ewallet'];
 const PAYMENT_STATUSES = ['pending', 'success', 'failed'];
 const ORDER_TYPE = ['carry_out', 'dine_in', 'delivery'];
 
