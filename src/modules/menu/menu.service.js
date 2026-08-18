@@ -18,6 +18,12 @@ const productPopulate = {
 
 const comboPopulate = {
     path: 'combos.combo',
+    match: {
+        isDeleted: false,
+        isActive: true,
+        dateStart: { $lte: new Date() },
+        dateEnd: { $gte: new Date() },
+    },
     populate: [
         { path: 'rules.applicableCategories' },
         { path: 'rules.applicableProducts' },
@@ -159,6 +165,10 @@ export const update = async (data) => {
         .populate('store', 'name')
         .populate(productPopulate)
         .populate(comboPopulate);
+    // Lọc bỏ combo bị ẩn (match populate trả null nhưng vẫn giữ entry)
+    if (result && Array.isArray(result.combos)) {
+        result.combos = result.combos.filter((entry) => entry?.combo);
+    }
     return result;
 };
 
@@ -181,6 +191,13 @@ export const getAll = async (query = {}) => {
         Menu.countDocuments(filterParams),
     ]);
 
+    // Lọc bỏ combo bị ẩn (match populate trả null nhưng vẫn giữ entry)
+    for (const menu of data) {
+        if (Array.isArray(menu.combos)) {
+            menu.combos = menu.combos.filter((entry) => entry?.combo);
+        }
+    }
+
     return {
         data,
         pagination: {
@@ -200,6 +217,10 @@ export const getById = async (menu_id) => {
         .lean();
     if (!menu) {
         throw new Error('MENU_NOT_FOUND');
+    }
+    // Lọc bỏ combo bị ẩn (match populate trả null nhưng vẫn giữ entry)
+    if (Array.isArray(menu.combos)) {
+        menu.combos = menu.combos.filter((entry) => entry?.combo);
     }
     return menu;
 };
@@ -251,6 +272,10 @@ export const getByStore = async (store_id) => {
         .lean();
     if (!menu) {
         throw new Error('MENU_NOT_FOUND');
+    }
+    // Lọc bỏ combo bị ẩn (match populate trả null nhưng vẫn giữ entry)
+    if (Array.isArray(menu.combos)) {
+        menu.combos = menu.combos.filter((entry) => entry?.combo);
     }
     return menu;
 };
