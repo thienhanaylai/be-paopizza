@@ -38,6 +38,9 @@ const updateCartItemSchema = z.object({
     note: z.string().optional(),
     added_topping: z.array(z.any()).optional(),
     combo_selections: z.array(z.any()).optional(),
+    new_sku: z.string().optional(),
+    new_size: z.string().optional(),
+    new_crust: z.string().optional(),
 });
 
 export const getCart = async (req, res) => {

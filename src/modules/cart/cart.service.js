@@ -376,6 +376,9 @@ export const updateCartItem = async (data) => {
         note,
         added_topping,
         combo_selections,
+        new_sku,
+        new_size,
+        new_crust,
     } = data;
     const cart = await Cart.findOne({ user_id: userId });
     if (!cart) {
@@ -388,7 +391,7 @@ export const updateCartItem = async (data) => {
             return false;
 
         if (item_type === 'product') {
-            if (item.product_id.toString() !== product_id.toString()) {
+            if (!item.product_id || !product_id || item.product_id.toString() !== product_id.toString()) {
                 return false;
             }
             if (sku && item.sku !== sku) return false;
@@ -414,6 +417,45 @@ export const updateCartItem = async (data) => {
         } else {
             cart.items[itemIndex].quantity = quantity;
         }
+    }
+
+    // Khi chỉnh sửa product, thay thế variant ngay trên đúng cart item cũ.
+    // Không dùng addToCart vì addToCart sẽ tạo/cộng sang dòng có crust mới.
+    if (
+        item_type === 'product' &&
+        (new_sku !== undefined || new_size !== undefined || new_crust !== undefined)
+    ) {
+        const product = await Product.findById(product_id).select('variants');
+        if (!product) {
+            throw new Error('PRODUCT_NOT_FOUND');
+        }
+
+        const targetSize = new_size ?? cart.items[itemIndex].size;
+        const targetSku = new_sku ?? cart.items[itemIndex].sku;
+        const targetCrust = new_crust === undefined ? cart.items[itemIndex].crust : new_crust;
+        const matchesCrust = (variant) =>
+            !targetCrust || variant.crust?.includes(targetCrust);
+        const variant =
+            product.variants.find(
+                (candidate) =>
+                    candidate.sku === targetSku &&
+                    candidate.size?.toLowerCase() === targetSize?.toLowerCase() &&
+                    matchesCrust(candidate),
+            ) ||
+            product.variants.find(
+                (candidate) =>
+                    candidate.size?.toLowerCase() === targetSize?.toLowerCase() &&
+                    matchesCrust(candidate),
+            );
+
+        if (!variant) {
+            throw new Error('SIZE_NOT_AVAILABLE');
+        }
+
+        cart.items[itemIndex].sku = variant.sku;
+        cart.items[itemIndex].size = variant.size;
+        cart.items[itemIndex].crust = targetCrust || undefined;
+        cart.items[itemIndex].price = getDiscountedVariantPrice(variant);
     }
     if (note !== undefined) {
         cart.items[itemIndex].note = note;
