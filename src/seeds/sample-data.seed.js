@@ -404,6 +404,13 @@ const dateUtc = (year, monthIndex, day) =>
 
 const pick = (arr, index) => arr[index % arr.length];
 
+// Cart/order lưu một đế cụ thể, còn product variant lưu danh sách đế có thể chọn.
+// Chọn một đế hợp lệ để dữ liệu seed phản ánh đúng luồng checkout hiện tại.
+const pickCrust = (variant, index = 0) => {
+    const crusts = Array.isArray(variant?.crust) ? variant.crust : [];
+    return crusts.length ? crusts[index % crusts.length] : undefined;
+};
+
 const resolveActorRole = (employee) =>
     ['store_manager', 'manager'].includes(employee?.station)
         ? 'manager'
@@ -1486,6 +1493,7 @@ const seedSampleData = async () => {
                     sku: variantA.sku,
                     price: variantA.price,
                     size: variantA.size,
+                    crust: pickCrust(variantA, index),
                     quantity: 1 + (index % 3),
                     note: pick(cartNotes, index),
                     added_topping: [],
@@ -1499,6 +1507,7 @@ const seedSampleData = async () => {
                     sku: variantB.sku,
                     price: variantB.price,
                     size: variantB.size,
+                    crust: pickCrust(variantB, index + 1),
                     quantity: 1,
                     note: pick(cartNotes, index + 2),
                     added_topping: [],
@@ -1572,6 +1581,7 @@ const seedSampleData = async () => {
                     sku: variantA.sku,
                     price: variantA.price,
                     size: variantA.size,
+                    crust: pickCrust(variantA, index),
                     quantity: 1 + (index % 2),
                     note: pick(cartNotes, index),
                     added_topping: [],
@@ -1585,6 +1595,7 @@ const seedSampleData = async () => {
                     sku: variantB.sku,
                     price: variantB.price,
                     size: variantB.size,
+                    crust: pickCrust(variantB, index + 1),
                     quantity: 1,
                     note: pick(cartNotes, index + 1),
                     added_topping: [],

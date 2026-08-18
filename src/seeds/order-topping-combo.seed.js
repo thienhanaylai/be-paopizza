@@ -38,6 +38,11 @@ const randomItems = (arr, min, max) => {
 const randomInt = (min, max) =>
     min + Math.floor(Math.random() * (max - min + 1));
 
+const pickCrust = (variant) => {
+    const crusts = Array.isArray(variant?.crust) ? variant.crust : [];
+    return crusts.length ? randomItem(crusts) : undefined;
+};
+
 const pad = (num, len = 2) => String(num).padStart(len, '0');
 
 // ─── Seed ─────────────────────────────────────────────────────────────────────
@@ -151,6 +156,7 @@ const seedOrdersWithToppingAndCombo = async () => {
                             product_id: prod._id,
                             sku: variant.sku,
                             size: variant.size,
+                            crust: pickCrust(variant),
                             added_topping: selectionToppings,
                         });
                     }
@@ -214,6 +220,7 @@ const seedOrdersWithToppingAndCombo = async () => {
                     sku: variant.sku,
                     price: variant.price,
                     size: variant.size,
+                    crust: pickCrust(variant),
                     quantity: randomInt(1, 3),
                     note: randomItem(notes),
                     added_topping: itemToppings,
