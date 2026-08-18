@@ -3,6 +3,7 @@ import { Customer } from './customer.model.js';
 import { User } from '../user/user.model.js';
 import { z } from 'zod';
 import { phoneSchema, nameSchema, validate } from '../../utils/validation.js';
+import { ForbiddenError } from '../../utils/appError.js';
 
 const registerSchema = z.object({
     phone: z.string().min(1, 'Số điện thoại không được để trống'),
@@ -14,7 +15,9 @@ const registerSchema = z.object({
 });
 
 const updateCustomerSchema = z.object({
-    user_id: z.string().min(1, 'user_id không được để trống'),
+    // Customer requests are scoped to req.user. Admin requests may provide a
+    // target user_id to edit a customer account from the back office.
+    user_id: z.string().min(1, 'user_id không được để trống').optional(),
     name: nameSchema.optional(),
     phone: phoneSchema.optional(),
     address: z.string().optional(),
@@ -24,7 +27,6 @@ const updateCustomerSchema = z.object({
 });
 
 const addAddressSchema = z.object({
-    user_id: z.string().min(1, 'user_id không được để trống'),
     name: z.string().min(1, 'Tên không được để trống'),
     phone: z.string().min(1, 'Số điện thoại không được để trống'),
     address: z.string().min(1, 'Địa chỉ không được để trống'),
@@ -32,7 +34,6 @@ const addAddressSchema = z.object({
 });
 
 const updateAddressSchema = z.object({
-    user_id: z.string().min(1, 'user_id không được để trống'),
     address_id: z.string().min(1, 'address_id không được để trống'),
     name: z.string().optional(),
     phone: z.string().optional(),
@@ -41,9 +42,43 @@ const updateAddressSchema = z.object({
 });
 
 const defaultAddressSchema = z.object({
-    user_id: z.string().min(1, 'user_id không được để trống'),
     address_id: z.string().min(1, 'address_id không được để trống'),
 });
+
+const deleteAddressSchema = z.object({
+    address_id: z.string().min(1, 'address_id không được để trống'),
+});
+
+const getAuthenticatedCustomerUserId = (req) => {
+    if (req.user?.user_type !== 'Customer' || !req.user?._id) {
+        throw new ForbiddenError(
+            'Bạn không có quyền thao tác trên hồ sơ khách hàng này',
+            'CUSTOMER_ACCESS_FORBIDDEN',
+        );
+    }
+
+    return req.user._id.toString();
+};
+
+const getUpdateTargetUserId = (req, requestedUserId) => {
+    if (req.user?.user_type === 'Customer') {
+        // Never trust a customer-supplied user_id. This also keeps backward
+        // compatibility with existing FE payloads that still include it.
+        return getAuthenticatedCustomerUserId(req);
+    }
+
+    if (req.user?.user_type === 'Employee' && req.user?.role === 'admin') {
+        if (!requestedUserId) {
+            throw new Error('user_id missing!');
+        }
+        return requestedUserId;
+    }
+
+    throw new ForbiddenError(
+        'Bạn không có quyền cập nhật hồ sơ khách hàng',
+        'CUSTOMER_ACCESS_FORBIDDEN',
+    );
+};
 
 const getCustomerByUserId = async (userId) => {
     const user = await User.findById(userId);
@@ -75,9 +110,9 @@ export const update = async (req, res) => {
     const validation = validate(req, res, updateCustomerSchema);
     if (!validation.success) return;
 
-    const { user_id, ...updateData } = validation.data;
+    const { user_id: requestedUserId, ...updateData } = validation.data;
     const result = await customerService.updateCustomer({
-        user_id,
+        user_id: getUpdateTargetUserId(req, requestedUserId),
         ...updateData,
     });
 
@@ -91,7 +126,10 @@ export const addAddress = async (req, res) => {
     const validation = validate(req, res, addAddressSchema);
     if (!validation.success) return;
 
-    await customerService.addAddress(validation.data);
+    await customerService.addAddress({
+        ...validation.data,
+        user_id: getAuthenticatedCustomerUserId(req),
+    });
 
     return res.status(201).json({
         message: 'Thêm địa chỉ giao hàng thành công',
@@ -102,7 +140,10 @@ export const updateAddress = async (req, res) => {
     const validation = validate(req, res, updateAddressSchema);
     if (!validation.success) return;
 
-    await customerService.updateAddress(validation.data);
+    await customerService.updateAddress({
+        ...validation.data,
+        user_id: getAuthenticatedCustomerUserId(req),
+    });
 
     return res.status(200).json({
         message: 'Cập nhật địa chỉ giao hàng thành công',
@@ -113,7 +154,10 @@ export const setDefaultAddress = async (req, res) => {
     const validation = validate(req, res, defaultAddressSchema);
     if (!validation.success) return;
 
-    await customerService.setDefaultAddress(validation.data);
+    await customerService.setDefaultAddress({
+        ...validation.data,
+        user_id: getAuthenticatedCustomerUserId(req),
+    });
 
     return res.status(201).json({
         message: 'Đặt địa chỉ mặc định thành công',
@@ -121,12 +165,9 @@ export const setDefaultAddress = async (req, res) => {
 };
 
 export const getAllListAddress = async (req, res) => {
-    const { user_id } = req.body;
-    if (!user_id) {
-        throw new Error('user_id missing!');
-    }
-
-    const customer = await getCustomerByUserId(user_id);
+    const customer = await getCustomerByUserId(
+        getAuthenticatedCustomerUserId(req),
+    );
 
     return res.status(200).json({
         data: customer.listAddress ?? [],
@@ -134,15 +175,14 @@ export const getAllListAddress = async (req, res) => {
 };
 
 export const deleteAddress = async (req, res) => {
-    const { user_id, address_id } = req.body;
-    if (!user_id) {
-        throw new Error('user_id missing!');
-    }
-    if (!address_id) {
-        throw new Error('address_id missing!');
-    }
+    const validation = validate(req, res, deleteAddressSchema);
+    if (!validation.success) return;
 
-    const customer = await getCustomerByUserId(user_id);
+    const { address_id } = validation.data;
+
+    const customer = await getCustomerByUserId(
+        getAuthenticatedCustomerUserId(req),
+    );
     const addressIndex = customer.listAddress.findIndex(
         (item) => item._id.toString() === address_id.toString(),
     );
