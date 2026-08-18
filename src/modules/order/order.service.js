@@ -301,7 +301,9 @@ export const create = async (data) => {
             item_type = 'product',
             product_id,
             combo_id,
+            sku: requestedSku,
             size,
+            crust,
             quantity = 1,
             note = '',
             added_topping = [],
@@ -329,9 +331,20 @@ export const create = async (data) => {
                 throw new Error('PRODUCT_NOT_FOUND');
             }
 
-            const variant = product.variants.find(
-                (v) => v.size.toLowerCase() === size.toLowerCase(),
-            );
+            const matchesCrust = (variant) =>
+                !crust || variant.crust?.includes(crust);
+            const variant =
+                product.variants.find(
+                    (v) =>
+                        v.sku === requestedSku &&
+                        v.size.toLowerCase() === size.toLowerCase() &&
+                        matchesCrust(v),
+                ) ||
+                product.variants.find(
+                    (v) =>
+                        v.size.toLowerCase() === size.toLowerCase() &&
+                        matchesCrust(v),
+                );
             if (!variant) {
                 throw new Error('SIZE_NOT_AVAILABLE');
             }
@@ -358,6 +371,7 @@ export const create = async (data) => {
                 sku,
                 price,
                 size,
+                crust: crust || undefined,
                 quantity,
                 note,
                 added_topping: resolvedToppings.items,

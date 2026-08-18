@@ -8,6 +8,8 @@ const addToCartSchema = z.object({
     }),
     product_id: z.string().optional(),
     size: z.string().optional(),
+    sku: z.string().optional(),
+    crust: z.string().optional(),
     quantity: z.coerce.number().int().min(1).default(1),
     note: z.string().default(''),
     added_topping: z.array(z.any()).optional(),
@@ -22,6 +24,7 @@ const removeFromCartSchema = z.object({
     combo: z.string().optional(),
     size: z.string().optional(),
     sku: z.string().optional(),
+    crust: z.string().optional(),
 });
 
 const updateCartItemSchema = z.object({
@@ -30,6 +33,7 @@ const updateCartItemSchema = z.object({
     combo: z.string().optional(),
     size: z.string().optional(),
     sku: z.string().optional(),
+    crust: z.string().optional(),
     quantity: z.coerce.number().int().min(0).optional(),
     note: z.string().optional(),
     added_topping: z.array(z.any()).optional(),

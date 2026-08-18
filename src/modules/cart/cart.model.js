@@ -72,6 +72,10 @@ const itemSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
+        crust: {
+            type: String,
+            trim: true,
+        },
         quantity: {
             type: Number,
             required: true,

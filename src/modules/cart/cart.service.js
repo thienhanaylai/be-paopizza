@@ -155,6 +155,8 @@ export const addToCart = async (data) => {
         item_type = 'product',
         product_id,
         size = '',
+        sku: requestedSku,
+        crust,
         quantity = 1,
         note = '',
         added_topping = [],
@@ -212,9 +214,20 @@ export const addToCart = async (data) => {
             throw new Error('PRODUCT_NOT_FOUND');
         }
 
-        const variant = product.variants.find(
-            (item) => item.size.toLowerCase() === size.toLowerCase(),
-        );
+        const matchesCrust = (variant) =>
+            !crust || variant.crust?.includes(crust);
+        const variant =
+            product.variants.find(
+                (item) =>
+                    item.sku === requestedSku &&
+                    item.size.toLowerCase() === size.toLowerCase() &&
+                    matchesCrust(item),
+            ) ||
+            product.variants.find(
+                (item) =>
+                    item.size.toLowerCase() === size.toLowerCase() &&
+                    matchesCrust(item),
+            );
         if (!variant) {
             throw new Error('SIZE_NOT_AVAILABLE');
         }
@@ -252,7 +265,11 @@ export const addToCart = async (data) => {
         if (item.size.toLowerCase() !== size.toLowerCase()) return false;
 
         if (item_type === 'product') {
-            return item.product_id.toString() === product_id.toString();
+            return (
+                item.product_id.toString() === product_id.toString() &&
+                item.sku === sku &&
+                (crust ? item.crust === crust : !item.crust)
+            );
         } else {
             // Cùng combo và cùng selection mới tính là trùng
             return (
@@ -281,6 +298,7 @@ export const addToCart = async (data) => {
             price,
             sku,
             size,
+            crust: crust || undefined,
             quantity,
             note,
             added_topping: normalizedToppings,
@@ -308,6 +326,7 @@ export const removeFromCart = async (data) => {
         combo,
         size,
         sku,
+        crust,
     } = data;
     const cart = await Cart.findOne({ user_id: userId });
     if (!cart) {
@@ -323,7 +342,12 @@ export const removeFromCart = async (data) => {
 
         if (item_type === 'product') {
             if (!item.product_id || !product_id) return true;
-            return item.product_id.toString() !== product_id.toString();
+            if (item.product_id.toString() !== product_id.toString()) {
+                return true;
+            }
+            if (sku && item.sku !== sku) return true;
+            if (crust !== undefined && item.crust !== crust) return true;
+            return false;
         } else {
             // Nếu có sku thì xóa theo sku (phân biệt các selection khác nhau của cùng combo)
             if (sku) {
@@ -347,6 +371,7 @@ export const updateCartItem = async (data) => {
         combo,
         size = '',
         sku,
+        crust,
         quantity,
         note,
         added_topping,
@@ -363,7 +388,12 @@ export const updateCartItem = async (data) => {
             return false;
 
         if (item_type === 'product') {
-            return item.product_id.toString() === product_id.toString();
+            if (item.product_id.toString() !== product_id.toString()) {
+                return false;
+            }
+            if (sku && item.sku !== sku) return false;
+            if (crust !== undefined && item.crust !== crust) return false;
+            return true;
         } else {
             //  ưu tiên tìm theo sku (COMBO-<id>-1) để phân biệt các selection khác nhau
             if (sku) {
