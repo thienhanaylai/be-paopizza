@@ -17,6 +17,7 @@ const createComboSchema = z.object({
     price: z.coerce.number().min(0, 'Giá combo phải lớn hơn hoặc bằng 0'),
     rules: z.array(z.any()).optional(),
     isActive: booleanSchema,
+    isHalfHalf: booleanSchema.optional(),
     image: z.string().optional(),
 });
 
@@ -32,6 +33,7 @@ const updateComboSchema = z.object({
     price: z.coerce.number().min(0).optional(),
     rules: z.array(z.any()).optional(),
     isActive: booleanSchema.optional(),
+    isHalfHalf: booleanSchema.optional(),
     image: z.string().optional(),
 });
 

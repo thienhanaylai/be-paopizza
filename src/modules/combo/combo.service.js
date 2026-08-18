@@ -172,6 +172,7 @@ export const create = async (data, file) => {
         image = '',
         rules,
         isActive,
+        isHalfHalf,
     } = data;
 
     const discountType = parseDiscountType(getDiscountType(data));
@@ -227,6 +228,9 @@ export const create = async (data, file) => {
     if (isActive !== undefined) {
         payload.isActive = parseBoolean(isActive, 'isActive');
     }
+    if (isHalfHalf !== undefined) {
+        payload.isHalfHalf = parseBoolean(isHalfHalf, 'isHalfHalf');
+    }
 
     return await Combo.create(payload);
 };
@@ -274,6 +278,12 @@ export const update = async (data, file) => {
     }
     if (updateData.isActive !== undefined) {
         updateData.isActive = parseBoolean(updateData.isActive, 'isActive');
+    }
+    if (updateData.isHalfHalf !== undefined) {
+        updateData.isHalfHalf = parseBoolean(
+            updateData.isHalfHalf,
+            'isHalfHalf',
+        );
     }
 
     // Khi chuyển sang static mà không có price thì báo lỗi

@@ -378,7 +378,7 @@ export const create = async (data) => {
 
             const comboDoc = await Combo.findById(combo_id)
                 .select(
-                    'price pricingType discountType discount rules isActive isDeleted dateStart dateEnd',
+                    'price pricingType discountType discount rules isActive isDeleted dateStart dateEnd isHalfHalf',
                 )
                 .lean();
             if (!comboDoc || comboDoc.isDeleted || !comboDoc.isActive) {
@@ -504,6 +504,7 @@ export const create = async (data) => {
                 added_topping: resolvedComboToppings.items,
                 combo: combo_id,
                 combo_selections: normalizedSelections,
+                isHalfHalf: comboDoc.isHalfHalf === true,
             });
         } else {
             throw new Error('INVALID_ITEM_TYPE');
@@ -815,6 +816,23 @@ const extractIngredientsFromOrder = (order) => {
         }
 
         if (item.item_type === 'combo' && item.combo_selections?.length) {
+            // Half-half: các selection là các nửa của CÙNG MỘT bánh (cùng product + size).
+            // Recipe của mỗi selection chỉ tính 1 phần (chia đều cho nhóm), topping vẫn tính đủ.
+            const isHalfHalf = item.isHalfHalf === true;
+
+            // Gom selection theo product_id + size để biết nhóm nào là các nửa của cùng 1 bánh
+            const halfGroups = new Map();
+            if (isHalfHalf) {
+                for (const sel of item.combo_selections) {
+                    const productKey = sel.product_id?._id?.toString() || sel.product_id?.toString();
+                    if (!productKey) continue;
+                    const sizeKey = (sel.size || '').toLowerCase();
+                    const groupKey = `${productKey}::${sizeKey}`;
+                    if (!halfGroups.has(groupKey)) halfGroups.set(groupKey, []);
+                    halfGroups.get(groupKey).push(sel);
+                }
+            }
+
             for (const sel of item.combo_selections) {
                 if (sel.product_id?.variants) {
                     const variant = sel.product_id.variants.find(
@@ -822,12 +840,23 @@ const extractIngredientsFromOrder = (order) => {
                             v.size?.toLowerCase() === sel.size?.toLowerCase(),
                     );
                     if (variant?.recipe) {
+                        // Half-half: mỗi selection trong cùng nhóm chỉ đóng góp 1/n recipe của bánh đó
+                        let recipeFactor = 1;
+                        if (isHalfHalf) {
+                            const productKey = sel.product_id?._id?.toString() || sel.product_id?.toString();
+                            const sizeKey = (sel.size || '').toLowerCase();
+                            const group = halfGroups.get(`${productKey}::${sizeKey}`);
+                            if (group && group.length > 1) {
+                                recipeFactor = 1 / group.length;
+                            }
+                        }
                         for (const rec of variant.recipe) {
                             const ingId =
                                 rec.ingredient?._id?.toString() ||
                                 rec.ingredient?.toString();
                             if (!ingId) continue;
-                            const qty = (rec.quantity || 0) * itemQty;
+                            const qty =
+                                (rec.quantity || 0) * itemQty * recipeFactor;
                             ingredientsMap.set(
                                 ingId,
                                 (ingredientsMap.get(ingId) || 0) + qty,
@@ -836,7 +865,7 @@ const extractIngredientsFromOrder = (order) => {
                     }
                 }
 
-                // added_topping trong combo_selection
+                // added_topping trong combo_selection (luôn tính đủ, không chia)
                 if (sel.added_topping?.length) {
                     for (const topping of sel.added_topping) {
                         const ingId =

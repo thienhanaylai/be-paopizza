@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { boolean } from 'zod';
 
 const ruleSchema = new mongoose.Schema(
     {
@@ -90,6 +91,10 @@ const comboSchema = new mongoose.Schema(
             default: true,
         },
         isDeleted: {
+            type: Boolean,
+            default: false,
+        },
+        isHalfHalf: {
             type: Boolean,
             default: false,
         },

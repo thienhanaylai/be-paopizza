@@ -133,6 +133,10 @@ const itemSchema = new mongoose.Schema(
                 return this.item_type === 'combo' ? [] : undefined;
             },
         },
+        isHalfHalf: {
+            type: Boolean,
+            default: false,
+        },
     },
     { _id: false },
 );
