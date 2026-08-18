@@ -3,6 +3,122 @@ import { Product } from '../product/product.model.js';
 import { Combo } from '../combo/combo.model.js';
 import { getDiscountedVariantPrice } from '../../utils/variantPricing.js';
 
+const applyComboDiscount = (basePrice, combo) => {
+    const discount = Number(combo?.discount) || 0;
+
+    if (combo?.discountType === 'percent') {
+        return Math.max(0, basePrice * (1 - discount / 100));
+    }
+    if (combo?.discountType === 'amount') {
+        return Math.max(0, basePrice - discount);
+    }
+
+    return basePrice;
+};
+
+const getToppingTotal = (toppings = []) =>
+    toppings.reduce((total, topping) => {
+        const ingredient = topping?.ingredient;
+        const price =
+            ingredient && typeof ingredient === 'object'
+                ? Number(ingredient.price) || 0
+                : 0;
+        const quantity = Math.max(1, Number(topping?.quantity) || 1);
+        return total + price * quantity;
+    }, 0);
+
+const findSelectionVariant = (selection) => {
+    const product = selection?.product_id;
+    if (!product || typeof product !== 'object') return null;
+
+    return (
+        product.variants?.find(
+            (variant) =>
+                variant.sku === selection.sku &&
+                variant.size?.toLowerCase() === selection.size?.toLowerCase(),
+        ) || null
+    );
+};
+
+const refreshCartPrices = async (cart) => {
+    let hasPriceChange = false;
+
+    for (const item of cart.items) {
+        let refreshedPrice = null;
+
+        if (item.item_type === 'product') {
+            const product = item.product_id;
+            if (product && typeof product === 'object') {
+                const variant =
+                    product.variants?.find(
+                        (candidate) => candidate.sku === item.sku,
+                    ) ||
+                    product.variants?.find(
+                        (candidate) =>
+                            candidate.size?.toLowerCase() ===
+                            item.size?.toLowerCase(),
+                    );
+
+                if (variant) {
+                    refreshedPrice =
+                        getDiscountedVariantPrice(variant) +
+                        getToppingTotal(item.added_topping);
+                }
+            }
+        } else if (
+            item.item_type === 'combo' &&
+            item.combo &&
+            typeof item.combo === 'object'
+        ) {
+            const combo = item.combo;
+            let comboBasePrice = Number(combo.price) || 0;
+
+            if (combo.pricingType === 'dynamic') {
+                const variants = item.combo_selections.map((selection) =>
+                    findSelectionVariant(selection),
+                );
+
+                if (variants.every(Boolean)) {
+                    const selectionBasePrice = variants.reduce(
+                        (total, variant) => total + Number(variant.price || 0),
+                        0,
+                    );
+                    comboBasePrice = applyComboDiscount(
+                        selectionBasePrice,
+                        combo,
+                    );
+                } else {
+                    comboBasePrice = null;
+                }
+            }
+
+            if (comboBasePrice !== null) {
+                const selectionToppingTotal = item.combo_selections.reduce(
+                    (total, selection) =>
+                        total + getToppingTotal(selection.added_topping),
+                    0,
+                );
+                refreshedPrice =
+                    comboBasePrice +
+                    getToppingTotal(item.added_topping) +
+                    selectionToppingTotal;
+            }
+        }
+
+        if (refreshedPrice !== null && Number(item.price) !== refreshedPrice) {
+            item.price = refreshedPrice;
+            hasPriceChange = true;
+        }
+    }
+
+    if (hasPriceChange) {
+        cart.markModified('items');
+        await cart.save();
+    }
+
+    return cart;
+};
+
 export const getCart = async (data) => {
     const { userId } = data;
     let cart = await Cart.findOne({ user_id: userId })
@@ -12,7 +128,7 @@ export const getCart = async (data) => {
         })
         .populate({
             path: 'items.combo',
-            select: 'name price image',
+            select: 'name price image pricingType discountType discount',
         })
         .populate({
             path: 'items.combo_selections.product_id',
@@ -30,7 +146,7 @@ export const getCart = async (data) => {
         cart = await Cart.create({ user_id: userId });
     }
 
-    return cart;
+    return refreshCartPrices(cart);
 };
 
 export const addToCart = async (data) => {
@@ -44,7 +160,7 @@ export const addToCart = async (data) => {
         added_topping = [],
         combo,
         combo_selections = [],
-        price: clientPrice,
+        merge = false,
     } = data;
 
     // Chuẩn hoá added_topping: nếu là string[] thì chuyển thành [{ ingredient, quantity: 1 }]
@@ -107,11 +223,14 @@ export const addToCart = async (data) => {
         price = getDiscountedVariantPrice(variant);
         sku = variant.sku;
     } else if (item_type === 'combo') {
-        const comboDoc = await Combo.findById(combo).select('price');
+        const comboDoc =
+            await Combo.findById(combo).select('price pricingType');
         if (!comboDoc) {
             throw new Error('COMBO_NOT_FOUND');
         }
-        price = clientPrice > 0 ? clientPrice : comboDoc.price;
+        // Dynamic combo prices are recalculated from current DB variants in
+        // getCart(). Never persist a client-supplied price.
+        price = comboDoc.pricingType === 'static' ? comboDoc.price : 0;
 
         // Đếm số lượng item combo cùng loại đã có trong giỏ (cùng combo_id)
         const sameComboCount = cart.items.filter(
@@ -147,7 +266,9 @@ export const addToCart = async (data) => {
     });
 
     if (existingIndex !== -1) {
-        cart.items[existingIndex].quantity = 1;
+        cart.items[existingIndex].quantity = merge
+            ? cart.items[existingIndex].quantity + quantity
+            : 1;
         cart.items[existingIndex].price = price;
         cart.items[existingIndex].sku = sku;
         if (note) cart.items[existingIndex].note = note;

@@ -13,6 +13,7 @@ const addToCartSchema = z.object({
     added_topping: z.array(z.any()).optional(),
     combo: z.string().optional(),
     combo_selections: z.array(z.any()).optional(),
+    merge: z.boolean().optional().default(false),
 });
 
 const removeFromCartSchema = z.object({
