@@ -177,15 +177,16 @@ export const getStore = async (store_id) => {
 };
 
 export const getAllStore = async (query = {}) => {
-    const { page, limit, ...filterParams } = query;
+    const { page, limit, includeClosed, ...filterParams } = query;
 
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
     const limitNum = Math.max(1, parseInt(limit, 10) || 10);
     const skip = (pageNum - 1) * limitNum;
 
-    const filter = {
-        ...getActiveStoreFilter(),
-    };
+    const filter =
+        includeClosed === true || includeClosed === 'true'
+            ? {}
+            : getActiveStoreFilter();
 
     if (filterParams.city) {
         filter['address.city'] = { $regex: new RegExp(filterParams.city, 'i') };
